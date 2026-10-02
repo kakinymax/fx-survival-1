@@ -1,4 +1,7 @@
 *.png
 .sites-runtime/
 node_modules/
+.wrangler/
+dist/server/
+server/generated-assets.js
 *.tar.gz
