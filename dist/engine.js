@@ -36,7 +36,7 @@ export function settle(player, order, direction, m) {
 export function createGame(names, mode='auto', stageId='classic') {
   if(names.length<2||names.length>6||names.some(n=>!n.trim())) throw Error('2〜6人の名前が必要です');
   const stage=getStage(stageId);
-  return {version:1,flowVersion:2,stage:stage.id,round:1,phase:'order',cursor:0,mode,players:names.map((name,id)=>({id,name:name.trim(),wealth:INITIAL,peak:INITIAL,maxPosition:'0',status:'active'})),orders:{},decisions:{},lastDecisions:null,direction:null,first:null,second:null,history:[]};
+  return {version:1,flowVersion:3,stage:stage.id,round:1,phase:'order',cursor:0,mode,players:names.map((name,id)=>({id,name:name.trim(),wealth:INITIAL,peak:INITIAL,maxPosition:'0',status:'active'})),orders:{},decisions:{},lastDecisions:null,direction:null,first:null,second:null,history:[]};
 }
 export function activePlayers(g){return g.players.filter(p=>p.status==='active')}
 export function submitOrder(g, order){
@@ -54,15 +54,12 @@ export function resolveRound(g){
   if(g.round===12){g.players=g.players.map(p=>p.status==='active'?{...p,status:'fixed'}:p)}
   g.phase=activePlayers(g).length?'results':'end';g.cursor=0;
 }
-export function startDecisions(g){
-  if(g.phase!=='results')throw Error('精算後に選択できます');
-  g.phase=activePlayers(g).length?'decision':'end';g.cursor=0;
-}
-export function submitDecision(g, decision){
-  const p=activePlayers(g)[g.cursor];
-  if(g.phase!=='decision'||!p||!['continue','fix'].includes(decision))throw Error('続行か資産確定を選んでください');
-  g.decisions[p.id]=decision;g.cursor++;
-  if(g.cursor===activePlayers(g).length){g.phase='ready-decisions';revealDecisions(g);nextRound(g)}else g.phase='decision';
+export function commitDecisions(g, decisions=g.decisions){
+  if(g.phase!=='results')throw Error('精算結果の画面で進退を確定できます');
+  const active=activePlayers(g),ids=active.map(p=>String(p.id));
+  if(!decisions||typeof decisions!=='object'||Array.isArray(decisions)||!active.length||Object.keys(decisions).length!==active.length||Object.keys(decisions).some(id=>!ids.includes(id))||active.some(p=>!Object.hasOwn(decisions,p.id)||!['continue','fix'].includes(decisions[p.id])))throw Error('取引中の全員の続行／資産確定を記録してください');
+  g.decisions=Object.fromEntries(active.map(p=>[p.id,decisions[p.id]]));
+  g.phase='ready-decisions';revealDecisions(g);nextRound(g);
 }
 export function revealDecisions(g){
   if(g.phase!=='ready-decisions')throw Error('全員の選択が必要です');
@@ -84,14 +81,14 @@ export function prepareAutoMarket(g, roll=randomFace){
   g.direction=direction;g.first=first;g.second=second;g.phase='drawing';
 }
 export function migrateGame(g){
-  g.stage=g.stage??'classic';getStage(g.stage);g.lastDecisions=g.lastDecisions??null;
-  const phases={'handoff-order':'order','ready-orders':'orders-revealed',direction:'orders-revealed','handoff-decision':'decision'};
+  g.stage=g.stage??'classic';getStage(g.stage);g.lastDecisions=g.lastDecisions??null;g.decisions=g.decisions??{};
+  const phases={'handoff-order':'order','ready-orders':'orders-revealed',direction:'orders-revealed','handoff-decision':'results',decision:'results'};
   g.phase=phases[g.phase]??g.phase;
   if(['market-ready','drawing'].includes(g.phase))resolveRound(g);
   if(g.phase==='ready-decisions'){revealDecisions(g);nextRound(g)}
   else if(g.phase==='revealed-decisions')nextRound(g);
   if(g.phase==='results'&&!activePlayers(g).length)g.phase='end';
-  g.flowVersion=2;return g;
+  g.flowVersion=3;return g;
 }
 export function winners(g){
   const max=g.players.reduce((a,p)=>BigInt(p.wealth)>a?BigInt(p.wealth):a,0n);
