@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {market,roundUnits,settle,createGame,submitOrder,resolveRound,commitDecisions,winners,money,STAGES,getStage,prepareAutoMarket,migrateGame} from '../dist/engine.js';
+import {market,roundUnits,settle,createGame,submitOrder,resolveRound,commitDecisions,winners,money,STAGES,getStage,prepareAutoDraw,finishAutoDraw,migrateGame} from '../dist/engine.js';
 const player=(wealth)=>({id:0,name:'A',wealth:String(BigInt(wealth)*10n),peak:String(BigInt(wealth)*10n),maxPosition:'0',status:'active'});
 test('v1.0 examples: profit, loss, normal cut, gap debt, gap profit',()=>{
  const examples=[[100,'buy',50,'up',market(4),'1250','active'],[400,'sell',80,'up',market(4),'2400','active'],[5000,'buy',100,'down',market(6,1),'0','cut'],[5000,'buy',100,'down',market(6,5),'-200000','debt'],[1000,'sell',100,'down',market(6,5),'60000','active']];
@@ -56,12 +56,28 @@ test('direct order turns remain secret; public decision drafts commit and advanc
  const g=createGame(['A','B','C']);assert.equal(g.phase,'order');submitOrder(g,{side:'buy',leverage:73});assert.equal(g.phase,'order');assert.equal(g.cursor,1);submitOrder(g,{side:'sell',leverage:1});assert.equal(g.phase,'order');submitOrder(g,{side:'buy',leverage:1});assert.equal(g.phase,'orders-revealed');
  playMarket(g,1);g.decisions={0:'fix'};assert.equal(g.players[0].status,'active');assert.equal(g.lastDecisions,null);assert.throws(()=>commitDecisions(g));assert.equal(g.phase,'results');g.decisions[1]='continue';g.decisions[2]='continue';commitDecisions(g);assert.equal(g.phase,'order');assert.equal(g.round,2);assert.equal(g.cursor,0);assert.equal(g.players[0].status,'fixed');assert.deepEqual(g.orders,{});assert.deepEqual(g.decisions,{});assert.equal(g.lastDecisions.round,1);assert.deepEqual(g.history[0].decisions,{0:'fix',1:'continue',2:'continue'});
 });
-test('a single automatic draw includes shock and rejects a second draw; reload settles once',()=>{
- const g=createGame(['A','B'],'auto','tryjpy');orderAll(g,100);const faces=[1,6,6],calls=[];prepareAutoMarket(g,sides=>{calls.push(sides);return faces.shift()});assert.deepEqual(calls,[2,6,6]);assert.equal(g.phase,'drawing');assert.throws(()=>prepareAutoMarket(g));const saved=JSON.parse(JSON.stringify(g));migrateGame(saved);assert.equal(saved.phase,'results');assert.equal(saved.players[0].wealth,'21000');assert.equal(saved.history.length,1);migrateGame(saved);assert.equal(saved.history.length,1);
+test('automatic direction, first die and shock each stop without settlement or rerolls',()=>{
+ const g=createGame(['A','B'],'auto','tryjpy');orderAll(g,100);const faces=[1,6,6],calls=[],roll=sides=>{calls.push(sides);return faces.shift()};
+ prepareAutoDraw(g,'direction',roll);assert.equal(g.phase,'drawing');assert.equal(g.first,null);assert.equal(g.second,null);assert.throws(()=>prepareAutoDraw(g,'direction',roll));assert.throws(()=>resolveRound(g));
+ finishAutoDraw(g);assert.equal(g.phase,'direction-result');assert.equal(g.direction,'up');assert.throws(()=>prepareAutoDraw(g,'direction',roll));
+ prepareAutoDraw(g,'first',roll);const saved=migrateGame(JSON.parse(JSON.stringify(g)));assert.equal(saved.phase,'movement-result');assert.equal(saved.first,6);assert.equal(saved.second,null);assert.equal(saved.history.length,0);assert.equal(saved.players[0].wealth,'1000');assert.throws(()=>resolveRound(saved));
+ prepareAutoDraw(saved,'second',roll);migrateGame(saved);assert.equal(saved.phase,'movement-result');assert.equal(saved.second,6);assert.equal(saved.history.length,0);assert.throws(()=>prepareAutoDraw(saved,'second',roll));assert.deepEqual(calls,[2,6,6]);
+ migrateGame(saved);assert.equal(saved.history.length,0);resolveRound(saved);assert.equal(saved.phase,'results');assert.equal(saved.players[0].wealth,'21000');assert.equal(saved.history.length,1);assert.throws(()=>resolveRound(saved));migrateGame(saved);assert.equal(saved.history.length,1);
+});
+test('ordinary automatic movement needs only one die; invalid actions do not change state',()=>{
+ const g=createGame(['A','B']);orderAll(g,100);const calls=[];
+ for(const kind of ['first','second','unknown']){const before=JSON.stringify(g);assert.throws(()=>prepareAutoDraw(g,kind,()=>{calls.push(0);return 1}));assert.equal(JSON.stringify(g),before)}
+ const before=JSON.stringify(g);assert.throws(()=>prepareAutoDraw(g,'direction',()=>0));assert.equal(JSON.stringify(g),before);assert.deepEqual(calls,[]);
+ prepareAutoDraw(g,'direction',()=>2);finishAutoDraw(g);prepareAutoDraw(g,'first',()=>3);finishAutoDraw(g);assert.equal(g.direction,'down');assert.equal(g.first,3);assert.equal(g.second,null);assert.equal(g.players[0].wealth,'1000');assert.throws(()=>prepareAutoDraw(g,'second'));
+ resolveRound(g);assert.equal(g.players[0].wealth,'700');commitDecisions(g,{0:'continue',1:'continue'});assert.equal(g.direction,null);assert.equal(g.first,null);assert.equal(g.second,null);assert.equal(g.drawKind,null);
+ const manual=createGame(['A','B'],'manual');orderAll(manual);assert.throws(()=>prepareAutoDraw(manual,'direction'));
+});
+test('saved direction animation resumes to its result without drawing a die',()=>{
+ const g=createGame(['A','B']);orderAll(g);prepareAutoDraw(g,'direction',()=>1);const restored=migrateGame(JSON.parse(JSON.stringify(g)));assert.equal(restored.phase,'direction-result');assert.equal(restored.first,null);assert.equal(restored.history.length,0);assert.equal(restored.drawKind,null);
 });
 test('legacy flow phases resume without added confirmation or rerolling partial draws',()=>{
  for(const [old,next]of [['handoff-order','order'],['handoff-decision','results'],['direction','orders-revealed'],['ready-orders','orders-revealed']]){const g=createGame(['A','B']);g.phase=old;delete g.flowVersion;migrateGame(g);assert.equal(g.phase,next)}
- const g=createGame(['A','B']);orderAll(g);g.phase='shock';g.direction='down';g.first=6;const rolls=[];prepareAutoMarket(g,sides=>{rolls.push(sides);return 2});assert.deepEqual(rolls,[6]);assert.equal(g.direction,'down');assert.equal(g.first,6);assert.equal(g.second,2);
+ const g=createGame(['A','B']);orderAll(g);g.phase='shock';g.direction='down';g.first=6;migrateGame(g);assert.equal(g.phase,'movement-result');const rolls=[];prepareAutoDraw(g,'second',sides=>{rolls.push(sides);return 2});finishAutoDraw(g);assert.deepEqual(rolls,[6]);assert.equal(g.direction,'down');assert.equal(g.first,6);assert.equal(g.second,2);
  for(const old of ['ready-decisions','revealed-decisions']){const saved=createGame(['A','B']);orderAll(saved);playMarket(saved);saved.phase=old;saved.decisions={0:'fix',1:'continue'};if(old==='revealed-decisions')saved.players[0].status='fixed';migrateGame(saved);assert.equal(saved.phase,'order');assert.equal(saved.round,2);assert.equal(saved.players[0].status,'fixed');assert.equal(saved.lastDecisions.choices.length,2)}
 });
 test('all permanent exits go directly to ending and retain the public decisions',()=>{
@@ -73,5 +89,10 @@ test('batch validation rejects missing, invalid and retired-player choices witho
  commitDecisions(g,{0:'fix',2:'continue'});assert.equal(g.phase,'order');assert.equal(g.players[0].status,'fixed');assert.equal(g.players[1].status,'cut');assert.equal(g.players[2].status,'active');assert.deepEqual(g.history[0].decisions,{0:'fix',2:'continue'});assert.throws(()=>commitDecisions(g,{2:'continue'}));assert.equal(g.round,2);
 });
 test('legacy partial private decisions migrate to the result form and preserve selections',()=>{
- const g=createGame(['A','B']);orderAll(g);playMarket(g);g.phase='decision';g.cursor=1;g.flowVersion=2;g.decisions={0:'fix'};migrateGame(g);assert.equal(g.phase,'results');assert.equal(g.flowVersion,3);assert.deepEqual(g.decisions,{0:'fix'});assert.equal(g.players[0].status,'active');assert.equal(g.round,1);const saved=migrateGame(JSON.parse(JSON.stringify(g)));saved.decisions[1]='continue';commitDecisions(saved);assert.equal(saved.players[0].status,'fixed');assert.equal(saved.round,2);
+ const g=createGame(['A','B']);orderAll(g);playMarket(g);g.phase='decision';g.cursor=1;g.flowVersion=2;g.decisions={0:'fix'};migrateGame(g);assert.equal(g.phase,'results');assert.equal(g.flowVersion,4);assert.deepEqual(g.decisions,{0:'fix'});assert.equal(g.players[0].status,'active');assert.equal(g.round,1);const saved=migrateGame(JSON.parse(JSON.stringify(g)));saved.decisions[1]='continue';commitDecisions(saved);assert.equal(saved.players[0].status,'fixed');assert.equal(saved.round,2);
+});
+
+test('old completed automatic draws preserve outcomes and wait for settlement',()=>{
+ for(const phase of ['drawing','market-ready']){const g=createGame(['A','B'],'auto');orderAll(g,100);g.flowVersion=3;g.phase=phase;delete g.drawKind;g.direction='down';g.first=6;g.second=5;migrateGame(g);assert.equal(g.phase,'movement-result');assert.equal(g.history.length,0);assert.equal(g.players[0].wealth,'1000');assert.equal(g.second,5);resolveRound(g);assert.equal(g.phase,'end');assert.equal(g.players[0].wealth,'-4000');assert.equal(g.history.length,1);migrateGame(g);assert.equal(g.history.length,1)}
+ const g=createGame(['A','B'],'manual');orderAll(g,1);g.phase='market-ready';g.direction='up';g.first=1;migrateGame(g);assert.equal(g.phase,'results');assert.equal(g.history.length,1);
 });

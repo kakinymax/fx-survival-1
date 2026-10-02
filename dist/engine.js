@@ -36,7 +36,7 @@ export function settle(player, order, direction, m) {
 export function createGame(names, mode='auto', stageId='classic') {
   if(names.length<2||names.length>6||names.some(n=>!n.trim())) throw Error('2〜6人の名前が必要です');
   const stage=getStage(stageId);
-  return {version:1,flowVersion:3,stage:stage.id,round:1,phase:'order',cursor:0,mode,players:names.map((name,id)=>({id,name:name.trim(),wealth:INITIAL,peak:INITIAL,maxPosition:'0',status:'active'})),orders:{},decisions:{},lastDecisions:null,direction:null,first:null,second:null,history:[]};
+  return {version:1,flowVersion:4,stage:stage.id,round:1,phase:'order',cursor:0,mode,players:names.map((name,id)=>({id,name:name.trim(),wealth:INITIAL,peak:INITIAL,maxPosition:'0',status:'active'})),orders:{},decisions:{},lastDecisions:null,direction:null,first:null,second:null,drawKind:null,history:[]};
 }
 export function activePlayers(g){return g.players.filter(p=>p.status==='active')}
 export function submitOrder(g, order){
@@ -47,12 +47,12 @@ export function submitOrder(g, order){
   g.phase=g.cursor===activePlayers(g).length?'orders-revealed':'order';
 }
 export function resolveRound(g){
-  if(!['market-ready','drawing'].includes(g.phase))throw Error('まだ相場が確定していません');
+  if(!['market-ready','movement-result'].includes(g.phase))throw Error('まだ相場が確定していません');
   const m=market(g.first,g.second,g.stage??'classic'),results=[];
   g.players=g.players.map(p=>{if(p.status!=='active')return p;const r=settle(p,g.orders[p.id],g.direction,m);results.push(r.result);return r.player});
   g.history.push({round:g.round,stage:g.stage??'classic',direction:g.direction,first:g.first,second:g.second,...m,results});
   if(g.round===12){g.players=g.players.map(p=>p.status==='active'?{...p,status:'fixed'}:p)}
-  g.phase=activePlayers(g).length?'results':'end';g.cursor=0;
+  g.phase=activePlayers(g).length?'results':'end';g.cursor=0;g.drawKind=null;
 }
 export function commitDecisions(g, decisions=g.decisions){
   if(g.phase!=='results')throw Error('精算結果の画面で進退を確定できます');
@@ -71,24 +71,38 @@ export function nextRound(g){
   if(g.phase!=='revealed-decisions')throw Error('進退を公開してください');
   if(!g.lastDecisions||g.lastDecisions.round!==g.round)g.lastDecisions={round:g.round,choices:Object.entries(g.decisions).map(([id,choice])=>({id:Number(id),choice}))};
   if(!activePlayers(g).length){g.phase='end';return}
-  g.round++;g.cursor=0;g.orders={};g.decisions={};g.direction=null;g.first=null;g.second=null;g.phase='order';
+  g.round++;g.cursor=0;g.orders={};g.decisions={};g.direction=null;g.first=null;g.second=null;g.drawKind=null;g.phase='order';
 }
-export function prepareAutoMarket(g, roll=randomFace){
-  if(g.mode!=='auto'||!['orders-revealed','dice','shock'].includes(g.phase))throw Error('相場を抽選できる画面ではありません');
-  const direction=g.direction??(roll(2)===1?'up':'down');
-  const first=g.first??roll(6),second=first===6?(g.second??roll(6)):null;
-  market(first,second,g.stage??'classic');
-  g.direction=direction;g.first=first;g.second=second;g.phase='drawing';
+export function prepareAutoDraw(g, kind, roll=randomFace){
+  const allowed=kind==='direction'?g.phase==='orders-revealed'&&!g.direction&&!g.first:
+    kind==='first'?g.phase==='direction-result'&&['up','down'].includes(g.direction)&&!g.first:
+    kind==='second'?g.phase==='movement-result'&&g.first===6&&!g.second:false;
+  if(g.mode!=='auto'||!allowed)throw Error('この抽選は実行済みか、まだ実行できません');
+  const sides=kind==='direction'?2:6,face=roll(sides);
+  if(!Number.isInteger(face)||face<1||face>sides)throw Error('抽選結果が不正です');
+  if(kind==='direction')g.direction=face===1?'up':'down';
+  else if(kind==='first')g.first=face;
+  else g.second=face;
+  g.drawKind=kind;g.phase='drawing';
+}
+export function finishAutoDraw(g){
+  if(g.phase!=='drawing'||!['direction','first','second'].includes(g.drawKind))throw Error('抽選中ではありません');
+  g.phase=g.drawKind==='direction'?'direction-result':'movement-result';g.drawKind=null;
 }
 export function migrateGame(g){
-  g.stage=g.stage??'classic';getStage(g.stage);g.lastDecisions=g.lastDecisions??null;g.decisions=g.decisions??{};
+  g.stage=g.stage??'classic';getStage(g.stage);g.lastDecisions=g.lastDecisions??null;g.decisions=g.decisions??{};g.drawKind=g.drawKind??null;
   const phases={'handoff-order':'order','ready-orders':'orders-revealed',direction:'orders-revealed','handoff-decision':'results',decision:'results'};
   g.phase=phases[g.phase]??g.phase;
-  if(['market-ready','drawing'].includes(g.phase))resolveRound(g);
+  if(g.mode==='auto'){
+    if(g.phase==='drawing'&&g.drawKind)finishAutoDraw(g);
+    else if(['dice','shock','market-ready','drawing'].includes(g.phase)){
+      g.phase=g.first?'movement-result':g.direction?'direction-result':'orders-revealed';g.drawKind=null;
+    }
+  }else if(['market-ready','drawing'].includes(g.phase)){g.phase='market-ready';resolveRound(g)}
   if(g.phase==='ready-decisions'){revealDecisions(g);nextRound(g)}
   else if(g.phase==='revealed-decisions')nextRound(g);
   if(g.phase==='results'&&!activePlayers(g).length)g.phase='end';
-  g.flowVersion=3;return g;
+  g.flowVersion=4;return g;
 }
 export function winners(g){
   const max=g.players.reduce((a,p)=>BigInt(p.wealth)>a?BigInt(p.wealth):a,0n);
