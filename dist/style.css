@@ -77,3 +77,28 @@
 .fast-forward-digest li{display:grid;grid-template-columns:36px minmax(0,1fr);gap:10px;margin-top:10px;font-size:14px;overflow-wrap:anywhere}
 .fast-forward-digest li>span{color:var(--muted);font-variant-numeric:tabular-nums}
 .fast-forward-digest small{display:block;color:var(--muted)}
+
+/* Saved careers are secondary to the current game and personal statistics. */
+.cpu-profile .cpu-prior-quote{margin:8px 0 0;color:var(--text);font-size:.875rem;overflow-wrap:anywhere}
+.cpu-intro-status{font-size:.8125rem;color:var(--muted);margin:8px 0 0}
+.cpu-intro-status:empty{display:none}
+.cpu-intro-status .text-button,.best-read-note .text-button{min-height:44px;padding:4px 8px}
+.cpu-careers>summary{min-height:44px;cursor:pointer;font-size:1.125rem;font-weight:700;padding:4px 0}
+.cpu-careers>.stats-definition{margin:12px 0 18px}
+.cpu-career-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.cpu-career{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:18px;min-width:0}
+.cpu-career h3{font-size:1.125rem;margin:0 0 14px}
+.cpu-career .stats-metrics{gap:14px 12px}
+.cpu-career .stats-metrics dt{font-size:.875rem}
+.cpu-career .stats-metrics dd{font-size:1.125rem;overflow-wrap:anywhere}
+.cpu-career-total{grid-column:1/-1;border-top:1px solid var(--line);padding-top:12px}
+.personal-bests{margin:16px 0;display:grid;gap:8px}
+.personal-best{display:flex;align-items:center;justify-content:space-between;gap:16px;border:1px solid var(--line);border-radius:10px;padding:12px 16px}
+.personal-best>div{min-width:0}
+.personal-best span,.personal-best small{display:block;color:var(--muted);font-size:.8125rem}
+.personal-best>div>strong{font-size:.875rem}
+.personal-best>strong{font-size:1.125rem;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;text-align:right;max-width:55%}
+.best-read-note{font-size:.8125rem;color:var(--muted);margin:8px 0}
+.personal-best-badge{display:inline-block;font-size:.75rem;padding:2px 6px;margin-left:8px;background:var(--panel2);color:var(--text);border-radius:5px}
+.personal-best-badge:empty{display:none}
+@media(max-width:760px){.cpu-career-grid{grid-template-columns:1fr}.cpu-career{padding:16px}.personal-best{padding:10px 12px;gap:12px}}

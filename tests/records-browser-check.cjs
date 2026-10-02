@@ -5,7 +5,7 @@ const origin='http://127.0.0.1:4173';
  const browser=await chromium.launch({executablePath:'/usr/bin/chromium',headless:true,args:['--no-sandbox']});
  const context=await browser.newContext({viewport:{width:390,height:700},extraHTTPHeaders:{'oai-authenticated-user-id':'browser-record-test'}});
  const page=await context.newPage(),errors=[],writes=[];
- page.on('pageerror',e=>errors.push(e.message));page.on('request',request=>{if(request.url().includes('/api/matches/'))writes.push(JSON.parse(request.postData()))});
+ page.on('pageerror',e=>errors.push(e.message));page.on('request',request=>{if(request.method()==='PUT'&&request.url().includes('/api/matches/'))writes.push(JSON.parse(request.postData()))});
  const state=()=>page.evaluate(()=>JSON.parse(localStorage.getItem('fx-survival-v1')));
  async function seed({solo=false,early=false}={}){
   await page.goto(origin+'/engine.js');

@@ -1,9 +1,22 @@
 import {validateMatchRecord} from '../dist/records.js';
-import {storeMatch,readStatistics,readRecords,readMatch,readTrips,changeTrip,readModes,readLegends} from './database.js';
+import {storeMatch,readStatistics,readRecords,readMatch,readTrips,changeTrip,readModes,readLegends,readCpuCareers,readPersonalBests} from './database.js';
 import {TRIP_IDS,validateTripChange} from './trips.js';
 import {legendQuery} from './legends.js';
 
 const json=(body,status=200)=>Response.json(body,{status,headers:{'Cache-Control':'no-store'}});
+export async function cpuCareersRequest(request,env){
+  const owner=request.headers.get('oai-authenticated-user-id');if(!owner)return json({error:'CPUの戦績にはログインが必要です'},401);
+  if(request.method!=='GET')return json({error:'Method not allowed'},405);
+  try{return json(await readCpuCareers(env.DB,owner))}
+  catch(error){console.error('CPU career read failed',error);return json({error:'CPUの戦績を読み込めませんでした'},503)}
+}
+export async function personalBestsRequest(request,env){
+  const owner=request.headers.get('oai-authenticated-user-id');if(!owner)return json({error:'自己記録にはログインが必要です'},401);
+  if(request.method!=='GET')return json({error:'Method not allowed'},405);
+  const route=new URL(request.url).pathname.match(/^\/api\/matches\/([-a-zA-Z0-9_]{1,100})\/bests$/);if(!route)return json({error:'試合が見つかりません'},404);
+  try{const bests=await readPersonalBests(env.DB,owner,route[1]);return bests?json(bests):json({error:'試合が見つかりません'},404)}
+  catch(error){console.error('Personal best read failed',error);return json({error:'自己記録を確認できませんでした'},503)}
+}
 export async function legendsRequest(request,env){
   const owner=request.headers.get('oai-authenticated-user-id');
   if(!owner)return json({error:'記録の表示にはログインが必要です'},401);

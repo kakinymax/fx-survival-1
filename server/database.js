@@ -3,6 +3,7 @@ import {createRecordAccumulator} from './rankings.js';
 import {createModeAccumulator} from './modes.js';
 import {createLegendAccumulator} from './legends.js';
 import {createFeedbackAccumulator} from './feedback.js';
+import {createCpuCareerAccumulator,createPersonalBestAccumulator} from './career.js';
 import {TRIP_IDS,tripLabel,tripSettings,createTripAccumulator,tripChangeSignature} from './trips.js';
 
 async function scanMatches(db,ownerId,visit,{after=null}={}){
@@ -22,9 +23,16 @@ async function scanMatches(db,ownerId,visit,{after=null}={}){
   }
 }
 export async function readStatistics(db,ownerId){
-  const stats=createLifetimeAccumulator(),feedback=createFeedbackAccumulator(),recentGames=[];
-  await scanMatches(db,ownerId,record=>{stats.add(record);feedback.add(record);if(recentGames.length<10)recentGames.push(summarizeMatch(record))});
-  return {...stats.result(),feedback:feedback.result(),recentGames};
+  const stats=createLifetimeAccumulator(),feedback=createFeedbackAccumulator(),cpu=createCpuCareerAccumulator(),recentGames=[];
+  await scanMatches(db,ownerId,record=>{stats.add(record);feedback.add(record);cpu.add(record);if(recentGames.length<10)recentGames.push(summarizeMatch(record))});
+  return {...stats.result(),feedback:feedback.result(),cpuCareers:cpu.result(),recentGames};
+}
+export async function readCpuCareers(db,ownerId){
+  const cpu=createCpuCareerAccumulator();await scanMatches(db,ownerId,record=>cpu.add(record));return {cpuCareers:cpu.result()};
+}
+export async function readPersonalBests(db,ownerId,id){
+  const record=await readMatch(db,ownerId,id);if(!record)return null;
+  const bests=createPersonalBestAccumulator(record);await scanMatches(db,ownerId,previous=>bests.add(previous));return bests.result();
 }
 export async function readRecords(db,ownerId){
   const stats=createLifetimeAccumulator(),records=createRecordAccumulator();
