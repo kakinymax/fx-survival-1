@@ -36,7 +36,7 @@ export function settle(player, order, direction, m) {
 export function createGame(names, mode='auto', stageId='classic') {
   if(names.length<2||names.length>6||names.some(n=>!n.trim())) throw Error('2〜6人の名前が必要です');
   const stage=getStage(stageId);
-  return {version:1,stage:stage.id,round:1,phase:'handoff-order',cursor:0,mode,players:names.map((name,id)=>({id,name:name.trim(),wealth:INITIAL,peak:INITIAL,maxPosition:'0',status:'active'})),orders:{},decisions:{},direction:null,first:null,second:null,history:[]};
+  return {version:1,flowVersion:2,stage:stage.id,round:1,phase:'order',cursor:0,mode,players:names.map((name,id)=>({id,name:name.trim(),wealth:INITIAL,peak:INITIAL,maxPosition:'0',status:'active'})),orders:{},decisions:{},lastDecisions:null,direction:null,first:null,second:null,history:[]};
 }
 export function activePlayers(g){return g.players.filter(p=>p.status==='active')}
 export function submitOrder(g, order){
@@ -44,34 +44,54 @@ export function submitOrder(g, order){
   if(g.phase!=='order'||!p) throw Error('入力できる手番ではありません');
   if(!['buy','sell'].includes(order.side)||!Number.isInteger(order.leverage)||order.leverage<1||order.leverage>100) throw Error('買いか売りと、1〜100の整数を選んでください');
   g.orders[p.id]={...order};g.cursor++;
-  g.phase=g.cursor===activePlayers(g).length?'ready-orders':'handoff-order';
+  g.phase=g.cursor===activePlayers(g).length?'orders-revealed':'order';
 }
 export function resolveRound(g){
-  if(g.phase!=='market-ready')throw Error('まだ相場が確定していません');
+  if(!['market-ready','drawing'].includes(g.phase))throw Error('まだ相場が確定していません');
   const m=market(g.first,g.second,g.stage??'classic'),results=[];
   g.players=g.players.map(p=>{if(p.status!=='active')return p;const r=settle(p,g.orders[p.id],g.direction,m);results.push(r.result);return r.player});
   g.history.push({round:g.round,stage:g.stage??'classic',direction:g.direction,first:g.first,second:g.second,...m,results});
   if(g.round===12){g.players=g.players.map(p=>p.status==='active'?{...p,status:'fixed'}:p)}
-  g.phase='results';g.cursor=0;
+  g.phase=activePlayers(g).length?'results':'end';g.cursor=0;
 }
 export function startDecisions(g){
   if(g.phase!=='results')throw Error('精算後に選択できます');
-  g.phase=activePlayers(g).length?'handoff-decision':'end';g.cursor=0;
+  g.phase=activePlayers(g).length?'decision':'end';g.cursor=0;
 }
 export function submitDecision(g, decision){
   const p=activePlayers(g)[g.cursor];
   if(g.phase!=='decision'||!p||!['continue','fix'].includes(decision))throw Error('続行か資産確定を選んでください');
   g.decisions[p.id]=decision;g.cursor++;
-  g.phase=g.cursor===activePlayers(g).length?'ready-decisions':'handoff-decision';
+  if(g.cursor===activePlayers(g).length){g.phase='ready-decisions';revealDecisions(g);nextRound(g)}else g.phase='decision';
 }
 export function revealDecisions(g){
   if(g.phase!=='ready-decisions')throw Error('全員の選択が必要です');
+  g.lastDecisions={round:g.round,choices:Object.entries(g.decisions).map(([id,choice])=>({id:Number(id),choice}))};
+  const entry=g.history.find(h=>h.round===g.round);if(entry)entry.decisions={...g.decisions};
   g.players=g.players.map(p=>g.decisions[p.id]==='fix'?{...p,status:'fixed'}:p);g.phase='revealed-decisions';
 }
 export function nextRound(g){
   if(g.phase!=='revealed-decisions')throw Error('進退を公開してください');
+  if(!g.lastDecisions||g.lastDecisions.round!==g.round)g.lastDecisions={round:g.round,choices:Object.entries(g.decisions).map(([id,choice])=>({id:Number(id),choice}))};
   if(!activePlayers(g).length){g.phase='end';return}
-  g.round++;g.cursor=0;g.orders={};g.decisions={};g.direction=null;g.first=null;g.second=null;g.phase='handoff-order';
+  g.round++;g.cursor=0;g.orders={};g.decisions={};g.direction=null;g.first=null;g.second=null;g.phase='order';
+}
+export function prepareAutoMarket(g, roll=randomFace){
+  if(g.mode!=='auto'||!['orders-revealed','dice','shock'].includes(g.phase))throw Error('相場を抽選できる画面ではありません');
+  const direction=g.direction??(roll(2)===1?'up':'down');
+  const first=g.first??roll(6),second=first===6?(g.second??roll(6)):null;
+  market(first,second,g.stage??'classic');
+  g.direction=direction;g.first=first;g.second=second;g.phase='drawing';
+}
+export function migrateGame(g){
+  g.stage=g.stage??'classic';getStage(g.stage);g.lastDecisions=g.lastDecisions??null;
+  const phases={'handoff-order':'order','ready-orders':'orders-revealed',direction:'orders-revealed','handoff-decision':'decision'};
+  g.phase=phases[g.phase]??g.phase;
+  if(['market-ready','drawing'].includes(g.phase))resolveRound(g);
+  if(g.phase==='ready-decisions'){revealDecisions(g);nextRound(g)}
+  else if(g.phase==='revealed-decisions')nextRound(g);
+  if(g.phase==='results'&&!activePlayers(g).length)g.phase='end';
+  g.flowVersion=2;return g;
 }
 export function winners(g){
   const max=g.players.reduce((a,p)=>BigInt(p.wealth)>a?BigInt(p.wealth):a,0n);
