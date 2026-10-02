@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {market,roundUnits,settle,createGame,submitOrder,resolveRound,startDecisions,submitDecision,revealDecisions,nextRound,winners,money} from '../dist/engine.js';
+import {market,roundUnits,settle,createGame,submitOrder,resolveRound,startDecisions,submitDecision,revealDecisions,nextRound,winners,money,STAGES,getStage} from '../dist/engine.js';
 const player=(wealth)=>({id:0,name:'A',wealth:String(BigInt(wealth)*10n),peak:String(BigInt(wealth)*10n),maxPosition:'0',status:'active'});
 test('v1.0 examples: profit, loss, normal cut, gap debt, gap profit',()=>{
  const examples=[[100,'buy',50,'up',market(4),'1250','active'],[400,'sell',80,'up',market(4),'2400','active'],[5000,'buy',100,'down',market(6,1),'0','cut'],[5000,'buy',100,'down',market(6,5),'-200000','debt'],[1000,'sell',100,'down',market(6,5),'60000','active']];
@@ -31,3 +31,24 @@ test('all bankrupt has no winner; invalid and eliminated orders are rejected',()
  for(const leverage of [0,101,1.5,NaN])assert.throws(()=>settle(player(100),{side:'buy',leverage},'up',market(1)));
 });
 test('Japanese currency formatting preserves thousands and signed large balances',()=>{assert.equal(money('1000'),'100.0万円');assert.equal(money('100000'),'1億円');assert.equal(money('-200000'), '−2億円');assert.equal(money('1'),'0.1万円');assert.equal(money('1000000000'),'1兆円')});
+test('each stage has the advertised movement table and a 3/36 gap chance',()=>{
+ const tables={classic:[[10,20,30,50,80],[100,100,150,200,500,1000]],usdjpy:[[10,10,20,30,50],[80,80,100,150,300,500]],tryjpy:[[20,40,60,100,150],[200,200,300,500,1000,2000]]};
+ for(const [id,[normal,shock]]of Object.entries(tables)){
+  assert.deepEqual([...getStage(id).normal],normal);assert.deepEqual([...getStage(id).shock],shock);
+  let gaps=0;for(let first=1;first<=6;first++)for(let second=1;second<=6;second++){const m=market(first,second,id);assert.equal(m.bps,first===6?shock[second-1]:normal[first-1]);if(m.gap)gaps++}assert.equal(gaps,3);
+ }
+ assert.throws(()=>getStage('unknown'));assert.throws(()=>createGame(['A','B'],'auto','unknown'));
+});
+test('round settlement uses chosen shared stage; stage survives subsequent rounds',()=>{
+ for(const [id,expected]of [['classic','1250'],['usdjpy','1150'],['tryjpy','1500']]){
+  const g=createGame(['A','B'],'manual',id);orderAll(g,50);playMarket(g,4);assert.deepEqual(g.players.map(p=>p.wealth),[expected,expected]);assert.equal(g.history[0].stage,id);
+  startDecisions(g);for(let i=0;i<2;i++){g.phase='decision';submitDecision(g,'continue')}revealDecisions(g);nextRound(g);assert.equal(g.stage,id);
+ }
+});
+test('dollar gap at 1.5% can cause debt; lira ordinary 2% still cuts at zero',()=>{
+ const dollar=settle(player(100),{side:'buy',leverage:100},'down',market(6,4,'usdjpy'));assert.equal(dollar.player.wealth,'-500');assert.equal(dollar.player.status,'debt');
+ const lira=settle(player(100),{side:'buy',leverage:100},'down',market(6,1,'tryjpy'));assert.equal(lira.player.wealth,'0');assert.equal(lira.player.status,'cut');
+});
+test('pre-stage saves settle with original rules and retain original balances',()=>{
+ const g=createGame(['A','B']);delete g.stage;orderAll(g,50);playMarket(g,4);assert.equal(g.players[0].wealth,'1250');assert.equal(g.history[0].stage,'classic');
+});

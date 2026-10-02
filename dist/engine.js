@@ -1,10 +1,20 @@
 export const INITIAL = '1000'; // units: ¥1,000; amounts serialized as decimal strings
 export const NORMAL = [10,20,30,50,80];
 export const SHOCK = [100,100,150,200,500,1000];
-export function market(first, second=null) {
+export const STAGES = Object.freeze({
+  classic:Object.freeze({id:'classic',name:'クラシック',code:'BASIC RULES',description:'基本ルール v1.0の値動き',normal:Object.freeze([...NORMAL]),shock:Object.freeze([...SHOCK])}),
+  usdjpy:Object.freeze({id:'usdjpy',name:'ドル円',code:'USD / JPY',description:'値動き控えめ。小さな増減を重ねる',normal:Object.freeze([10,10,20,30,50]),shock:Object.freeze([80,80,100,150,300,500])}),
+  tryjpy:Object.freeze({id:'tryjpy',name:'トルコリラ円',code:'TRY / JPY',description:'値動き大きめ。利益も損失も大きく動く',normal:Object.freeze([20,40,60,100,150]),shock:Object.freeze([200,200,300,500,1000,2000])})
+});
+export function getStage(id='classic') {
+  if(!Object.hasOwn(STAGES,id))throw Error('有効なステージを選んでください');
+  return STAGES[id];
+}
+export function market(first, second=null, stageId='classic') {
+  const stage=getStage(stageId);
   if(!Number.isInteger(first)||first<1||first>6) throw Error('出目は1〜6です');
   if(first===6 && (!Number.isInteger(second)||second<1||second>6)) throw Error('急変判定の出目が必要です');
-  return {bps:first===6?SHOCK[second-1]:NORMAL[first-1],gap:first===6&&second>=4};
+  return {bps:first===6?stage.shock[second-1]:stage.normal[first-1],gap:first===6&&second>=4};
 }
 export function roundUnits(numerator, denominator=10000n) {
   const sign=numerator<0n?-1n:1n;
@@ -23,9 +33,10 @@ export function settle(player, order, direction, m) {
   const status=after<0n?'debt':after===0n?(cut?'cut':'empty'):'active';
   return {player:{...player,wealth:String(after),peak:String(after>BigInt(player.peak)?after:BigInt(player.peak)),maxPosition:String(pos>BigInt(player.maxPosition)?pos:BigInt(player.maxPosition)),status},result:{id:player.id,side:order.side,leverage:order.leverage,position:String(pos),before:String(before),after:String(after),pnl:String(after-before),win,status}};
 }
-export function createGame(names, mode='auto') {
+export function createGame(names, mode='auto', stageId='classic') {
   if(names.length<2||names.length>6||names.some(n=>!n.trim())) throw Error('2〜6人の名前が必要です');
-  return {version:1,round:1,phase:'handoff-order',cursor:0,mode,players:names.map((name,id)=>({id,name:name.trim(),wealth:INITIAL,peak:INITIAL,maxPosition:'0',status:'active'})),orders:{},decisions:{},direction:null,first:null,second:null,history:[]};
+  const stage=getStage(stageId);
+  return {version:1,stage:stage.id,round:1,phase:'handoff-order',cursor:0,mode,players:names.map((name,id)=>({id,name:name.trim(),wealth:INITIAL,peak:INITIAL,maxPosition:'0',status:'active'})),orders:{},decisions:{},direction:null,first:null,second:null,history:[]};
 }
 export function activePlayers(g){return g.players.filter(p=>p.status==='active')}
 export function submitOrder(g, order){
@@ -37,9 +48,9 @@ export function submitOrder(g, order){
 }
 export function resolveRound(g){
   if(g.phase!=='market-ready')throw Error('まだ相場が確定していません');
-  const m=market(g.first,g.second),results=[];
+  const m=market(g.first,g.second,g.stage??'classic'),results=[];
   g.players=g.players.map(p=>{if(p.status!=='active')return p;const r=settle(p,g.orders[p.id],g.direction,m);results.push(r.result);return r.player});
-  g.history.push({round:g.round,direction:g.direction,first:g.first,second:g.second,...m,results});
+  g.history.push({round:g.round,stage:g.stage??'classic',direction:g.direction,first:g.first,second:g.second,...m,results});
   if(g.round===12){g.players=g.players.map(p=>p.status==='active'?{...p,status:'fixed'}:p)}
   g.phase='results';g.cursor=0;
 }
