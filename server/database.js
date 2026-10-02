@@ -1,6 +1,7 @@
 import {createLifetimeAccumulator,summarizeMatch} from './statistics.js';
 import {createRecordAccumulator} from './rankings.js';
 import {createModeAccumulator} from './modes.js';
+import {createLegendAccumulator} from './legends.js';
 import {TRIP_IDS,tripLabel,tripSettings,createTripAccumulator,tripChangeSignature} from './trips.js';
 
 async function scanMatches(db,ownerId,visit,{after=null}={}){
@@ -31,6 +32,11 @@ export async function readRecords(db,ownerId){
 }
 export async function readModes(db,ownerId){
   const stats=createModeAccumulator();
+  await scanMatches(db,ownerId,record=>stats.add(record));
+  return stats.result();
+}
+export async function readLegends(db,ownerId,query){
+  const stats=createLegendAccumulator(query);
   await scanMatches(db,ownerId,record=>stats.add(record));
   return stats.result();
 }

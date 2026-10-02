@@ -7,6 +7,8 @@ import {statisticsView} from './stats-view.js';
 import {recordsView,matchView} from './record-view.js';
 import {tripsView,meterLabel} from './trip-view.js';
 import {modesView} from './mode-view.js';
+import {legendsView} from './legend-view.js';
+import {LEGEND_KEYS} from './legends.js';
 
 const root=document.querySelector('#app'),KEY='fx-survival-v1';
 const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -16,12 +18,14 @@ let setupPlay='tabletop',soloName='あなた';
 let draftSide=null,draftLeverage=1,storageError=false;
 let screen='game',statistics={state:'loading',data:null},statisticsRequest=0;
 let recordsPage={state:'loading',data:null},matchPage={state:'loading',data:null},historyRequest=0,recordsScope='self',matchId=null,matchFrom='records';
+let legendsPage={state:'loading',data:null},legendsRequest=0,legendScope='self',legendEvent='all';
 let modesPage={state:'loading',data:null},modesRequest=0;
 let tripsPage={state:'loading',data:null},tripsRequest=0,tripDrafts={},tripMutation={busy:false,operation:null,error:'',notice:''},tripResetTarget=null;
 function readRoute(){
- const hash=location.hash;screen=hash==='#stats'?'stats':hash==='#modes'?'modes':hash==='#trips'?'trips':/^#records(?:\/|$)/.test(hash)?'records':hash.startsWith('#match/')?'match':'game';
+ const hash=location.hash;screen=hash==='#stats'?'stats':/^#legends(?:\/|$)/.test(hash)?'legends':hash==='#modes'?'modes':hash==='#trips'?'trips':/^#records(?:\/|$)/.test(hash)?'records':hash.startsWith('#match/')?'match':'game';
+ if(screen==='legends'){const [,scope,event]=hash.split('/');legendScope=['self','human','cpu'].includes(scope)?scope:'self';legendEvent=LEGEND_KEYS.includes(event)?event:'all'}
  if(screen==='records'){const scope=hash.split('/')[1];if(['self','human','cpu'].includes(scope))recordsScope=scope}
- if(screen==='match'){const route=hash.match(/^#match\/([-a-zA-Z0-9_]{1,100})(?:\?from=(stats|trips|records(?:\/(?:self|human|cpu))?))?$/);matchId=route?.[1]??null;matchFrom=route?.[2]??'records'}
+ if(screen==='match'){const route=hash.match(/^#match\/([-a-zA-Z0-9_]{1,100})(?:\?from=(stats|trips|records(?:\/(?:self|human|cpu))?|legends(?:\/(?:self|human|cpu)(?:\/(?:all|comeback|peakCollapse|hundredMillion|triple|zero|debtRecord|underInitialWin|lowLeverageWin|hundredWin))?)?))?$/);matchId=route?.[1]??null;matchFrom=route?.[2]??'records'}
 }
 readRoute();
 const dockObserver=new ResizeObserver(syncActionDock);
@@ -32,7 +36,7 @@ window.visualViewport?.addEventListener('scroll',syncActionDock);
 window.addEventListener('resize',syncActionDock);
 try{const saved=JSON.parse(localStorage.getItem(KEY));if(saved?.version===1&&saved.players?.length>=2&&saved.players.length<=6){saved.players.forEach(p=>{BigInt(p.wealth);BigInt(p.peak);BigInt(p.maxPosition)});game=resumeSolo(migrateGame(saved))}}catch{storageError=true}
 function save(){try{if(game)localStorage.setItem(KEY,JSON.stringify(game));else localStorage.removeItem(KEY)}catch{storageError=true}}
-const recordStore=createRecordStore({storage:{getItem:key=>localStorage.getItem(key),setItem:(key,value)=>localStorage.setItem(key,value),removeItem:key=>localStorage.removeItem(key)},onChange(id,state){if(game?.finalRecord?.id===id&&state==='saved'){game.finalRecordSaved=true;save()}refreshRecordStatus();if(state==='saved'){if(screen==='stats')void loadStatistics();if(screen==='records')void loadRecords();if(screen==='trips')void loadTrips();if(screen==='modes')void loadModes()}}});
+const recordStore=createRecordStore({storage:{getItem:key=>localStorage.getItem(key),setItem:(key,value)=>localStorage.setItem(key,value),removeItem:key=>localStorage.removeItem(key)},onChange(id,state){if(game?.finalRecord?.id===id&&state==='saved'){game.finalRecordSaved=true;save()}refreshRecordStatus();if(state==='saved'){if(screen==='stats')void loadStatistics();if(screen==='records')void loadRecords();if(screen==='trips')void loadTrips();if(screen==='modes')void loadModes();if(screen==='legends')void loadLegends()}}});
 function prepareRecord(){if(game){ensureGameIdentity(game);if(game.finalRecord)recordStore.enqueue(game.finalRecord,{saved:game.finalRecordSaved===true})}}
 function update(scroll=true){prepareRecord();save();render();if(scroll)window.scrollTo({top:0,behavior:'instant'})}
 function recordStatus(){const id=game?.finalRecord?.id,state=recordStore.state(id);return `<div class="record-status" role="status" data-record-status>${state==='saved'?'このゲームを戦績に保存しました。':state==='error'?`戦績を保存できませんでした。${action('再試行','retry-record','text-button')}`:'戦績を保存中…'}${state==='error'&&recordStore.draftError()?'<small>ページを閉じる前に再試行してください。</small>':''}</div>`}
@@ -61,7 +65,28 @@ async function loadHistory(kind){
 }
 function loadRecords(){return loadHistory('records')}
 function loadMatch(){return loadHistory('match')}
-window.addEventListener('hashchange',()=>{const previous=screen;readRoute();statisticsRequest++;historyRequest++;tripsRequest++;modesRequest++;draftSide=null;draftLeverage=1;chartDialog.close();document.querySelector('#trip-reset-dialog').close();if(screen==='stats')void loadStatistics();else if(screen==='records'){if(previous==='records'&&recordsPage.state==='ready')render();else void loadRecords()}else if(screen==='match')void loadMatch();else if(screen==='trips')void loadTrips();else if(screen==='modes')void loadModes();else render();window.scrollTo({top:0,behavior:'instant'})});
+window.addEventListener('hashchange',()=>{
+ const previous=screen;readRoute();statisticsRequest++;historyRequest++;tripsRequest++;modesRequest++;legendsRequest++;
+ draftSide=null;draftLeverage=1;chartDialog.close();document.querySelector('#trip-reset-dialog').close();
+ if(screen==='stats')void loadStatistics();
+ else if(screen==='records'){if(previous==='records'&&recordsPage.state==='ready')render();else void loadRecords()}
+ else if(screen==='match')void loadMatch();else if(screen==='trips')void loadTrips();else if(screen==='modes')void loadModes();else if(screen==='legends')void loadLegends();else render();
+ window.scrollTo({top:0,behavior:'instant'});
+});
+async function loadLegends(cursor=null){
+ if(cursor&&legendsPage.loadingMore)return;
+ const request=++legendsRequest,scope=legendScope,event=legendEvent,previous=legendsPage.data;
+ legendsPage=cursor?{...legendsPage,loadingMore:true,moreError:''}:{state:'loading',data:null};if(screen==='legends')render();
+ try{
+  const params=new URLSearchParams({scope,event});if(cursor)params.set('cursor',cursor);
+  const response=await fetch('/api/legends?'+params,{headers:{Accept:'application/json'},cache:'no-store',signal:AbortSignal.timeout(15000)});
+  if(!response.ok)throw Error(response.status===401?'ログインを確認して、もう一度読み込んでください。':'殿堂入りの記録を読み込めませんでした。');
+  const data=await response.json();if(data.scope!==scope||data.event!==event||!data.counts||!Array.isArray(data.entries))throw Error('殿堂入りの記録を読み込めませんでした。');
+  if(request!==legendsRequest)return;
+  legendsPage={state:'ready',data:cursor?{...data,entries:[...previous.entries,...data.entries]}:data};
+ }catch(error){if(request!==legendsRequest)return;const message=error.name==='TimeoutError'?'読み込みに時間がかかっています。もう一度お試しください。':error.message;legendsPage=cursor?{state:'ready',data:previous,moreError:message}:{state:'error',data:null,error:message}}
+ if(screen==='legends')render();
+}
 async function loadModes(){
  const request=++modesRequest;modesPage={state:'loading',data:null};if(screen==='modes')render();
  try{const response=await fetch('/api/modes',{headers:{Accept:'application/json'},cache:'no-store',signal:AbortSignal.timeout(15000)});if(!response.ok)throw Error(response.status===401?'ログインを確認して、もう一度読み込んでください。':'モード別戦績を読み込めませんでした。');const data=await response.json();if(!data?.lifetime||!Array.isArray(data.modes)||data.modes.some(m=>!m.stage?.id||!m.stats))throw Error('モード別戦績を読み込めませんでした。');if(request!==modesRequest)return;modesPage={state:'ready',data}}
@@ -161,6 +186,7 @@ function soloResultView(){
 function history(data=game){return `<details class="history"><summary>ラウンドの記録（${data.history.length}回）</summary>${data.history.map(h=>`<div class="history-item"><strong>R${h.round} · ${h.direction==='up'?'＋':'−'}${h.bps/100}% · ${h.gap?'ギャップ':'通常'} · 出目 ${h.first}${h.second?` / ${h.second}`:''}</strong>${h.results.map(r=>`<p>${escape(data.players.find(p=>p.id===r.id).name)}：${r.side==='buy'?'買い':'売り'} ${r.leverage}倍 · ${money(r.before)} → ${money(r.after)}${h.cpuQuotes?.[r.id]?` · 「${escape(h.cpuQuotes[r.id])}」`:''}</p>`).join('')}</div>`).join('')}</details>`}
 function ending(){const data=game.finalRecord,ws=data.players.filter(p=>data.winnerIds.includes(p.id)),ranked=[...data.players].sort((a,b)=>BigInt(a.wealth)>BigInt(b.wealth)?-1:BigInt(a.wealth)<BigInt(b.wealth)?1:0);return `<section class="surface end-surface"><p class="eyebrow">FINAL RESULTS / ${data.endedRound} ROUNDS</p>${stageBadge(data.stage)}${decisionSummary(data)}<h1>最後に、いくら残せた？</h1><div class="ending"><p>${isSolo(data)?(ws.some(p=>!p.cpu)?(ws.length>1?'あなたの同率勝利':'あなたの勝利'):ws.length?(ws.length>1?'CPUの同率勝利':'今回はCPUの勝利'):'勝者なし'):ws.length>1?'同率勝利':ws.length?'WINNER':'NO WINNER'}</p><h2>${ws.length?ws.map(p=>escape(p.name)).join('・'):'勝者なし'}</h2><p>${ws.length?`最終資産 ${money(ws[0].wealth)}`:'正の資産を残したプレイヤーはいません。'}</p></div><p class="muted">最高到達資産も、最大取引額も、全員の記録に残ります。</p>${recordStatus()}<div class="table-wrap"><table><thead><tr><th>プレイヤー</th><th>初期資産</th><th>最高到達資産</th><th>最大取引額</th><th>最終資産</th></tr></thead><tbody>${ranked.map(p=>`<tr><td><strong>${escape(p.name)}</strong><small>${labels[p.status]}</small></td><td>${money(p.initial)}</td><td>${money(p.peak)}</td><td>${money(p.maxPosition)}</td><td class="${BigInt(p.wealth)<0n?'negative':ws.some(w=>w.id===p.id)?'positive':''}"><strong>${money(p.wealth)}</strong>${isSolo(data)?`<small>最高から ${money(BigInt(p.peak)-BigInt(p.wealth))} 減少</small>`:''}</td></tr>`).join('')}</tbody></table></div>${data.history.length?`<section class="last-settlement"><h3>第${data.history.at(-1).round}ラウンドの精算</h3>${resultMarket(data.history.at(-1),data)}${resultCards(data.history.at(-1),false,data)}</section>`:''}${history(data)}<div class="ending-actions">${action('もう一度遊ぶ','reset','secondary full')}<a href="#stats" class="secondary stats-link">戦績を見る</a></div></section>`}
 function render(){
+ if(screen==='legends'){document.body.dataset.phase='statistics';document.body.classList.remove('playing','has-turn-actions');dockObserver.disconnect();document.querySelector('footer').firstChild.textContent='保存した試合の出来事 ';root.innerHTML=legendsView({...legendsPage,scope:legendScope,event:legendEvent,hasGame:!!game,pendingCount:recordStore.pendingCount()});return}
  if(screen==='modes'){document.body.dataset.phase='statistics';document.body.classList.remove('playing','has-turn-actions');dockObserver.disconnect();document.querySelector('footer').firstChild.textContent='ステージごとの戦績を比較 ';root.innerHTML=modesView({...modesPage,hasGame:!!game,pendingCount:recordStore.pendingCount()});return}
  if(screen==='trips'){document.body.dataset.phase='statistics';document.body.classList.remove('playing','has-turn-actions');dockObserver.disconnect();document.querySelector('footer').firstChild.textContent='期間を決めて戦績を計測 ';root.innerHTML=tripsView({...tripsPage,hasGame:!!game,pendingCount:recordStore.pendingCount(),busy:tripMutation.busy,mutationError:tripMutation.error,retryable:!!tripMutation.operation,notice:tripMutation.notice,drafts:tripDrafts});return}
  if(screen==='stats'){document.body.dataset.phase='statistics';document.body.classList.remove('playing','has-turn-actions');dockObserver.disconnect();document.querySelector('footer').firstChild.textContent='保存したゲームの戦績 ';root.innerHTML=statisticsView({...statistics,pendingCount:recordStore.pendingCount(),hasGame:!!game});return}
@@ -183,6 +209,7 @@ function drawWithFeedback(kind){void drawMarket(kind).catch(err=>{const error=do
 
 root.addEventListener('input',e=>{const el=e.target;if(el.dataset.tripName)tripDrafts[el.dataset.tripName]=el.value;if(el.dataset.name!==undefined)setupNames[Number(el.dataset.name)]=el.value;if(el.id==='solo-name')soloName=el.value;if(el.id==='leverage')setLeverage(Number(el.value));if(el.id==='leverage-range'){document.querySelector('#leverage').value=el.value;setLeverage(Number(el.value))}});
 root.addEventListener('submit',e=>{e.preventDefault();try{if(e.target.dataset.tripForm){if(tripMutation.busy||tripsPage.state!=='ready')return;const id=e.target.dataset.tripForm;void submitTripChange(newTripChange(id,'rename',{name:tripDrafts[id]??e.target.querySelector('input').value}));return}if(e.target.id==='setup-form'){game=setupPlay==='solo'?createSoloGame(soloName,setupStage):createGame(setupNames.slice(0,setupCount),setupMode,setupStage);ensureGameIdentity(game,{newGame:true});document.activeElement?.blur();update()}if(e.target.id==='order-form'){(isSolo(game)?submitSoloOrder:submitOrder)(game,{side:draftSide,leverage:Number(document.querySelector('#leverage').value)});draftSide=null;draftLeverage=1;document.activeElement?.blur();update()}}catch(err){document.querySelector('#form-error').textContent=err.message}});
+root.addEventListener('change',e=>{if(e.target.matches('[data-legend-filter]'))location.hash=`#legends/${legendScope}/${e.target.value}`});
 root.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled)return;try{
  if(b.dataset.play&&!game){setupPlay=b.dataset.play;render();return}
  if(b.dataset.count){setupCount=Number(b.dataset.count);render();return}
@@ -197,6 +224,8 @@ root.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.di
  case'reset':document.querySelector('#reset-dialog p').textContent=game?.phase==='end'?'試合記録を残して、参加者設定に戻ります。':'このゲームを中断して、参加者設定に戻ります。未完了の試合は戦績に残りません。';document.querySelector('#reset-dialog').showModal();return;
  case'retry-record':void recordStore.retry(game.finalRecord.id);return;
  case'retry-records':void recordStore.retryAll();return;
+ case'reload-legends':void loadLegends();return;
+ case'more-legends':if(legendsPage.data?.nextCursor)void loadLegends(legendsPage.data.nextCursor);return;
  case'reload-modes':void loadModes();return;
  case'reload-trips':tripMutation.error='';tripMutation.operation=null;tripMutation.notice='';void loadTrips();return;
  case'trip-reset':openTripReset(b.dataset.meter);return;
@@ -233,4 +262,4 @@ if(context?.registerTool){const lifecycle=new AbortController();const register=t
  register({name:'start_fx_survival_game',description:'Start a new 2–6 player game from the setup screen only. Does not enter or submit secret player choices.',inputSchema:{type:'object',properties:{names:{type:'array',minItems:2,maxItems:6,items:{type:'string',minLength:1,maxLength:20}},mode:{type:'string',enum:['auto','manual']},stage:{type:'string',enum:Object.keys(STAGES)}},required:['names'],additionalProperties:false},annotations:{readOnlyHint:false},execute(input){if(game)throw Error('A game is already in progress');if(!input||Object.keys(input).some(k=>!['names','mode','stage'].includes(k))||!Array.isArray(input.names)||input.names.some(n=>typeof n!=='string'||n.length>20)||input.mode&&!['auto','manual'].includes(input.mode))throw Error('Invalid setup');game=createGame(input.names,input.mode||'auto',input.stage??'classic');ensureGameIdentity(game,{newGame:true});update();return publicState()}});
  window.addEventListener('pagehide',()=>lifecycle.abort(),{once:true});
 }
-prepareRecord();save();render();void recordStore.retryAll();if(screen==='stats')void loadStatistics();if(screen==='records')void loadRecords();if(screen==='match')void loadMatch();if(screen==='trips')void loadTrips();if(screen==='modes')void loadModes();
+prepareRecord();save();render();void recordStore.retryAll();if(screen==='stats')void loadStatistics();if(screen==='records')void loadRecords();if(screen==='match')void loadMatch();if(screen==='trips')void loadTrips();if(screen==='modes')void loadModes();if(screen==='legends')void loadLegends();

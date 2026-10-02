@@ -1,8 +1,17 @@
 import {validateMatchRecord} from '../dist/records.js';
-import {storeMatch,readStatistics,readRecords,readMatch,readTrips,changeTrip,readModes} from './database.js';
+import {storeMatch,readStatistics,readRecords,readMatch,readTrips,changeTrip,readModes,readLegends} from './database.js';
 import {TRIP_IDS,validateTripChange} from './trips.js';
+import {legendQuery} from './legends.js';
 
 const json=(body,status=200)=>Response.json(body,{status,headers:{'Cache-Control':'no-store'}});
+export async function legendsRequest(request,env){
+  const owner=request.headers.get('oai-authenticated-user-id');
+  if(!owner)return json({error:'記録の表示にはログインが必要です'},401);
+  if(request.method!=='GET')return json({error:'Method not allowed'},405);
+  let query;try{query=legendQuery(new URL(request.url).searchParams)}catch{return json({error:'表示条件を確認できませんでした。再読み込みしてください'},400)}
+  try{return json(await readLegends(env.DB,owner,query))}
+  catch(error){console.error('Legends read failed',error);return json({error:'殿堂入りの記録を読み込めませんでした'},503)}
+}
 export async function modesRequest(request,env){
   const owner=request.headers.get('oai-authenticated-user-id');
   if(!owner)return json({error:'戦績の表示にはログインが必要です'},401);

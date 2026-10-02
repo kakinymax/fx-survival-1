@@ -1,0 +1,25 @@
+import {money} from './engine.js';
+import {LEGENDS} from './legends.js';
+import {historyTabs} from './record-view.js';
+
+const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const date=value=>new Intl.DateTimeFormat('ja-JP',{year:'numeric',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(value));
+const titles=Object.fromEntries(LEGENDS.map(e=>[e.key,e.title])),scopes={self:'あなた',human:'人間全体',cpu:'CPU'};
+const labels={fixed:'資産確定',cut:'ロスカット',empty:'資金枯渇',debt:'負債退場'};
+function evidence(event){
+  if(event.key==='comeback')return `R${event.round}で${money(event.low)}まで減少してから優勝。`;
+  if(event.key==='triple')return `R${event.round}：${money(event.before)} → ${money(event.after)}`;
+  if(event.key==='debtRecord')return `過去の最大負債 ${money(event.previous)} → ${money(event.debt)}`;
+  if(event.key==='lowLeverageWin')return `このゲームの最大倍率 ${event.maxLeverage}倍。`;
+  if(event.key==='hundredWin')return `100倍の取引 ${event.uses}回。`;
+  return null;
+}
+function entryCard(entry,scope,event){
+  return `<article class="surface stats-surface legend-card" data-legend-game="${escape(entry.gameId)}" data-legend-player="${entry.playerId}"><div class="legend-heading"><h2>${escape(entry.playerName)} ${entry.kind==='cpu'?'<span class="cpu-tag">CPU</span>':''}</h2><time datetime="${escape(entry.endedAt)}">${date(entry.endedAt)}</time></div><p class="stats-game-mode">${escape(entry.stage.name)} · ${entry.playMode==='solo'?'CPU対戦':'対面'}</p><div class="legend-tags">${entry.events.map(e=>`<span data-legend-event="${e.key}">${titles[e.key]}</span>`).join('')}</div><dl class="stats-metrics legend-amounts"><div><dt>最高到達資産</dt><dd>${money(entry.peak)}</dd></div><div><dt>最終資産 · ${labels[entry.status]}</dt><dd class="${BigInt(entry.wealth)<0n?'negative':''}">${money(entry.wealth)}</dd></div></dl>${entry.events.flatMap(e=>{const text=evidence(e);return text?[`<p class="legend-evidence">${text}</p>`]:[]}).join('')}<a class="stats-link record-open-link" href="#match/${escape(entry.gameId)}?from=legends/${scope}/${event}">試合を見る</a></article>`;
+}
+export function legendsView({state,data,error='',scope='self',event='all',hasGame=false,pendingCount=0,loadingMore=false,moreError=''}){
+  const heading=`<div class="stats-top"><h1>殿堂入り</h1><a href="#" class="text-button stats-link">${hasGame?'ゲームに戻る':'参加者設定へ'}</a></div>${historyTabs('legends')}`;
+  if(state!=='ready')return `<section class="surface stats-surface">${heading}<p class="stats-message" role="${state==='error'?'alert':'status'}">${state==='error'?escape(error||'殿堂入りの記録を読み込めませんでした。'):'殿堂入りの記録を読み込み中…'}</p>${state==='error'?'<button type="button" class="primary" data-action="reload-legends">再読み込み</button>':''}</section>`;
+  const from=`#legends/${scope}`,total=data.filteredResults;
+  return `<div class="stats-layout legends-layout"><section class="surface stats-surface legends-intro">${heading}<nav class="record-scopes" aria-label="記録の対象">${Object.entries(scopes).map(([key,label])=>`<a href="#legends/${key}/${event}" ${scope===key?'aria-current="page"':''}>${label}</a>`).join('')}</nav><p class="stats-scope">${scope==='self'?'あなたのCPU対戦で起きた出来事。対面は「人間全体」で確認できます。':scope==='human'?'対面を含む、人間プレイヤーの出来事。':'CPUの出来事を、人間の記録と分けて表示します。'}</p><label class="legend-filter" for="legend-filter">出来事<select id="legend-filter" data-legend-filter><option value="all" ${event==='all'?'selected':''}>すべて · ${data.matchedResults}件</option>${LEGENDS.map(e=>`<option value="${e.key}" ${event===e.key?'selected':''}>${e.title} · ${data.counts[e.key]}件</option>`).join('')}</select></label>${event!=='all'?`<p class="stats-definition">${LEGENDS.find(e=>e.key===event).description}</p>`:''}<p class="legend-count" role="status">${data.entries.length.toLocaleString('ja-JP')} / ${total.toLocaleString('ja-JP')}件 · 新しい試合から</p>${pendingCount?`<p class="stats-pending" role="status">保存完了を確認できていない試合が${pendingCount}件あります。<button type="button" class="text-button" data-action="retry-records">保存を再試行</button></p>`:''}${!data.entries.length?`<p class="stats-empty">${!data.participants?'この対象の試合記録はまだありません。':'該当する出来事はまだありません。'}${event!=='all'?`<br><a href="${from}/all" class="stats-link">すべての出来事を見る</a>`:''}</p>`:''}</section><div class="legend-grid">${data.entries.map(e=>entryCard(e,scope,event)).join('')}</div>${data.nextCursor||moreError?`<div class="legend-pagination">${moreError?`<p class="stats-message" role="alert">${escape(moreError)}</p>`:''}<button type="button" class="secondary" data-action="more-legends" ${loadingMore?'disabled':''}>${loadingMore?'読み込み中…':moreError?'続きを再読み込み':'続きを見る'}</button></div>`:''}<details class="surface stats-surface legend-about"><summary>出来事の条件</summary><dl>${LEGENDS.map(e=>`<div><dt>${e.title}</dt><dd>${e.description}</dd></div>`).join('')}</dl><p class="stats-definition">同率優勝も対象。1人の1ゲームを1件として表示し、複数の出来事は同じカードにまとめます。「一撃3倍」は最初に該当したラウンドを表示します。</p><p class="stats-definition">最大負債更新は、選んだ対象の過去ゲームと比較。終了日時・ゲームID順で判定し、同じゲームは最大負債者全員を記録します。同額は更新に含みません。最初の負債も対象です。</p><p class="stats-definition">保存済みの試合から自動判定するため、以前のゲームも対象。追加得点やボーナスはありません。</p></details></div>`;
+}
