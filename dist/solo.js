@@ -1,9 +1,9 @@
 import {createGame,activePlayers,submitOrder,resolveRound,commitDecisions,prepareAutoDraw,finishAutoDraw,randomFace} from './engine.js';
 
 export const CPU_PROFILES=Object.freeze({
- steady:Object.freeze({id:'steady',name:'ミナ',label:'堅実派',description:'1〜15倍が中心。増えた資産を早めに守る。'}),
- rival:Object.freeze({id:'rival',name:'レン',label:'対抗派',description:'15〜50倍が中心。順位を見て攻め方を変える。'}),
- gambler:Object.freeze({id:'gambler',name:'ゴウ',label:'勝負師',description:'50〜100倍が中心。大きく増えても勝負を続ける。'})
+ steady:Object.freeze({id:'steady',name:'堅実派',label:'堅実派',description:'1〜15倍が中心。増えた資産を早めに守る。'}),
+ rival:Object.freeze({id:'rival',name:'対抗派',label:'対抗派',description:'15〜50倍が中心。順位を見て攻め方を変える。'}),
+ gambler:Object.freeze({id:'gambler',name:'勝負師',label:'勝負師',description:'50〜100倍が中心。大きく増えても勝負を続ける。'})
 });
 export const isSolo=g=>g?.playMode==='solo';
 export const humanPlayer=g=>g.players.find(p=>!p.cpu);
@@ -83,6 +83,7 @@ export function commitSoloDecision(g,choice,roll=randomFace){
 }
 export function resumeSolo(g,roll=randomFace){
  if(!isSolo(g))return g;
+ for(const p of g.players)if(p.cpu&&CPU_PROFILES[p.cpu])p.name=CPU_PROFILES[p.cpu].name;
  if(g.phase==='results')g.history.at(-1).cpuQuotes??={};
  prepareSoloOrders(g,roll);prepareCpuDecisions(g,roll);return g;
 }
