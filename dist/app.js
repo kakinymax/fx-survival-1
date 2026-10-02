@@ -4,6 +4,7 @@ import {marketSeries,indexDisplay,candlesSvg} from './chart.js';
 import {ensureGameIdentity} from './records.js';
 import {createRecordStore} from './record-store.js';
 import {statisticsView} from './stats-view.js';
+import {recordsView,matchView} from './record-view.js';
 
 const root=document.querySelector('#app'),KEY='fx-survival-v1';
 const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -11,7 +12,14 @@ const labels={active:'続行',fixed:'資産確定',cut:'ロスカット',debt:'�
 let game=null,setupCount=4,setupMode='auto',setupStage='classic',setupNames=['プレイヤーA','プレイヤーB','プレイヤーC','プレイヤーD','プレイヤーE','プレイヤーF'];
 let setupPlay='tabletop',soloName='あなた';
 let draftSide=null,draftLeverage=1,storageError=false;
-let screen=location.hash==='#stats'?'stats':'game',statistics={state:'loading',data:null},statisticsRequest=0;
+let screen='game',statistics={state:'loading',data:null},statisticsRequest=0;
+let recordsPage={state:'loading',data:null},matchPage={state:'loading',data:null},historyRequest=0,recordsScope='self',matchId=null,matchFrom='records';
+function readRoute(){
+ const hash=location.hash;screen=hash==='#stats'?'stats':/^#records(?:\/|$)/.test(hash)?'records':hash.startsWith('#match/')?'match':'game';
+ if(screen==='records'){const scope=hash.split('/')[1];if(['self','human','cpu'].includes(scope))recordsScope=scope}
+ if(screen==='match'){const route=hash.match(/^#match\/([-a-zA-Z0-9_]{1,100})(?:\?from=(stats|records(?:\/(?:self|human|cpu))?))?$/);matchId=route?.[1]??null;matchFrom=route?.[2]??'records'}
+}
+readRoute();
 const dockObserver=new ResizeObserver(syncActionDock);
 function syncActionDock(){const dock=root.querySelector('.turn-actions'),viewport=window.visualViewport;document.documentElement.style.setProperty('--action-height',`${dock?.offsetHeight??80}px`);document.documentElement.style.setProperty('--keyboard-inset',`${viewport?Math.max(0,window.innerHeight-viewport.height-viewport.offsetTop):0}px`)}
 function observeActionDock(){dockObserver.disconnect();const dock=root.querySelector('.turn-actions');if(dock)dockObserver.observe(dock);syncActionDock()}
@@ -20,7 +28,7 @@ window.visualViewport?.addEventListener('scroll',syncActionDock);
 window.addEventListener('resize',syncActionDock);
 try{const saved=JSON.parse(localStorage.getItem(KEY));if(saved?.version===1&&saved.players?.length>=2&&saved.players.length<=6){saved.players.forEach(p=>{BigInt(p.wealth);BigInt(p.peak);BigInt(p.maxPosition)});game=resumeSolo(migrateGame(saved))}}catch{storageError=true}
 function save(){try{if(game)localStorage.setItem(KEY,JSON.stringify(game));else localStorage.removeItem(KEY)}catch{storageError=true}}
-const recordStore=createRecordStore({storage:{getItem:key=>localStorage.getItem(key),setItem:(key,value)=>localStorage.setItem(key,value),removeItem:key=>localStorage.removeItem(key)},onChange(id,state){if(game?.finalRecord?.id===id&&state==='saved'){game.finalRecordSaved=true;save()}refreshRecordStatus();if(screen==='stats'&&state==='saved')void loadStatistics()}});
+const recordStore=createRecordStore({storage:{getItem:key=>localStorage.getItem(key),setItem:(key,value)=>localStorage.setItem(key,value),removeItem:key=>localStorage.removeItem(key)},onChange(id,state){if(game?.finalRecord?.id===id&&state==='saved'){game.finalRecordSaved=true;save()}refreshRecordStatus();if(state==='saved'){if(screen==='stats')void loadStatistics();if(screen==='records')void loadRecords()}}});
 function prepareRecord(){if(game){ensureGameIdentity(game);if(game.finalRecord)recordStore.enqueue(game.finalRecord,{saved:game.finalRecordSaved===true})}}
 function update(scroll=true){prepareRecord();save();render();if(scroll)window.scrollTo({top:0,behavior:'instant'})}
 function recordStatus(){const id=game?.finalRecord?.id,state=recordStore.state(id);return `<div class="record-status" role="status" data-record-status>${state==='saved'?'このゲームを戦績に保存しました。':state==='error'?`戦績を保存できませんでした。${action('再試行','retry-record','text-button')}`:'戦績を保存中…'}${state==='error'&&recordStore.draftError()?'<small>ページを閉じる前に再試行してください。</small>':''}</div>`}
@@ -33,7 +41,23 @@ async function loadStatistics(){
  catch(error){if(request!==statisticsRequest)return;statistics={state:'error',data:null,error:error.name==='TimeoutError'?'読み込みに時間がかかっています。もう一度お試しください。':error.message}}
  if(screen==='stats')render();
 }
-window.addEventListener('hashchange',()=>{screen=location.hash==='#stats'?'stats':'game';draftSide=null;draftLeverage=1;if(screen==='stats')void loadStatistics();else{statisticsRequest++;render()}window.scrollTo({top:0,behavior:'instant'})});
+async function loadHistory(kind){
+ const request=++historyRequest,id=matchId,title=kind==='records'?'歴代記録':'試合記録';
+ const set=value=>{if(kind==='records')recordsPage=value;else matchPage=value};
+ set({state:'loading',data:null});if(screen===kind)render();
+ try{
+  if(kind==='match'&&!id)throw Error('試合が見つかりません。');
+  const response=await fetch(kind==='records'?'/api/records':`/api/matches/${id}`,{headers:{Accept:'application/json'},cache:'no-store',signal:AbortSignal.timeout(15000)});
+  if(!response.ok)throw Error(response.status===401?'ログインを確認して、もう一度読み込んでください。':response.status===404?'試合が見つかりません。':`${title}を読み込めませんでした。`);
+  const data=await response.json();
+  if(kind==='records'?!data?.scopes?.self||!data?.scopes?.human||!data?.scopes?.cpu||!data?.lifetime:data?.record?.id!==id||!Array.isArray(data.record.history))throw Error(`${title}を読み込めませんでした。`);
+  if(request!==historyRequest)return;set({state:'ready',data:kind==='records'?data:data.record});
+ }catch(error){if(request!==historyRequest)return;set({state:'error',data:null,error:error.name==='TimeoutError'?'読み込みに時間がかかっています。もう一度お試しください。':error.message})}
+ if(screen===kind)render();
+}
+function loadRecords(){return loadHistory('records')}
+function loadMatch(){return loadHistory('match')}
+window.addEventListener('hashchange',()=>{const previous=screen;readRoute();statisticsRequest++;historyRequest++;draftSide=null;draftLeverage=1;chartDialog.close();if(screen==='stats')void loadStatistics();else if(screen==='records'){if(previous==='records'&&recordsPage.state==='ready')render();else void loadRecords()}else if(screen==='match')void loadMatch();else render();window.scrollTo({top:0,behavior:'instant'})});
 function current(){return isSolo(game)?humanPlayer(game):activePlayers(game)[game.cursor]}
 function playerName(p){return `${escape(p.name)}${p.cpu?` <span class="cpu-tag">CPU</span>`:isSolo(game)&&p.name!=='あなた'?' <span class="cpu-tag">あなた</span>':''}`}
 function avatar(p){return `<span class="avatar">${String.fromCharCode(65+p.id)}</span>`}
@@ -80,7 +104,7 @@ const chartDialog=document.querySelector('#market-chart'),chartCanvas=document.q
 function renderChartCanvas(){if(chartDialog.open)chartCanvas.innerHTML=candlesSvg(chartSnapshot,{width:Math.max(220,Math.round(chartCanvas.clientWidth)),height:200,detailed:true})}
 new ResizeObserver(renderChartCanvas).observe(chartCanvas);
 function showChart(){
- const data=game?.finalRecord??game;if(!data?.history.length)return;
+ const data=screen==='match'?matchPage.data:game?.finalRecord??game;if(!data?.history.length)return;
  chartSnapshot=marketSeries(data.history);
  document.querySelector('#chart-current').textContent=`開始 100.00 → 現在 ${indexDisplay(chartSnapshot.at(-1).close)}`;
  document.querySelector('#chart-rows').innerHTML=chartSnapshot.map(c=>`<tr><td>R${String(c.round).padStart(2,'0')}</td><td class="${c.direction==='up'?'positive':'negative'}">${c.direction==='up'?'＋':'−'}${c.bps/100}%${c.gap?' <span class="gap-text">ギャップ</span>':''}</td><td>${indexDisplay(c.open)}</td><td>${indexDisplay(c.close)}</td><td>${c.first}${c.second?' / '+c.second:''}</td></tr>`).join('');
@@ -100,6 +124,7 @@ function history(data=game){return `<details class="history"><summary>ラウン�
 function ending(){const data=game.finalRecord,ws=data.players.filter(p=>data.winnerIds.includes(p.id)),ranked=[...data.players].sort((a,b)=>BigInt(a.wealth)>BigInt(b.wealth)?-1:BigInt(a.wealth)<BigInt(b.wealth)?1:0);return `<section class="surface end-surface"><p class="eyebrow">FINAL RESULTS / ${data.endedRound} ROUNDS</p>${stageBadge(data.stage)}${decisionSummary(data)}<h1>最後に、いくら残せた？</h1><div class="ending"><p>${isSolo(data)?(ws.some(p=>!p.cpu)?(ws.length>1?'あなたの同率勝利':'あなたの勝利'):ws.length?(ws.length>1?'CPUの同率勝利':'今回はCPUの勝利'):'勝者なし'):ws.length>1?'同率勝利':ws.length?'WINNER':'NO WINNER'}</p><h2>${ws.length?ws.map(p=>escape(p.name)).join('・'):'勝者なし'}</h2><p>${ws.length?`最終資産 ${money(ws[0].wealth)}`:'正の資産を残したプレイヤーはいません。'}</p></div><p class="muted">最高到達資産も、最大取引額も、全員の記録に残ります。</p>${recordStatus()}<div class="table-wrap"><table><thead><tr><th>プレイヤー</th><th>初期資産</th><th>最高到達資産</th><th>最大取引額</th><th>最終資産</th></tr></thead><tbody>${ranked.map(p=>`<tr><td><strong>${escape(p.name)}</strong><small>${labels[p.status]}</small></td><td>${money(p.initial)}</td><td>${money(p.peak)}</td><td>${money(p.maxPosition)}</td><td class="${BigInt(p.wealth)<0n?'negative':ws.some(w=>w.id===p.id)?'positive':''}"><strong>${money(p.wealth)}</strong>${isSolo(data)?`<small>最高から ${money(BigInt(p.peak)-BigInt(p.wealth))} 減少</small>`:''}</td></tr>`).join('')}</tbody></table></div>${data.history.length?`<section class="last-settlement"><h3>第${data.history.at(-1).round}ラウンドの精算</h3>${resultMarket(data.history.at(-1),data)}${resultCards(data.history.at(-1),false,data)}</section>`:''}${history(data)}<div class="ending-actions">${action('もう一度遊ぶ','reset','secondary full')}<a href="#stats" class="secondary stats-link">戦績を見る</a></div></section>`}
 function render(){
  if(screen==='stats'){document.body.dataset.phase='statistics';document.body.classList.remove('playing','has-turn-actions');dockObserver.disconnect();document.querySelector('footer').firstChild.textContent='保存したゲームの戦績 ';root.innerHTML=statisticsView({...statistics,pendingCount:recordStore.pendingCount(),hasGame:!!game});return}
+ if(screen==='records'||screen==='match'){document.body.dataset.phase='statistics';document.body.classList.remove('playing','has-turn-actions');dockObserver.disconnect();document.querySelector('footer').firstChild.textContent='保存したゲームの記録 ';root.innerHTML=screen==='records'?recordsView({...recordsPage,scope:recordsScope,pendingCount:recordStore.pendingCount(),hasGame:!!game}):matchView({...matchPage,hasGame:!!game,from:matchFrom});return}
  document.body.dataset.phase=game?.phase??'setup';
  document.body.classList.toggle('solo-game',isSolo(game));
  document.querySelector('footer').firstChild.textContent=isSolo(game)?'あなた + CPU3人で対戦 ':setupPlay==='solo'&&!game?'1人でCPUと対戦 ':'1台を受け渡してプレイ ';
@@ -133,6 +158,8 @@ root.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.di
  case'retry-record':void recordStore.retry(game.finalRecord.id);return;
  case'retry-records':void recordStore.retryAll();return;
  case'reload-statistics':void loadStatistics();return;
+ case'reload-records':void loadRecords();return;
+ case'reload-match':void loadMatch();return;
  case'chart-open':showChart();return;
  case'draw-direction':drawWithFeedback('direction');return;
  case'draw-movement':drawWithFeedback('first');return;
@@ -162,4 +189,4 @@ if(context?.registerTool){const lifecycle=new AbortController();const register=t
  register({name:'start_fx_survival_game',description:'Start a new 2–6 player game from the setup screen only. Does not enter or submit secret player choices.',inputSchema:{type:'object',properties:{names:{type:'array',minItems:2,maxItems:6,items:{type:'string',minLength:1,maxLength:20}},mode:{type:'string',enum:['auto','manual']},stage:{type:'string',enum:Object.keys(STAGES)}},required:['names'],additionalProperties:false},annotations:{readOnlyHint:false},execute(input){if(game)throw Error('A game is already in progress');if(!input||Object.keys(input).some(k=>!['names','mode','stage'].includes(k))||!Array.isArray(input.names)||input.names.some(n=>typeof n!=='string'||n.length>20)||input.mode&&!['auto','manual'].includes(input.mode))throw Error('Invalid setup');game=createGame(input.names,input.mode||'auto',input.stage??'classic');ensureGameIdentity(game,{newGame:true});update();return publicState()}});
  window.addEventListener('pagehide',()=>lifecycle.abort(),{once:true});
 }
-prepareRecord();save();render();void recordStore.retryAll();if(screen==='stats')void loadStatistics();
+prepareRecord();save();render();void recordStore.retryAll();if(screen==='stats')void loadStatistics();if(screen==='records')void loadRecords();if(screen==='match')void loadMatch();

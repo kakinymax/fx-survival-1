@@ -1,5 +1,5 @@
 import {validateMatchRecord} from '../dist/records.js';
-import {storeMatch,readStatistics} from './database.js';
+import {storeMatch,readStatistics,readRecords,readMatch} from './database.js';
 
 const json=(body,status=200)=>Response.json(body,{status,headers:{'Cache-Control':'no-store'}});
 export async function statisticsRequest(request,env){
@@ -9,9 +9,22 @@ export async function statisticsRequest(request,env){
   try{return json(await readStatistics(env.DB,owner))}
   catch(error){console.error('Statistics read failed',error);return json({error:'戦績を読み込めませんでした'},503)}
 }
+export async function recordsRequest(request,env){
+  const owner=request.headers.get('oai-authenticated-user-id');
+  if(!owner)return json({error:'戦績の表示にはログインが必要です'},401);
+  if(request.method!=='GET')return json({error:'Method not allowed'},405);
+  try{return json(await readRecords(env.DB,owner))}
+  catch(error){console.error('Records read failed',error);return json({error:'歴代記録を読み込めませんでした'},503)}
+}
 export async function matchRequest(request,env){
   const owner=request.headers.get('oai-authenticated-user-id');
-  if(!owner)return json({error:'保存にはログインが必要です'},401);
+  if(!owner)return json({error:'戦績にはログインが必要です'},401);
+  if(request.method==='GET'){
+    const id=new URL(request.url).pathname.slice('/api/matches/'.length);
+    if(!/^[-a-zA-Z0-9_]{1,100}$/.test(id))return json({error:'試合が見つかりません'},404);
+    try{const record=await readMatch(env.DB,owner,id);return record?json({record}):json({error:'試合が見つかりません'},404)}
+    catch(error){console.error('Match read failed',error);return json({error:'試合記録を読み込めませんでした'},503)}
+  }
   if(request.method!=='PUT')return json({error:'Method not allowed'},405);
   const url=new URL(request.url),origin=request.headers.get('origin');
   if(origin&&origin!==url.origin)return json({error:'Forbidden'},403);
