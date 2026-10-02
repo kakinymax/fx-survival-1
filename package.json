@@ -1,1 +1,1 @@
-{"name":"fx-survival","private":true,"type":"module","scripts":{"test":"node tests/engine.test.mjs"}}
+{"name":"fx-survival","private":true,"type":"module","scripts":{"test":"node --test tests/engine.test.mjs tests/solo.test.mjs"}}
