@@ -1,5 +1,6 @@
 import {createLifetimeAccumulator,summarizeMatch} from './statistics.js';
 import {createRecordAccumulator} from './rankings.js';
+import {createModeAccumulator} from './modes.js';
 import {TRIP_IDS,tripLabel,tripSettings,createTripAccumulator,tripChangeSignature} from './trips.js';
 
 async function scanMatches(db,ownerId,visit,{after=null}={}){
@@ -27,6 +28,11 @@ export async function readRecords(db,ownerId){
   const stats=createLifetimeAccumulator(),records=createRecordAccumulator();
   await scanMatches(db,ownerId,record=>{stats.add(record);records.add(record)});
   return {...stats.result(),...records.result()};
+}
+export async function readModes(db,ownerId){
+  const stats=createModeAccumulator();
+  await scanMatches(db,ownerId,record=>stats.add(record));
+  return stats.result();
 }
 export async function readMatch(db,ownerId,id){
   const row=await db.prepare('SELECT record_json FROM matches WHERE owner_id=? AND game_id=?').bind(ownerId,id).first();

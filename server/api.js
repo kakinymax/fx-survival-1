@@ -1,8 +1,15 @@
 import {validateMatchRecord} from '../dist/records.js';
-import {storeMatch,readStatistics,readRecords,readMatch,readTrips,changeTrip} from './database.js';
+import {storeMatch,readStatistics,readRecords,readMatch,readTrips,changeTrip,readModes} from './database.js';
 import {TRIP_IDS,validateTripChange} from './trips.js';
 
 const json=(body,status=200)=>Response.json(body,{status,headers:{'Cache-Control':'no-store'}});
+export async function modesRequest(request,env){
+  const owner=request.headers.get('oai-authenticated-user-id');
+  if(!owner)return json({error:'戦績の表示にはログインが必要です'},401);
+  if(request.method!=='GET')return json({error:'Method not allowed'},405);
+  try{return json(await readModes(env.DB,owner))}
+  catch(error){console.error('Mode statistics read failed',error);return json({error:'モード別戦績を読み込めませんでした'},503)}
+}
 export async function statisticsRequest(request,env){
   const owner=request.headers.get('oai-authenticated-user-id');
   if(!owner)return json({error:'戦績の表示にはログインが必要です'},401);

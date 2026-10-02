@@ -39,7 +39,7 @@ function valueLabel(value,unit){
   if(unit==='rate'){const n=BigInt(value);return `${n/10n}.${n%10n}%`}
   return `${value}${{rounds:'ラウンド',leverage:'倍',count:'回',games:'ゲーム'}[unit]}`;
 }
-export function historyTabs(current){return `<nav class="history-tabs" aria-label="戦績のページ"><a href="#stats" ${current==='stats'?'aria-current="page"':''}>生涯戦績</a><a href="#records" ${current==='records'?'aria-current="page"':''}>歴代記録</a><a href="#trips" ${current==='trips'?'aria-current="page"':''}>TRIP</a></nav>`}
+export function historyTabs(current){return `<nav class="history-tabs" aria-label="戦績のページ"><a href="#stats" ${current==='stats'?'aria-current="page"':''}>生涯戦績</a><a href="#records" ${current==='records'?'aria-current="page"':''}>歴代記録</a><a href="#trips" ${current==='trips'?'aria-current="page"':''}>TRIP</a><a href="#modes" ${current==='modes'?'aria-current="page"':''}>モード別</a></nav>`}
 const head=(title,hasGame)=>`<div class="stats-top"><h1>${title}</h1><a href="#" class="text-button stats-link">${hasGame?'ゲームに戻る':'スタート画面へ'}</a></div>`;
 function readState(state,error,action){
   return state==='loading'?'<p class="stats-message" role="status">保存済みの記録を読み込み中…</p>':`<p class="stats-message" role="alert">${escape(error||'記録を読み込めませんでした。')}</p><button class="secondary" data-action="${action}">再読み込み</button>`;
