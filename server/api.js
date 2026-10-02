@@ -1,7 +1,14 @@
 import {validateMatchRecord} from '../dist/records.js';
-import {storeMatch} from './database.js';
+import {storeMatch,readStatistics} from './database.js';
 
 const json=(body,status=200)=>Response.json(body,{status,headers:{'Cache-Control':'no-store'}});
+export async function statisticsRequest(request,env){
+  const owner=request.headers.get('oai-authenticated-user-id');
+  if(!owner)return json({error:'戦績の表示にはログインが必要です'},401);
+  if(request.method!=='GET')return json({error:'Method not allowed'},405);
+  try{return json(await readStatistics(env.DB,owner))}
+  catch(error){console.error('Statistics read failed',error);return json({error:'戦績を読み込めませんでした'},503)}
+}
 export async function matchRequest(request,env){
   const owner=request.headers.get('oai-authenticated-user-id');
   if(!owner)return json({error:'保存にはログインが必要です'},401);

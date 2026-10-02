@@ -1,0 +1,1 @@
+CREATE INDEX `idx_matches_owner_ended_game` ON `matches` (`owner_id`,`ended_at`,`game_id`);
