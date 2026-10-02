@@ -47,15 +47,22 @@ export function submitSoloOrder(g,order){
  submitOrder(g,order);g.cursor=activePlayers(g).length;g.phase='orders-revealed';
 }
 function resultQuote(profile,result,round){
- if(result.status==='debt')return profile==='gambler'?'ギャップ、突き抜けたか…。':'利益も資金も、一度で消えた…。';
+ if(result.status==='debt')return profile==='gambler'?'ギャップ、突き抜けたか…。':'資金を超える損失か…。';
  if(result.status==='cut'||result.status==='empty')return 'ここまでか。残ったみんなを見届けよう。';
  if(round===12)return profile==='steady'?'この資産で、結果を待とう。':profile==='rival'?'最後の順位は、どうだ。':'12ラウンド、やり切った。';
+ if(BigInt(result.pnl)===0n)return result.win?'方向は当たったが、資産は変わらずか。':'方向は逆だったが、資産は変わらずか。';
+ if(profile==='steady'&&BigInt(result.pnl)>=BigInt(result.before))return '大きく増えた。次も落ち着いて考えよう。';
  if(profile==='steady')return result.win?'少しずつでいい。':'倍率は抑えて、次を考えよう。';
- if(profile==='rival')return result.win?'この順位、まだ動かせる。':'差が開いたな。次の勝負だ。';
+ if(profile==='rival')return result.win?'この順位、まだ動かせる。':'この損失を踏まえて、次の勝負だ。';
  return result.win?'まだいける。':'これも勝負。まだ残ってる。';
 }
-function decisionQuote(profile,choice){
- if(choice==='fix')return profile==='steady'?'ここで降りる。十分増えた。':profile==='rival'?'この資産で、逃げ切りを狙う。':'今日はここまで。勝ちを持ち帰る。';
+function decisionQuote(profile,choice,id,state){
+ if(choice==='fix'){
+  const {wealth,leading}=context(id,state);
+  if(wealth<1000n)return profile==='steady'?'元本には届かなかった。ここで降りる。':profile==='rival'?'元本割れか。この資産で結果を待つ。':'今日はここまで。残った分を持ち帰る。';
+  if(wealth===1000n)return profile==='steady'?'元本を残して、ここで降りる。':profile==='rival'?'元本で確定。最後の順位を待とう。':'今日はここまで。元本を持ち帰る。';
+  return profile==='steady'?'ここで降りる。十分増えた。':profile==='rival'?(leading?'この資産で、逃げ切りを狙う。':'増えた分を確定。最後の順位を待つ。'):'今日はここまで。利益を持ち帰る。';
+ }
  return profile==='steady'?'次も、無理はしない。':profile==='rival'?'まだ順位は決まってない。':'もう一回、勝負だ。';
 }
 export function prepareCpuDecisions(g,roll=randomFace){
@@ -77,8 +84,8 @@ export function commitSoloDecision(g,choice,roll=randomFace){
  if(cpuPlayers(g).some(p=>!['continue','fix'].includes(g.cpuDecisions?.[p.id])))throw Error('CPUの進退が未確定です');
  const choices=Object.fromEntries(cpuPlayers(g).map(p=>[p.id,g.cpuDecisions[p.id]]));
  if(human.status==='active')choices[human.id]=choice;
- const h=g.history.at(-1);
- for(const p of cpuPlayers(g)){p.quote=decisionQuote(p.cpu,choices[p.id]);h.cpuQuotes[p.id]=p.quote}
+ const h=g.history.at(-1),state=publicSnapshot(g);
+ for(const p of cpuPlayers(g)){p.quote=decisionQuote(p.cpu,choices[p.id],p.id,state);h.cpuQuotes[p.id]=p.quote}
  commitDecisions(g,choices);g.cpuDecisions={};prepareSoloOrders(g,roll);
 }
 export function resumeSolo(g,roll=randomFace){

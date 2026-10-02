@@ -39,6 +39,12 @@ test('empty histories and unused groups have no invented averages/bests; all-deb
 test('archived round gains, not directional hits or overall wins, determine outcomes, including zero from rounding and normal cuts',()=>{
  const r=record('rounding',[{leverage:100,after:'1000',win:true},{leverage:100,after:'0',win:false}],{status:'cut',winnerIds:[]}),s=aggregateFeedback([r]);assert.equal(band(s,'hundred').profitable,0);assert.equal(band(s,'hundred').losses,1);assert.equal(band(s,'hundred').unchanged,1);assert.equal(s.games.used100.fundsDepleted,1);
 });
+test('game comparison shows both zero exits and debt using the existing owner-only lifetime counts',()=>{
+ const rows=[record('cut',[{leverage:100,after:'0'}],{status:'cut',winnerIds:[1]}),record('empty',[{leverage:100,after:'0'}],{status:'empty',winnerIds:[1]}),record('debt',[{leverage:100,after:'-1000'}],{status:'debt',winnerIds:[1]}),record('low',[{leverage:25,after:'1125'}])];
+ const data=aggregateFeedback(rows),html=feedbackView(data);
+ assert.equal(data.games.used100.fundsDepleted,2);assert.equal(data.games.used100.debtExits,1);assert.equal(data.games.no100.fundsDepleted,0);
+ assert(html.includes('0円退場（ロスカット含む）'));assert(html.includes('data-feedback-stat="fundsDepleted">2回'));assert(html.includes('data-feedback-stat="fundsDepleted">0回'));assert(html.includes('data-feedback-stat="debtExits">1回'));
+});
 test('whole-game groups count tied wins once and reuse lifetime rounding, preserving exact huge monetary values',()=>{
  const big='1234567890123456789012345',a=record('a',[{leverage:100,after:big}],{winnerIds:[0,1]}),b=record('b',[{leverage:100,after:String(BigInt(big)+1n)}]),s=aggregateFeedback([a,b]);assert.equal(s.games.used100.wins,2);assert.equal(band(s,'hundred').pnlTotal,String(BigInt(big)*2n+1n-2000n));assert.equal(band(s,'hundred').averagePnl,String(BigInt(big)-999n));assert.equal(s.games.used100.averagePnl,band(s,'hundred').averagePnl);
  const negative=aggregateFeedback([record('c',[{leverage:25,after:'999'}]),record('d',[{leverage:25,after:'998'}])]);assert.equal(band(negative,'oneTo25').averagePnl,'-2');assert.equal(negative.games.no100.averagePnl,'-2');
