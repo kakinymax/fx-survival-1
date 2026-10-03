@@ -58,6 +58,21 @@ test('record validation rejects altered calculations, metrics, winners and incom
   const g=identified(createGame(['A','B']));round(g);const record=finish(g);
   for(const mutate of [r=>r.players[0].wealth='99999',r=>r.players[0].metrics.uses100=2,r=>r.winnerIds=[],r=>r.history[0].bps=100,r=>r.history[0].results[0].after='999',r=>r.endedRound=2]){const r=structuredClone(record);mutate(r);assert.throws(()=>validateMatchRecord(r))}
 });
+test('Basic rename preserves validation, retries and immutable legacy Classic records',async()=>{
+  const g=identified(createGame(['A','B'],'manual'));round(g);const current=finish(g);
+  assert.deepEqual(current.stage,{id:'classic',name:'ベーシック'});
+  const legacy=structuredClone(current);legacy.stage.name='クラシック';const before=JSON.stringify(legacy);
+  assert.strictEqual(validateMatchRecord(legacy),legacy);
+  const env={DB:database()},request=record=>new Request(`https://example.test/api/matches/${record.id}`,{method:'PUT',headers:{'Content-Type':'application/json','oai-authenticated-user-id':'owner'},body:JSON.stringify(record)});
+  for(let attempt=0;attempt<2;attempt++){
+    const response=await matchRequest(request(legacy),env);assert.equal(response.status,200);assert.deepEqual((await response.json()).record,legacy);
+  }
+  assert.equal(JSON.stringify(legacy),before);
+  assert.equal((await matchRequest(request(current),env)).status,409);
+  for(const stage of [{id:'classic',name:'不明なステージ'},{id:'usdjpy',name:'クラシック'}]){
+    const invalid=structuredClone(current);invalid.stage=stage;assert.throws(()=>validateMatchRecord(invalid));
+  }
+});
 test('D1 writes are immutable, idempotent and partitioned by authenticated owner',async()=>{
   const db=database(),g=identified(createGame(['A','B']));round(g);const r=finish(g);
   assert.equal((await storeMatch(db,'user-a',r)).conflict,false);assert.equal((await storeMatch(db,'user-a',r)).conflict,false);assert.equal(db.rows.size,1);
