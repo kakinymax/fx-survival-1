@@ -2,7 +2,7 @@ export const INITIAL = '1000'; // units: ¥1,000; amounts serialized as decimal 
 export const NORMAL = [10,20,30,50,80];
 export const SHOCK = [100,100,150,200,500,1000];
 export const STAGES = Object.freeze({
-  classic:Object.freeze({id:'classic',name:'クラシック',code:'BASIC RULES',description:'基本ルール v1.0の値動き',normal:Object.freeze([...NORMAL]),shock:Object.freeze([...SHOCK])}),
+  classic:Object.freeze({id:'classic',name:'ベーシック',code:'BASIC RULES',description:'小さな値動きと大きな急変を組み合わせた、基本のステージ。',normal:Object.freeze([...NORMAL]),shock:Object.freeze([...SHOCK])}),
   usdjpy:Object.freeze({id:'usdjpy',name:'ドル円',code:'USD / JPY',description:'値動き控えめ。小さな増減を重ねる',normal:Object.freeze([10,10,20,30,50]),shock:Object.freeze([80,80,100,150,300,500])}),
   tryjpy:Object.freeze({id:'tryjpy',name:'トルコリラ円',code:'TRY / JPY',description:'値動き大きめ。利益も損失も大きく動く',normal:Object.freeze([20,40,60,100,150]),shock:Object.freeze([200,200,300,500,1000,2000])})
 });

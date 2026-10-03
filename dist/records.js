@@ -51,7 +51,9 @@ export function validateMatchRecord(record){
     !Array.isArray(record.history)||record.history.length!==record.endedRound)fail();
   const date=v=>typeof v==='string'&&new Date(v).toISOString()===v;
   if(!date(record.endedAt)||record.startedAt!==null&&!date(record.startedAt)||record.startedAt&&record.startedAt>record.endedAt)fail();
-  const stage=getStage(record.stage?.id);if(record.stage.name!==stage.name)fail();
+  const stage=getStage(record.stage?.id);
+  // Immutable records created before the Basic rename retain their original name.
+  if(record.stage.name!==stage.name&&!(stage.id==='classic'&&record.stage.name==='クラシック'))fail();
   const amounts=['initial','wealth','peak','maxPosition'];
   const ids=new Set();
   for(const p of record.players){
