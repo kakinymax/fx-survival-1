@@ -1,7 +1,8 @@
 import {createGame,activePlayers,submitOrder,resolveRound,commitDecisions,money,market,prepareAutoDraw,finishAutoDraw,migrateGame,STAGES,getStage} from './engine.js';
 import {CPU_PROFILES,isSolo,humanPlayer,isSpectating,createSoloGame,submitSoloOrder,resolveSoloRound,commitSoloDecision,resumeSolo,fastForwardSolo} from './solo.js';
 import {marketSeries,indexDisplay,candlesSvg} from './chart.js';
-import {SHOCK_DRAW_MS,marketCandleModel,marketCandleSvg} from './market-candle.js';
+import {SHOCK_DRAW_MS,marketCandleModel,marketCandleMarkup} from './market-candle.js';
+import {createMarketChartRenderer} from './market-chart-renderer.js';
 import {ensureGameIdentity} from './records.js';
 import {createRecordStore} from './record-store.js';
 import {statisticsView} from './stats-view.js';
@@ -14,6 +15,7 @@ import {cpuPreviousQuote,personalBestsView} from './career-view.js';
 import {impactPreview,previousSoloLeverage,replayGame,fastForwardHighlights} from './play-extras.js';
 
 const root=document.querySelector('#app'),KEY='fx-survival-v1';
+const marketCharts=createMarketChartRenderer(root);
 const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const labels={active:'続行',fixed:'資産確定',cut:'ロスカット',debt:'負債・退場',empty:'資金枯渇'};
 let game=null,setupCount=4,setupMode='auto',setupStage='classic',setupNames=['プレイヤーA','プレイヤーB','プレイヤーC','プレイヤーD','プレイヤーE','プレイヤーF'];
@@ -249,7 +251,7 @@ function observerButtons(label,name,disabled=false){return `<div class="observer
 function marketAction(label,name,disabled=false){return `<div class="turn-actions"><p class="error" id="form-error" role="alert"></p>${isSpectating(game)?observerButtons(label.replace('アプリで',''),name,disabled):`<button type="button" class="primary" data-action="${name}" ${disabled?'disabled':''}>${label}</button>`}</div>`}
 function marketBanner(main,detail,{tone='',pulse=false,animate=false,gap=false}={}){
  const model=marketCandleModel(game),elapsed=shockAnimation?.target===game?performance.now()-shockAnimation.startedAt:0;
- return `<div class="market-banner market-candle-banner ${gap?'gap':''}" aria-live="polite">${marketCandleSvg(model,{animate,elapsed})}<div class="candle-summary"><div class="big ${tone}${pulse?' draw-pulse':''}">${main}</div><p class="${gap?'gap-text':''}">${detail}</p></div></div>`;
+ return `<div class="market-banner market-candle-banner ${gap?'gap':''}" aria-live="polite">${marketCandleMarkup(model,{animate,elapsed})}<div class="candle-summary"><div class="big ${tone}${pulse?' draw-pulse':''}">${main}</div><p class="${gap?'gap-text':''}">${detail}</p></div></div>`;
 }
 function marketView(){
  const phase=game.phase;
@@ -291,6 +293,7 @@ function soloResultView(){
 function history(data=game){return `<details class="history"><summary>ラウンドの記録（${data.history.length}回）</summary>${data.history.map(h=>`<div class="history-item"><strong>R${h.round} · ${h.direction==='up'?'＋':'−'}${h.bps/100}% · ${h.gap?'ギャップ':'通常'} · 出目 ${h.first}${h.second?` / ${h.second}`:''}</strong>${h.results.map(r=>`<p>${escape(data.players.find(p=>p.id===r.id).name)}：${r.side==='buy'?'買い':'売り'} ${r.leverage}倍 · ${money(r.before)} → ${money(r.after)}${h.cpuQuotes?.[r.id]?` · 「${escape(h.cpuQuotes[r.id])}」`:''}</p>`).join('')}</div>`).join('')}</details>`}
 function ending(){const data=game.finalRecord,ws=data.players.filter(p=>data.winnerIds.includes(p.id)),ranked=[...data.players].sort((a,b)=>BigInt(a.wealth)>BigInt(b.wealth)?-1:BigInt(a.wealth)<BigInt(b.wealth)?1:0);return `<section class="surface end-surface"><p class="eyebrow">FINAL RESULTS / ${data.endedRound} ROUNDS</p>${stageBadge(data.stage)}${decisionSummary(data)}<h1>最後に、いくら残せた？</h1><div class="ending"><p>${isSolo(data)?(ws.some(p=>!p.cpu)?(ws.length>1?'あなたの同率勝利':'あなたの勝利'):ws.length?(ws.length>1?'CPUの同率勝利':'今回はCPUの勝利'):'勝者なし'):ws.length>1?'同率勝利':ws.length?'WINNER':'NO WINNER'}${isSolo(data)?`<span class="personal-best-badge" data-personal-best-badge>${personalBestBadge()}</span>`:''}</p><h2>${ws.length?ws.map(p=>escape(p.name)).join('・'):'勝者なし'}</h2><p>${ws.length?`最終資産 ${money(ws[0].wealth)}`:'正の資産を残したプレイヤーはいません。'}</p></div><p class="muted">最高到達資産も、最大取引額も、全員の記録に残ります。</p>${recordStatus()}<div data-personal-bests role="status" aria-live="polite">${personalBestNotice()}</div>${fastForwardDigest(data)}<div class="table-wrap"><table><thead><tr><th>プレイヤー</th><th>初期資産</th><th>最高到達資産</th><th>最大取引額</th><th>最終資産</th></tr></thead><tbody>${ranked.map(p=>`<tr><td><strong>${escape(p.name)}</strong><small>${labels[p.status]}</small></td><td>${money(p.initial)}</td><td>${money(p.peak)}</td><td>${money(p.maxPosition)}</td><td class="${BigInt(p.wealth)<0n?'negative':ws.some(w=>w.id===p.id)?'positive':''}"><strong>${money(p.wealth)}</strong>${isSolo(data)?`<small>最高から ${money(BigInt(p.peak)-BigInt(p.wealth))} 減少</small>`:''}</td></tr>`).join('')}</tbody></table></div>${data.history.length?`<section class="last-settlement"><h3>第${data.history.at(-1).round}ラウンドの精算</h3>${resultMarket(data.history.at(-1),data)}${resultCards(data.history.at(-1),false,data)}</section>`:''}${history(data)}<div class="ending-actions">${action('同じ設定で再戦','replay','primary full')}${action('設定を変えて遊ぶ','reset','secondary full')}<a href="#stats" class="secondary stats-link">戦績を見る</a></div></section>`}
 function render(){
+ marketCharts.clear();
  if(screen==='legends'){document.body.dataset.phase='statistics';document.body.classList.remove('playing','has-turn-actions');dockObserver.disconnect();document.querySelector('footer').firstChild.textContent='保存した試合の出来事 ';root.innerHTML=legendsView({...legendsPage,scope:legendScope,event:legendEvent,hasGame:!!game,pendingCount:recordStore.pendingCount()});return}
  if(screen==='modes'){document.body.dataset.phase='statistics';document.body.classList.remove('playing','has-turn-actions');dockObserver.disconnect();document.querySelector('footer').firstChild.textContent='ステージごとの戦績を比較 ';root.innerHTML=modesView({...modesPage,hasGame:!!game,pendingCount:recordStore.pendingCount()});return}
  if(screen==='trips'){document.body.dataset.phase='statistics';document.body.classList.remove('playing','has-turn-actions');dockObserver.disconnect();document.querySelector('footer').firstChild.textContent='期間を決めて戦績を計測 ';root.innerHTML=tripsView({...tripsPage,hasGame:!!game,pendingCount:recordStore.pendingCount(),busy:tripMutation.busy,mutationError:tripMutation.error,retryable:!!tripMutation.operation,notice:tripMutation.notice,drafts:tripDrafts});return}
@@ -304,7 +307,7 @@ function render(){
  if(!game){root.innerHTML=pendingStatus()+setup();if(storageError)root.insertAdjacentHTML('afterbegin','<p class="storage-warning">このブラウザでは途中保存が使えません。プレイ中はページを閉じないでください。</p>');if(setupPlay==='solo'&&cpuCareers.state==='idle')void loadCpuCareers();return}
  let content='';switch(game.phase){case'order':content=order();break;case'orders-revealed':case'direction-result':case'movement-result':case'dice':case'shock':case'drawing':content=marketView();break;case'results':content=isSolo(game)?soloResultView():resultView();break;case'end':root.innerHTML=`<div class="game-layout">${ending()}</div>`;void ensurePersonalBests();return;default:game=null;update();return}
  root.innerHTML=`${storageError?'<p class="storage-warning">途中保存が使えません。プレイ中はページを閉じないでください。</p>':''}<div class="game-layout"><section class="surface play-surface"><div class="round-top"><strong>R${String(game.round).padStart(2,'0')} <span class="muted">/ 12</span></strong><span class="round-stage" data-stage-active="${activeStage().id}">${activeStage().name}</span></div><div class="round-track" aria-hidden="true">${Array.from({length:12},(_,i)=>`<span class="${i+1<game.round?'done':i+1===game.round?'current':''}"></span>`).join('')}</div>${content}</section>${publicBoard()}</div>`;
- observeActionDock();
+ marketCharts.render();observeActionDock();
 }
 function setLeverage(value){draftLeverage=value;const valid=Number.isInteger(value)&&value>=1&&value<=100;document.querySelector('#position-value').textContent=valid?money(BigInt(current().wealth)*BigInt(value)):'1〜100の整数を入力';const preview=document.querySelector('#impact-open');preview.textContent=impactSummary();preview.disabled=!valid;document.querySelector('#order-submit').disabled=!draftSide||!valid;const range=document.querySelector('#leverage-range');if(valid)range.value=String(value)}
 function recordDirection(direction){if(game.phase!=='orders-revealed'||game.mode!=='manual')throw Error('相場方向は確定済みです');game.direction=direction;game.phase='dice';update()}

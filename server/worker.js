@@ -14,5 +14,6 @@ export default {async fetch(request,env){
   const asset=assets[path==='/'?'/index.html':path];
   if(!asset)return new Response('Not found',{status:404});
   if(!['GET','HEAD'].includes(request.method))return new Response('Method not allowed',{status:405});
-  return new Response(request.method==='HEAD'?null:asset.content,{headers:{'Content-Type':asset.type,'Cache-Control':'no-cache','X-Content-Type-Options':'nosniff'}});
+  const body=request.method==='HEAD'?null:asset.binary?Uint8Array.from(atob(asset.content),c=>c.charCodeAt(0)):asset.content;
+  return new Response(body,{headers:{'Content-Type':asset.type,'Cache-Control':'no-cache','X-Content-Type-Options':'nosniff'}});
 }};
