@@ -1,5 +1,16 @@
 # FXサバイバル（仮）
 
+別スレッドのCodexで作業を始める場合は、最初に[AGENTS.md](AGENTS.md)を読み、GitHubのopen Issues / PRsで担当と変更範囲を確認してください。
+
+| 共有情報 | 入口 |
+| --- | --- |
+| 現在の実装・直近の変更・未完了の確認先 | [現在地と引き継ぎ](docs/PROJECT_STATUS.md) |
+| ゲームルールと維持する設計判断 | [ルール・設計方針](docs/GAME_DESIGN.md) |
+| コード構成・保存先・起動・検証 | [開発手順](docs/DEVELOPMENT.md) |
+| 作業の予約・担当・ブランチ・進捗の共有 | [共同作業手順](docs/COLLABORATION.md) |
+
+進行中の詳細は[Issues](https://github.com/kakinymax/fx-survival/issues?q=is%3Aissue%20is%3Aopen)と[draftを含むPRs](https://github.com/kakinymax/fx-survival/pulls?q=is%3Apr%20is%3Aopen)が正本です。文書は節目で更新し、GitHubへ未保存の作業を共有済みと扱いません。
+
 基本ルール v1.0 に基づく、1台を受け渡して遊ぶ2〜6人の対面モードと、1人でCPU3人と対戦するモードがあるブラウザゲーム。
 
 ゲーム画面のソースは `dist/`。相場抽選・CPU判断・精算は従来どおりブラウザ内で行い、ゲームの途中記録は localStorage に保存します。完了した試合の戦績だけを、ログイン中のユーザーごとにアプリ側のD1へ保存します。
