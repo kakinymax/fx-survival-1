@@ -209,12 +209,18 @@ body,button,input,select,textarea,dialog,svg text{font-family:var(--fx-ui-font);
  .settlement-view .batch-result .batch-choices{grid-template-columns:minmax(44px,auto) auto}
  .settlement-view .batch-result .batch-choices button{padding:8px 6px}
  .settlement-view .batch-money{gap:0 4px}
- .settlement-view .batch-player>strong{line-height:1.25}
+ .settlement-view .batch-player>strong{display:flex;align-items:center;gap:4px;line-height:1.25}
+ .settlement-view .batch-player .standing-badge{flex-shrink:0;font-size:12px;line-height:16px}
+ .settlement-view .batch-player .standing-name{min-width:0}
  .settlement-view .batch-money strong{font-size:16px;line-height:1.25}
  .settlement-view .batch-money>span{line-height:1.25}
  .settlement-view .batch-instruction{line-height:1.4}
  .settlement-view .solo-cpu-result{padding:5px 0}
  .settlement-view .solo-cpu-result p{line-height:1.4}
+ .settlement-view .solo-cpu-result>div>strong{display:flex;align-items:center;gap:4px;flex:0 0 auto}
+ .settlement-view .solo-cpu-result .standing-badge{flex-shrink:0;margin-right:0;font-size:12px;line-height:16px}
+ .settlement-view .solo-cpu-money>strong{line-height:1.2}
+ .settlement-view .solo-cpu-money>small{line-height:1.25}
  .settlement-view .solo-cpu-money{gap:0 4px}
 }
 
