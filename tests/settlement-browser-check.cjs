@@ -103,7 +103,7 @@ const origin='http://127.0.0.1:4173';
  assert.equal(await page.locator('[data-action="solo-continue"]').count(),0);assert.equal(await page.locator('[data-action="solo-fix"]').count(),0);
  assert.equal(await page.locator('[data-action="observe-next"]').count(),1);assert.equal(await page.locator('[data-action="fast-forward"]').count(),1);
  await page.setViewportSize({width:320,height:568});await seed('large');await checkValues();
- assert.equal(await page.locator('.batch-player>strong').first().innerText(),(await state()).players[0].name);assert.equal(await page.locator('.batch-player>strong b').count(),0);
+ assert.equal(await page.locator('.batch-player>strong .standing-name').first().innerText(),(await state()).players[0].name);assert.equal(await page.locator('.batch-player>strong .standing-name b').count(),0);
  assert.deepEqual(errors,[]);
  console.log('PASS: exact settlement wealth/PnL at 320/390/1280px; four-player and CPU rows above mobile dock; 44×48px choices; saved reversible decision drafts and one-step commit; cut/debt/rounded-zero labels; hidden CPU decisions; readonly details/chart; no stale PnL for fixed players; observation and escaped huge values.');
  await browser.close();

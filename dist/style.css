@@ -117,6 +117,26 @@ body,button,input,select,textarea,dialog,svg text{font-family:var(--fx-ui-font);
 .personal-best-badge:empty{display:none}
 @media(max-width:760px){.cpu-career-grid{grid-template-columns:1fr}.cpu-career{padding:16px}.personal-best{padding:10px 12px;gap:12px}}
 
+/* Rank labels share one scale across current balances and final standings. */
+.standing-badge{display:inline-flex;align-items:center;gap:0;vertical-align:baseline;font-size:14px;line-height:20px;white-space:nowrap;padding:0 2px;border:1px solid var(--line);border-radius:5px;background:var(--panel2);color:var(--muted);font-variant-numeric:tabular-nums}
+.standing-badge b{font-weight:700}
+.standing-badge small{font-size:12px;font-weight:400}
+.standing-leader{background:#ceef6415;border-color:#ceef6440;color:var(--lime)}
+.public-heading h2{font-size:18px}
+.public-heading{flex-wrap:wrap}
+.public-balance{gap:8px}
+.public-balance>.standing-badge{flex-shrink:0}
+.public-balance>strong{max-width:48%}
+.order-player p .standing-badge{margin-left:4px}
+.final-standings{margin:18px 0}
+.final-standings h3{font-size:18px;margin:0 0 8px}
+.final-standing{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,42%);align-items:center;gap:8px;padding:10px 0;border-top:1px solid var(--line)}
+.final-standing-player{min-width:0;overflow-wrap:anywhere}
+.final-standing-player>strong{display:block;font-size:16px}
+.final-standing-player .status{display:block;font-size:12px;margin:2px 0 0;white-space:normal}
+.final-standing>strong{font-size:18px;text-align:right;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.solo-cpu-result .standing-badge{margin-right:2px}
+@media(max-width:360px){.final-standing{gap:6px}.final-standing-player>strong{font-size:14px}.final-standing>strong{font-size:16px}}
 /* Market draw screens show confirmed facts above the unchanged next action. */
 .market-draw h1{font-size:24px;line-height:1.4;margin:0 0 10px}
 .market-draw .market-facts{gap:6px;margin:8px 0 10px}
