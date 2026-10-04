@@ -27,13 +27,11 @@ export function marketCandleModel(game){
  return {round,open,scale,baseline:y(100),history:series.map(shape),current,slot:{x:28+cell*(round-.5),width:cell,start:y(open)}};
 }
 
-export function marketCandleSvg(model,{animate=false,elapsed=0}={}){
- const {round,history,current,slot,baseline}=model;
+export function marketCandleMarkup(model,{animate=false,elapsed=0}={}){
+ const {round,history,current}=model;
  const moving=animate&&current?.first===6&&!!current.second;
  const result=c=>`R${String(c.round).padStart(2,'0')} ${c.direction==='up'?'上昇':'下落'}${c.bps/100}%。${c.gap?'ギャップ相場':'通常相場'}。`;
  const label=`共通相場の推移。確定済み${history.length}ラウンド。${moving?`R${String(round).padStart(2,'0')}の急変判定の値動きを表示中。`:current?`${result(current)}指数${indexDisplay(current.close)}。`:`R${String(round).padStart(2,'0')}の値動きは未確定。`}`;
  const delay=Math.max(0,Math.min(SHOCK_DRAW_MS,elapsed));
- const candle=(c,active=false)=>`<g class="${active?'market-current-candle':'market-history-candle'}" data-round="${c.round}" data-open="${c.open}" data-close="${c.close}"><title>${active&&moving?`R${String(round).padStart(2,'0')}の値動きを表示中。`:result(c)}</title><rect class="${active?'market-current-body shock-body':'market-history-body'} ${c.direction==='up'?'shock-up':'shock-down'}" x="${c.x-c.width/2}" y="${c.top}" width="${c.width}" height="${c.height}" rx=".4" data-open-y="${c.start}" data-close-y="${c.end}"/>${c.gap&&!(active&&moving)?`<circle class="market-candle-gap" cx="${c.x}" cy="4" r="2"/>`:''}</g>`;
- const rounds=[...history.map(c=>`<text class="market-round-label" x="${c.x}" y="97" text-anchor="middle">${String(c.round).padStart(2,'0')}</text>`),`<text class="market-round-label market-current-label" x="${slot.x}" y="97" text-anchor="middle">R${String(round).padStart(2,'0')}</text>`].join('');
- return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 100" role="img" aria-label="${label}" class="market-history-chart${moving?' shock-candle-animated':''}" style="--shock-duration:${SHOCK_DRAW_MS}ms;--shock-delay:-${delay}ms"><title>${label}</title><rect class="market-current-column" x="${slot.x-slot.width/2}" y="1" width="${slot.width}" height="86" rx="3"/><line class="market-baseline" x1="28" x2="312" y1="${baseline}" y2="${baseline}"/><text class="market-baseline-label" x="24" y="${baseline+4}" text-anchor="end">100</text>${history.map(c=>candle(c)).join('')}<line class="market-open-line" x1="${slot.x-slot.width/2+3}" x2="${slot.x+slot.width/2-3}" y1="${slot.start}" y2="${slot.start}"/>${current?candle(current,true):`<circle class="market-open-dot" cx="${slot.x}" cy="${slot.start}" r="2"/>`}${rounds}</svg>`;
+ return `<div class="pixel-trend"><canvas class="market-history-chart" data-trend-model="${encodeURIComponent(JSON.stringify(model))}" data-trend-moving="${moving}" data-trend-elapsed="${delay}" role="img" aria-label="${label}">${label}</canvas></div>`;
 }
