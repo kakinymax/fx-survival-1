@@ -108,18 +108,20 @@ export class Raster {
 
 export function drawTrend(model,width,{progress=1,moving=false}={}){
  const height=width<480?164:204,r=new Raster(width,height);
- const wide=width>=480,titleScale=wide?4:width>=260?3:2;
- const axisScale=wide?3:2,roundScale=wide?2:1,gapScale=wide?2:1;
+ const wide=width>=480;
+ const axisScale=wide?3:2,roundScale=wide?2:1,gapScale=wide?2:1,statsScale=wide?2:1;
  const textWidth=(value,scale=1,spacing=scale)=>String(value).length*(5*scale+spacing)-spacing;
  const labels=[];
  const text=(value,x,y,scale=1,spacing=scale,role='')=>{
   x=Math.round(x);y=Math.round(y);r.text(value,x,y,scale,spacing);
   labels.push({value:String(value),x,y,width:textWidth(value,scale,spacing),height:7*scale,scale,role});
  };
- // Grow text inside the existing canvas; keep room for the gap's own row.
- const subtitleY=6+7*titleScale+3,statsY=subtitleY+7*(wide?2:1)+3;
- const statsValueY=wide?statsY:statsY+10,gapY=statsValueY+14+3;
- const left=wide?90:64,right=width-12,top=gapY+7*gapScale+4,bottom=height-(wide?25:22);
+ // Align all three header rows with the plot's left axis, as in the reference.
+ // Fit the heading beside the round number without changing the image size.
+ const left=wide?90:64,right=width-12,roundTitle=`R${String(model.round).padStart(2,'0')}`;
+ const titleScale=[wide?4:3,2].find(scale=>textWidth('ROUND TREND',scale,1)+textWidth(roundTitle,scale,1)+4<=right-left);
+ const subtitleY=6+7*titleScale+3,statsY=subtitleY+7*statsScale+3;
+ const gapY=statsY+7*statsScale+3,top=gapY+7*gapScale+4,bottom=height-(wide?25:22);
  // Keep four dotted sections; each contains one, two, then three round slots.
  const slots=Math.max(4,Math.ceil(model.round/4)*4),cell=(right-left)/slots;
  const x=round=>Math.round(left+cell*(round-.5));
@@ -135,17 +137,15 @@ export function drawTrend(model,width,{progress=1,moving=false}={}){
  const values=[100,...known.flatMap(c=>[c.open,c.close])];
  const last=known.at(-1)?.close??100;
  const stats={min:Math.min(...values),max:Math.max(...values),last};
- const headerLeft=wide?left:12,roundTitle=`R${String(model.round).padStart(2,'0')}`;
- text('ROUND TREND',headerLeft,6,titleScale,1,'title');
+ text('ROUND TREND',left,6,titleScale,1,'title');
  text(roundTitle,right-textWidth(roundTitle,titleScale,1),6,titleScale,1,'current-round');
- text('MARKET INDEX / START 100',headerLeft,subtitleY,wide?2:1,1,'subtitle');
- const columns=[['MIN',stats.min],['MAX',stats.max],['LAST',stats.last]];
- const columnWidth=(right-headerLeft)/3;
- columns.forEach(([name,value],i)=>{
-  const xx=headerLeft+i*columnWidth;
-  if(wide)text(`${name} ${value.toFixed(2)}`,xx,statsY,2,1,'stats');
-  else {text(name,xx,statsY,1,1,'stat-name');text(value.toFixed(2),xx,statsValueY,2,1,'stats');}
- });
+ text('MARKET INDEX / START 100',left,subtitleY,statsScale,1,'subtitle');
+ const columns=[['MIN',stats.min],['MAX',stats.max],['LAST',stats.last]].map(([name,value])=>`${name} ${value.toFixed(2)}`);
+ const columnWidth=(right-left)/3;
+ // Match the subtitle's size and keep MIN/MAX/LAST on one row. At the
+ // narrowest sizes, compact bitmap spacing also accommodates large indices.
+ const statsSpacing=columns.every(value=>textWidth(value,statsScale,1)<=columnWidth)?1:0;
+ columns.forEach((value,i)=>text(value,left+i*columnWidth,statsY,statsScale,statsSpacing,'stats'));
  const ticks=[];
  for(let i=0;i<=(high-low)/step;i++){
   const value=high-i*step,yy=y(value);

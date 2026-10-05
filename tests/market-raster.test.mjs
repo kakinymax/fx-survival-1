@@ -102,7 +102,12 @@ test('larger text stays inside the unchanged image dimensions without overlappin
    const a=labels[i],b=labels[j];
    assert(a.x+a.width<=b.x||b.x+b.width<=a.x||a.y+a.height<=b.y||b.y+b.height<=a.y,JSON.stringify({a,b}));
   }
-  assert(labels.filter(l=>l.role==='stats').every(l=>l.height===14));
+  const title=labels.find(l=>l.role==='title'),subtitle=labels.find(l=>l.role==='subtitle');
+  const stats=labels.filter(l=>l.role==='stats');
+  assert.equal(title.x,plot.left);assert.equal(subtitle.x,plot.left);assert.equal(stats[0].x,plot.left);
+  assert.equal(stats.length,3);
+  assert(stats.every(l=>l.y===stats[0].y&&l.height===subtitle.height));
+  assert(subtitle.y>=title.y+title.height+3&&stats[0].y>=subtitle.y+subtitle.height+3);
   const axis=labels.filter(l=>l.role==='tick');
   assert.equal(axis.length,5);
   assert((plot.bottom-plot.top)/4>=axis[0].height+1);
