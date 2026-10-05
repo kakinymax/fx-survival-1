@@ -1,5 +1,7 @@
 // Display-only adaptation of the supplied XIAO rendering reference.
-// One bit per pixel: 1 = white, 0 = black. No antialiasing or interpolation.
+// A one-bit base keeps the bitmap text and grid crisp; colored candle fills
+// are presented at the same integer coordinates, without interpolation.
+const CANDLE_COLORS={up:'#168563',down:'#d33f54'};
 const FONT = {
  '0':['01110','10001','10011','10101','11001','10001','01110'],
  '1':['00100','01100','00100','00100','00100','00100','01110'],
@@ -50,6 +52,7 @@ export class Raster {
  constructor(width,height){
   this.width=width;this.height=height;this.stride=Math.ceil(width/8);
   this.bits=new Uint8Array(this.stride*height).fill(255);
+  this.colorRects=[];
  }
  pixel(x,y){
   x=Math.round(x);y=Math.round(y);
@@ -62,8 +65,9 @@ export class Raster {
   let error=dx+dy;
   for(;;){this.pixel(x0,y0);if(x0===x1&&y0===y1)break;const twice=2*error;if(twice>=dy){error+=dy;x0+=sx;}if(twice<=dx){error+=dx;y0+=sy;}}
  }
- rect(x,y,w,h,filled=false){
+ rect(x,y,w,h,filled=false,color=null){
   x=Math.round(x);y=Math.round(y);w=Math.max(1,Math.round(w));h=Math.max(1,Math.round(h));
+  if(filled&&color)this.colorRects.push({x,y,w,h,color});
   if(filled){for(let row=y;row<y+h;row++)this.line(x,row,x+w-1,row);return;}
   this.line(x,y,x+w-1,y);this.line(x,y+h-1,x+w-1,y+h-1);
   this.line(x,y,x,y+h-1);this.line(x+w-1,y,x+w-1,y+h-1);
@@ -84,6 +88,7 @@ export class Raster {
    frame.data[i]=frame.data[i+1]=frame.data[i+2]=v;frame.data[i+3]=255;
   }
   context.imageSmoothingEnabled=false;context.putImageData(frame,0,0);
+  for(const {x,y,w,h,color} of this.colorRects){context.fillStyle=color;context.fillRect(x,y,w,h);}
  }
  // Export an actual 1bit grayscale PNG, independently of Canvas's RGBA encoder.
  png(){
@@ -143,7 +148,7 @@ export function drawTrend(model,width,{progress=1,moving=false}={}){
  const candle=(c,active=false)=>{
   const close=active?c.open+(c.close-c.open)*progress:c.close;
   const openY=y(c.open),closeY=y(close),xx=x(c.round);
-  r.rect(xx-Math.floor(barWidth/2),Math.min(openY,closeY),barWidth,Math.abs(closeY-openY)+1,c.direction==='down');
+  r.rect(xx-Math.floor(barWidth/2),Math.min(openY,closeY),barWidth,Math.abs(closeY-openY)+1,true,CANDLE_COLORS[c.direction]);
   if(c.gap&&!(active&&moving))r.text('G',xx-2,gapY);
   const stride=Math.ceil(slots*18/(right-left));
   if(active||((c.round-1)%stride===0&&x(model.round)-xx>=22))r.text(`${active?'R':''}${String(c.round).padStart(2,'0')}`,xx-(active?8:5),bottom+8);
