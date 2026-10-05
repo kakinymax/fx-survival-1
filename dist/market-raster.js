@@ -118,7 +118,13 @@ export function drawTrend(model,width,{progress=1,moving=false}={}){
  };
  // Align all three header rows with the plot's left axis, as in the reference.
  // Fit the heading beside the round number without changing the image size.
- const left=wide?90:64,right=width-12,roundTitle=`R${String(model.round).padStart(2,'0')}`;
+ const radius=Math.max(100-model.scale.min,model.scale.max-100);
+ const step=Math.max(2,Math.ceil(radius/4)*2);
+ const low=100-2*step,high=100+2*step;
+ // Give the longest axis label just 2px at the image edge, leaving an 8px
+ // gap to the plot. Size from the reserved domain, never animation progress.
+ const axisLabelWidth=Math.max(...Array.from({length:5},(_,i)=>textWidth(String(high-i*step),axisScale)));
+ const left=2+axisLabelWidth+8,right=width-12,roundTitle=`R${String(model.round).padStart(2,'0')}`;
  const titleScale=[wide?4:3,2].find(scale=>textWidth('ROUND TREND',scale,1)+textWidth(roundTitle,scale,1)+4<=right-left);
  const subtitleY=6+7*titleScale+3,statsY=subtitleY+7*statsScale+3;
  const gapY=statsY+7*statsScale+3,top=gapY+7*gapScale+4,bottom=height-(wide?25:22);
@@ -129,9 +135,6 @@ export function drawTrend(model,width,{progress=1,moving=false}={}){
  // derive the scale from a partially animated result or change past candles.
  // Center 100 between two intervals on either side, including reserved moves.
  // Five evenly spaced ticks start at 2 points and widen by even multiples.
- const radius=Math.max(100-model.scale.min,model.scale.max-100);
- const step=Math.max(2,Math.ceil(radius/4)*2);
- const low=100-2*step,high=100+2*step;
  const y=value=>Math.round(bottom-(value-low)*(bottom-top)/(high-low));
  const known=moving||!model.current?model.history:[...model.history,model.current];
  const values=[100,...known.flatMap(c=>[c.open,c.close])];

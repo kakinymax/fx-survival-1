@@ -110,6 +110,9 @@ test('larger text stays inside the unchanged image dimensions without overlappin
   assert(subtitle.y>=title.y+title.height+3&&stats[0].y>=subtitle.y+subtitle.height+3);
   const axis=labels.filter(l=>l.role==='tick');
   assert.equal(axis.length,5);
+  assert.equal(Math.min(...axis.map(l=>l.x)),2);
+  assert.equal(width-plot.right,12);
+  assert.equal(plot.left-Math.max(...axis.map(l=>l.x+l.width)),8);
   assert((plot.bottom-plot.top)/4>=axis[0].height+1);
  }
 });
