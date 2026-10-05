@@ -57,7 +57,15 @@ body,button,input,select,textarea,dialog,svg text{font-family:var(--fx-ui-font);
 
 /* Optional trade estimates and replay facts stay within the existing screens. */
 #order-form .range-labels{align-items:center;gap:6px}
-#order-form .previous-leverage{min-height:44px;padding:4px 10px;font-size:12px;color:var(--text);border-color:var(--line);margin:-10px 0;background:var(--panel2)}
+#order-form .previous-result{flex:1;min-width:0;margin:-10px 0 -2px;padding:0 6px 2px;border:1px solid var(--line);border-radius:8px;background:var(--panel2);font-size:12px;line-height:1.4;color:var(--text)}
+#order-form .previous-result-heading{display:flex;align-items:center;gap:4px}
+#order-form .previous-leverage{display:flex;align-items:center;justify-content:center;flex-shrink:0;min-height:44px;padding:4px 6px;font-size:12px;color:var(--text);border-color:var(--line);margin:0;background:transparent;white-space:nowrap}
+#order-form .previous-market{min-width:0}
+#order-form .previous-market,#order-form .previous-trade{display:flex;align-items:baseline;flex-wrap:wrap;gap:0 6px}
+#order-form .previous-market small{font-size:11px;color:var(--muted)}
+#order-form .previous-trade>span:last-child{min-width:0;overflow-wrap:anywhere}
+#order-form .previous-result strong{font-weight:500;font-variant-numeric:tabular-nums}
+#order-form .range-labels:has(.previous-result)+.position{margin-top:4px;padding-top:0}
 #order-form .impact-preview{flex:0 0 100%;min-height:44px;padding:4px 0;background:transparent;color:var(--muted);font-size:12px;font-weight:500;text-align:left;overflow-wrap:anywhere;line-height:1.6}
 #order-form .choice-grid{margin-bottom:8px}
 #order-form .choice-grid button{min-height:64px}
@@ -339,7 +347,7 @@ registerFxUiFonts().catch(error=>{
  notice.style.cssText='margin:12px 24px;padding:12px;border:1px solid #ffc979;border-radius:8px;color:#ffc979';
  document.body.prepend(notice);console.error('UI fonts could not be registered',error);
 }).then(()=>{(() => {
-  // ../scratch/fx-survival-font-change-site/dist/engine.js
+  // dist/engine.js
   var INITIAL = "1000";
   var NORMAL = [10, 20, 30, 50, 80];
   var SHOCK = [100, 100, 150, 200, 500, 1e3];
@@ -506,7 +514,7 @@ registerFxUiFonts().catch(error=>{
     return `${sign}${out}\u5186`;
   }
 
-  // ../scratch/fx-survival-font-change-site/dist/solo.js
+  // dist/solo.js
   var CPU_PROFILES = Object.freeze({
     steady: Object.freeze({ id: "steady", name: "\u5805\u5B9F\u6D3E", label: "\u5805\u5B9F\u6D3E", description: "1\u301C15\u500D\u304C\u4E2D\u5FC3\u3002\u5897\u3048\u305F\u8CC7\u7523\u3092\u65E9\u3081\u306B\u5B88\u308B\u3002" }),
     rival: Object.freeze({ id: "rival", name: "\u5BFE\u6297\u6D3E", label: "\u5BFE\u6297\u6D3E", description: "15\u301C50\u500D\u304C\u4E2D\u5FC3\u3002\u9806\u4F4D\u3092\u898B\u3066\u653B\u3081\u65B9\u3092\u5909\u3048\u308B\u3002" }),
@@ -677,7 +685,7 @@ registerFxUiFonts().catch(error=>{
     return g;
   }
 
-  // ../scratch/fx-survival-font-change-site/dist/chart.js
+  // dist/chart.js
   function marketSeries(history2) {
     let close = 100;
     return history2.slice(0, 12).filter((h) => ["up", "down"].includes(h.direction) && Number.isFinite(h.bps) && h.bps >= 0 && h.bps < 1e4).map((h) => {
@@ -702,7 +710,7 @@ registerFxUiFonts().catch(error=>{
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="${label}" class="candles-svg${detailed ? " chart-expanded-svg" : ""}"><title>${label}</title>${grid}${candles}</svg>`;
   }
 
-  // ../scratch/fx-survival-font-change-site/dist/market-candle.js
+  // dist/market-candle.js
   var SHOCK_DRAW_MS = 1e3;
   function marketCandleModel(game2) {
     const round = game2.round, history2 = (game2.history ?? []).filter((h) => h.round < round), series = marketSeries(history2);
@@ -736,7 +744,7 @@ registerFxUiFonts().catch(error=>{
     return `<div class="pixel-trend"><canvas class="market-history-chart" data-trend-model="${encodeURIComponent(JSON.stringify(model))}" data-trend-moving="${moving}" data-trend-elapsed="${delay}" role="img" aria-label="${label}">${label}</canvas></div>`;
   }
 
-  // ../scratch/fx-survival-font-change-site/dist/market-raster.js
+  // dist/market-raster.js
   var FONT = {
     "0": ["01110", "10001", "10011", "10101", "11001", "10001", "01110"],
     "1": ["00100", "01100", "00100", "00100", "00100", "00100", "01110"],
@@ -952,7 +960,7 @@ registerFxUiFonts().catch(error=>{
     return { raster: r, stats, low, high, step, ticks, bodies, plot: { left, right, top, bottom }, barWidth, glyphWidth };
   }
 
-  // ../scratch/fx-survival-font-change-site/dist/market-chart-renderer.js
+  // dist/market-chart-renderer.js
   function createMarketChartRenderer(root2) {
     let cleanups = [];
     const clear = () => {
@@ -991,7 +999,7 @@ registerFxUiFonts().catch(error=>{
     return { clear, render: render2 };
   }
 
-  // ../scratch/fx-survival-font-change-site/dist/records.js
+  // dist/records.js
   var RECORD_VERSION = 1;
   var copy = (value) => JSON.parse(JSON.stringify(value));
   var max = (a, b) => a > b ? a : b;
@@ -1054,7 +1062,7 @@ registerFxUiFonts().catch(error=>{
     };
   }
 
-  // ../scratch/fx-survival-font-change-site/dist/standings.js
+  // dist/standings.js
   function standings(players) {
     const ordered = players.map((player, index) => ({ player, index, wealth: BigInt(player.wealth) })).sort((a, b) => a.wealth > b.wealth ? -1 : a.wealth < b.wealth ? 1 : a.index - b.index);
     const counts = /* @__PURE__ */ new Map();
@@ -1070,7 +1078,7 @@ registerFxUiFonts().catch(error=>{
     return `<span class="standing-badge${entry.rank === 1 && entry.wealth > 0n ? " standing-leader" : ""}" data-standing-rank="${entry.rank}">${prefix}${entry.tied ? "<small>\u540C\u7387</small>" : ""}<b>${entry.rank}\u4F4D</b></span>`;
   }
 
-  // ../scratch/fx-survival-font-change-site/dist/record-store.js
+  // dist/record-store.js
   function createRecordStore({ storage, fetcher = fetch, onChange = () => {
   }, key = "fx-survival-pending-records-v1" } = {}) {
     const pending = /* @__PURE__ */ new Map(), states = /* @__PURE__ */ new Map(), inflight = /* @__PURE__ */ new Map();
@@ -1138,7 +1146,7 @@ registerFxUiFonts().catch(error=>{
     return { enqueue, retry, state, retryAll: () => Promise.all([...pending.keys()].map(retry)), pendingCount: () => pending.size, draftError: () => draftError };
   }
 
-  // ../scratch/fx-survival-font-change-site/dist/record-view.js
+  // dist/record-view.js
   var escape = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
   var date = (value) => new Intl.DateTimeFormat("ja-JP", { year: "numeric", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(value));
   var signed = (value) => `${BigInt(value) > 0n ? "\uFF0B" : ""}${money(value)}`;
@@ -1214,7 +1222,7 @@ registerFxUiFonts().catch(error=>{
     }).join("")}${h.decisions ? `<p class="stats-definition">\u9032\u9000\uFF1A${Object.entries(h.decisions).map(([id, c]) => `${escape(r.players.find((p) => p.id === Number(id)).name)} ${c === "fix" ? "\u8CC7\u7523\u78BA\u5B9A" : "\u7D9A\u884C"}`).join(" \xB7 ")}</p>` : h.round === r.maxRounds ? '<p class="stats-definition">\u6700\u7D42\u30E9\u30A6\u30F3\u30C9\u3067\u3001\u751F\u5B58\u8005\u306E\u8CC7\u7523\u3092\u81EA\u52D5\u78BA\u5B9A\u3002</p>' : ""}</details>`).join("")}</div></section></div>`;
   }
 
-  // ../scratch/fx-survival-font-change-site/dist/feedback-view.js
+  // dist/feedback-view.js
   var signed2 = (value) => `${BigInt(value) > 0n ? "\uFF0B" : ""}${money(value)}`;
   var tone2 = (value) => BigInt(value) > 0n ? "positive" : BigInt(value) < 0n ? "negative" : "";
   var metric = (label, value, key) => `<div><dt>${label}</dt><dd data-feedback-stat="${key}">${value}</dd></div>`;
@@ -1233,7 +1241,7 @@ registerFxUiFonts().catch(error=>{
     return `<section class="surface stats-surface feedback-surface"><h2>\u53D6\u5F15\u306E\u632F\u308A\u8FD4\u308A</h2>${bandCard(hundred)}<p class="stats-definition">\u5229\u76CA\u30FB\u640D\u5931\u306F\u7CBE\u7B97\u5F8C\u306E\u8CC7\u7523\u306E\u5897\u6E1B\u3067\u6570\u3048\u307E\u3059\u3002\u5897\u6E1B\u306A\u3057\u306F\u5225\u306B\u96C6\u8A08\u3002\u53D6\u5F15\u640D\u76CA\u306B\u306F\u3001\u30ED\u30B9\u30AB\u30C3\u30C8\u3084\u30AE\u30E3\u30C3\u30D7\u8CA0\u50B5\u306B\u3088\u308B\u640D\u5931\u3082\u542B\u307F\u307E\u3059\u3002</p><details class="feedback-detail"><summary>\u307B\u304B\u306E\u500D\u7387\u306E\u53D6\u5F15\u6210\u7E3E</summary><div class="feedback-band-grid">${data.rounds.filter((b) => b.id !== "hundred").map(bandCard).join("")}</div></details><section class="feedback-games"><h3>100\u500D\u3092\u4F7F\u3063\u305F\u30B2\u30FC\u30E0\u306E\u53CE\u652F</h3><p class="stats-definition">1\u56DE\u3067\u3082100\u500D\u3092\u4F7F\u3063\u305F\u304B\u3067\u5206\u985E\u3002100\u500D\u4EE5\u5916\u306E\u53D6\u5F15\u3082\u542B\u3081\u3001\u305D\u306E\u30B2\u30FC\u30E0\u5168\u4F53\u306E\u640D\u76CA\u3092\u96C6\u8A08\u3057\u307E\u3059\u3002</p><div class="feedback-game-grid">${Object.entries(data.games).map(([id, stats]) => gameCard(id, stats)).join("")}</div></section></section>`;
   }
 
-  // ../scratch/fx-survival-font-change-site/dist/career-view.js
+  // dist/career-view.js
   var escape2 = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
   var tone3 = (value) => BigInt(value) > 0n ? "positive" : BigInt(value) < 0n ? "negative" : "";
   var signed3 = (value) => `${BigInt(value) > 0n ? "\uFF0B" : ""}${money(value)}`;
@@ -1260,7 +1268,7 @@ registerFxUiFonts().catch(error=>{
     return `<section class="personal-bests" aria-label="\u3042\u306A\u305F\u306E\u81EA\u5DF1\u8A18\u9332">${data.events.slice(0, 2).map((e) => `<div class="personal-best" data-personal-best="${escape2(e.key)}"><div><span>${e.first ? "\u521D\u8A18\u9332" : "\u81EA\u5DF1\u30D9\u30B9\u30C8\u66F4\u65B0"}</span><strong>${escape2(e.title)}</strong>${e.previousValue === null ? "" : `<small>\u3053\u308C\u307E\u3067 ${money(e.previousValue)}</small>`}</div><strong class="${BigInt(e.value) < 0n ? "negative" : ""}">${money(e.value)}</strong></div>`).join("")}</section>`;
   }
 
-  // ../scratch/fx-survival-font-change-site/dist/stats-view.js
+  // dist/stats-view.js
   var escape3 = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
   var labels2 = { fixed: "\u8CC7\u7523\u78BA\u5B9A", cut: "\u30ED\u30B9\u30AB\u30C3\u30C8", empty: "\u8CC7\u91D1\u67AF\u6E07", debt: "\u8CA0\u50B5\u9000\u5834" };
   var signed4 = (value) => `${BigInt(value) > 0n ? "\uFF0B" : ""}${money(value)}`;
@@ -1282,7 +1290,7 @@ registerFxUiFonts().catch(error=>{
     return `<div class="stats-layout"><section class="surface stats-surface">${head2}<p class="stats-scope">\u3042\u306A\u305F\u306E\u751F\u6DAF\u6226\u7E3E \xB7 CPU\u5BFE\u6226<br>\u5BFE\u9762\u306E\u8A66\u5408\u306F\u5C65\u6B74\u306B\u6B8B\u308A\u307E\u3059\u3002\u672C\u4EBA\u672A\u6307\u5B9A\u306E\u305F\u3081\u3001\u751F\u6DAF\u6226\u7E3E\u306B\u306F\u542B\u3081\u307E\u305B\u3093\u3002</p>${pendingCount ? `<p class="stats-pending" role="status">\u4FDD\u5B58\u5B8C\u4E86\u3092\u78BA\u8A8D\u3067\u304D\u3066\u3044\u306A\u3044\u8A66\u5408\u304C${pendingCount}\u4EF6\u3042\u308A\u307E\u3059\u3002<button class="text-button" data-action="retry-records">\u4FDD\u5B58\u3092\u518D\u8A66\u884C</button></p>` : ""}<div class="stats-hero"><div class="stats-comparison"><div><span>1\u30B2\u30FC\u30E0\u306E\u6700\u9AD8\u6700\u7D42\u8CC7\u7523</span><strong class="${s.highestFinal !== null ? tone4(s.highestFinal) : ""}" data-stat="highestFinal">${amount2(s.highestFinal)}</strong></div><div><span>\u751F\u6DAF\u640D\u76CA</span><strong class="${tone4(s.pnlTotal)}" data-stat="pnlTotal">${signed4(s.pnlTotal)}</strong></div></div><dl class="stats-capital">${metric2("\u6295\u5165\u5143\u672C\u76F8\u5F53", money(s.initialTotal), "initialTotal")}${metric2("\u6700\u7D42\u8CC7\u7523\u5408\u8A08", money(s.finalTotal), "finalTotal")}</dl></div><dl class="stats-overview">${metric2("\u7DCF\u30D7\u30EC\u30A4\u56DE\u6570", count2(s.plays), "plays")}${metric2("\u512A\u52DD\u56DE\u6570", count2(s.wins), "wins")}${metric2("\u512A\u52DD\u7387", s.winRateTenths === null ? "\u2014" : `${(s.winRateTenths / 10).toFixed(1)}%`, "winRate")}</dl>${!s.plays ? `<p class="stats-empty">\u307E\u3060CPU\u5BFE\u6226\u306E\u6226\u7E3E\u304C\u3042\u308A\u307E\u305B\u3093\u3002${data.totalSavedGames ? "\u5BFE\u9762\u306E\u8A18\u9332\u306F\u3001\u4E0B\u306E\u30B2\u30FC\u30E0\u5C65\u6B74\u3067\u78BA\u8A8D\u3067\u304D\u307E\u3059\u3002" : "\u30B2\u30FC\u30E0\u3092\u6700\u5F8C\u307E\u3067\u904A\u3076\u3068\u3001\u3053\u3053\u306B\u6210\u7E3E\u304C\u6B8B\u308A\u307E\u3059\u3002"}</p>` : ""}<section class="stats-section"><h2>\u52DD\u6557\u3068\u7D42\u4E86</h2><dl class="stats-metrics">${metric2("\u5143\u672C\u4EE5\u4E0A\u3067\u7D42\u4E86", count2(s.atOrAboveInitial), "atOrAboveInitial")}${metric2("\u5143\u672C\u5272\u308C", count2(s.belowInitial), "belowInitial")}${metric2("\u8CC7\u91D1\u67AF\u6E07\u30FB\u30ED\u30B9\u30AB\u30C3\u30C8", count2(s.fundsDepleted), "fundsDepleted")}${metric2("\u8CA0\u50B5\u9000\u5834", count2(s.debtExits), "debtExits")}</dl></section><details class="stats-detail"><summary>\u8CC7\u7523\u306E\u8A18\u9332</summary><dl class="stats-metrics">${metric2("\u5E73\u5747\u6700\u7D42\u8CC7\u7523", amount2(s.averageFinal), "averageFinal")}${metric2("1\u30B2\u30FC\u30E0\u5E73\u5747\u640D\u76CA", amount2(s.averagePnl, true), "averagePnl")}${metric2("\u6700\u9AD8\u5230\u9054\u8CC7\u7523", amount2(s.highestPeak), "highestPeak")}${metric2("\u6700\u5927\u53D6\u5F15\u984D", s.plays ? money(s.maxPosition) : "\u2014", "maxPosition")}${metric2("\u6700\u59271\u30E9\u30A6\u30F3\u30C9\u5229\u76CA", s.plays ? money(s.maxRoundProfit) : "\u2014", "maxRoundProfit")}${metric2("\u6700\u59271\u30E9\u30A6\u30F3\u30C9\u640D\u5931", s.plays ? money(s.maxRoundLoss) : "\u2014", "maxRoundLoss")}${metric2("\u6700\u5927\u8CA0\u50B5", s.plays ? money(s.maxDebt) : "\u2014", "maxDebt")}${metric2("\u6700\u5927\u30C9\u30ED\u30FC\u30C0\u30A6\u30F3", s.plays ? money(s.maxDrawdown) : "\u2014", "maxDrawdown")}</dl><p class="stats-definition">\u640D\u5931\u30FB\u8CA0\u50B5\u306F\u6E1B\u3063\u305F\u91D1\u984D\u3067\u8868\u793A\u3002\u30C9\u30ED\u30FC\u30C0\u30A6\u30F3\u306F\u3001\u305D\u308C\u307E\u3067\u306E\u6700\u9AD8\u8CC7\u7523\u304B\u3089\u306E\u6700\u5927\u6E1B\u5C11\u984D\uFF08\u8CA0\u50B5\u3092\u542B\u3080\uFF09\u3002\u5E73\u5747\u306F1,000\u5186\u5358\u4F4D\u3067\u56DB\u6368\u4E94\u5165\u3057\u307E\u3059\u3002</p></details><details class="stats-detail"><summary>\u500D\u7387\u306E\u8A18\u9332</summary><dl class="stats-metrics">${metric2("\u6700\u5927\u30EC\u30D0\u30EC\u30C3\u30B8", s.plays ? `${s.maxLeverage}\u500D` : "\u2014", "maxLeverage")}${metric2("100\u500D\u4F7F\u7528\u56DE\u6570", count2(s.uses100), "uses100")}${metric2("50\u500D\u4EE5\u4E0A\u4F7F\u7528\u56DE\u6570", count2(s.uses50Plus), "uses50Plus")}</dl></details><p class="stats-definition">\u540C\u7387\u512A\u52DD\u30821\u56DE\u3068\u3057\u3066\u96C6\u8A08\u3002\u5143\u672C\u5272\u308C\u306B\u306F0\u5186\u30FB\u8CA0\u50B5\u3067\u306E\u7D42\u4E86\u3092\u542B\u307F\u307E\u3059\u3002\u8CC7\u91D1\u67AF\u6E07\u306B\u306F\u901A\u5E38\u76F8\u5834\u306E\u30ED\u30B9\u30AB\u30C3\u30C8\u3082\u542B\u307F\u307E\u3059\u3002</p></section>${feedbackView(data.feedback)}${cpuCareersView(data.cpuCareers)}<section class="surface stats-surface stats-recent"><h2>\u6700\u8FD1\u306E\u30B2\u30FC\u30E0</h2><p class="stats-history-count">\u4FDD\u5B58\u6E08\u307F ${data.totalSavedGames.toLocaleString("ja-JP")}\u30B2\u30FC\u30E0 \xB7 ${data.totalSavedGames > 10 ? "\u6700\u65B010\u4EF6" : "\u5168\u4EF6"}</p>${data.recentGames.length ? data.recentGames.map(recentGame).join("") : '<p class="stats-empty">\u4FDD\u5B58\u3057\u305F\u30B2\u30FC\u30E0\u306F\u307E\u3060\u3042\u308A\u307E\u305B\u3093\u3002</p>'}</section></div>`;
   }
 
-  // ../scratch/fx-survival-font-change-site/dist/trip-view.js
+  // dist/trip-view.js
   var escape4 = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
   var date3 = (value) => new Intl.DateTimeFormat("ja-JP", { year: "numeric", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" }).format(new Date(value));
   var signed5 = (value) => `${BigInt(value) > 0n ? "\uFF0B" : ""}${money(value)}`;
@@ -1300,7 +1308,7 @@ registerFxUiFonts().catch(error=>{
     return `<div class="stats-layout"><section class="surface stats-surface trip-intro">${head2}<p class="stats-scope">\u958B\u59CB\u5F8C\u306B\u7D42\u4E86\u3057\u305F\u3001\u3042\u306A\u305F\u306ECPU\u5BFE\u6226\u3092\u8A08\u6E2C\u3002<br>A\uFF0FB\u306F\u3001\u305D\u308C\u305E\u308C\u5225\u306E\u6642\u70B9\u304B\u3089\u6570\u3048\u3089\u308C\u307E\u3059\u3002</p><details class="record-about"><summary>\u8A08\u6E2C\u3068\u30EA\u30BB\u30C3\u30C8\u306B\u3064\u3044\u3066</summary><p class="stats-definition">\u30EA\u30BB\u30C3\u30C8\u3059\u308B\u3068\u3001\u305D\u306E\u6642\u70B9\u304B\u3089\u6570\u3048\u76F4\u3057\u307E\u3059\u3002\u904E\u53BB\u306E\u30B2\u30FC\u30E0\u3068\u751F\u6DAF\u6226\u7E3E\u306F\u6B8B\u308A\u307E\u3059\u3002\u958B\u59CB\u524D\u306B\u7D42\u4E86\u3057\u305F\u8A66\u5408\u306F\u3001\u5F8C\u304B\u3089\u4FDD\u5B58\u3057\u3066\u3082\u542B\u3081\u307E\u305B\u3093\u3002\u958B\u59CB\u6642\u523B\u3088\u308A\u5F8C\u306B\u7D42\u4E86\u3057\u305F\u8A66\u5408\u304C\u5BFE\u8C61\u3067\u3059\u3002\u5BFE\u9762\u306F\u672C\u4EBA\u672A\u6307\u5B9A\u306E\u305F\u3081\u3001TRIP\u306B\u306F\u542B\u3081\u307E\u305B\u3093\u3002</p></details>${pendingCount ? `<p class="stats-pending" role="status">\u4FDD\u5B58\u5B8C\u4E86\u3092\u78BA\u8A8D\u3067\u304D\u3066\u3044\u306A\u3044\u8A66\u5408\u304C${pendingCount}\u4EF6\u3042\u308A\u307E\u3059\u3002<button class="text-button" data-action="retry-records" ${busy ? "disabled" : ""}>\u4FDD\u5B58\u3092\u518D\u8A66\u884C</button></p>` : ""}${busy ? '<p class="trip-notice" role="status">TRIP\u306E\u8A2D\u5B9A\u3092\u4FDD\u5B58\u4E2D\u2026</p>' : notice ? `<p class="trip-notice" role="status">${escape4(notice)}</p>` : ""}${mutationError ? `<div class="trip-error" role="alert"><p>${escape4(mutationError)}</p><div>${retryable ? '<button class="secondary" data-action="retry-trip">\u4FDD\u5B58\u3092\u518D\u8A66\u884C</button>' : ""}<button class="text-button" data-action="reload-trips">\u518D\u8AAD\u307F\u8FBC\u307F</button></div></div>` : ""}</section><div class="trip-grid">${data.trips.map((trip) => meter(trip, { busy, drafts })).join("")}</div></div>`;
   }
 
-  // ../scratch/fx-survival-font-change-site/dist/mode-view.js
+  // dist/mode-view.js
   var escape5 = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
   var signed6 = (value) => `${BigInt(value) > 0n ? "\uFF0B" : ""}${money(value)}`;
   var tone6 = (value) => BigInt(value) > 0n ? "positive" : BigInt(value) < 0n ? "negative" : "";
@@ -1318,7 +1326,7 @@ registerFxUiFonts().catch(error=>{
     return `<div class="stats-layout modes-layout"><section class="surface stats-surface modes-intro">${heading}<p class="stats-scope">\u3042\u306A\u305F\u306ECPU\u5BFE\u6226\u3092\u30B9\u30C6\u30FC\u30B8\u3054\u3068\u306B\u6BD4\u8F03\u3002CPU\u3068\u672C\u4EBA\u672A\u6307\u5B9A\u306E\u5BFE\u9762\u8A18\u9332\u306F\u542B\u307F\u307E\u305B\u3093\u3002</p><div class="mode-total"><span>\u5168\u30E2\u30FC\u30C9\u5408\u8A08 \xB7 ${data.lifetime.plays.toLocaleString("ja-JP")}\u30B2\u30FC\u30E0</span><strong class="${tone6(data.lifetime.pnlTotal)}">${data.lifetime.plays ? signed6(data.lifetime.pnlTotal) : "\u2014"}</strong></div>${pendingCount ? `<p class="stats-pending" role="status">\u4FDD\u5B58\u5B8C\u4E86\u3092\u78BA\u8A8D\u3067\u304D\u3066\u3044\u306A\u3044\u8A66\u5408\u304C${pendingCount}\u4EF6\u3042\u308A\u307E\u3059\u3002<button type="button" class="text-button" data-action="retry-records">\u4FDD\u5B58\u3092\u518D\u8A66\u884C</button></p>` : ""}</section><div class="mode-grid">${data.modes.map(modeCard).join("")}</div><details class="surface stats-surface mode-definitions"><summary>\u96C6\u8A08\u306B\u3064\u3044\u3066</summary><p class="stats-definition">\u6700\u59271\u30B2\u30FC\u30E0\u5229\u76CA\u30FB\u640D\u5931\u306F\u3001\u6700\u7D42\u8CC7\u7523\u3068\u521D\u671F\u8CC7\u7523\u306E\u5DEE\u3002\u8CA0\u50B5\u3082\u640D\u5931\u306B\u542B\u307F\u307E\u3059\u3002\u5229\u76CA\u307E\u305F\u306F\u640D\u5931\u304C\u306A\u304B\u3063\u305F\u5834\u5408\u306F0\u5186\u3001\u672A\u30D7\u30EC\u30A4\u306F\u300C\u2014\u300D\u3067\u3059\u3002</p><p class="stats-definition">\u5E73\u5747\u6700\u5927\u30EC\u30D0\u30EC\u30C3\u30B8\u30FB\u53D6\u5F15\u984D\u306F\u3001\u5404\u30B2\u30FC\u30E0\u3067\u4F7F\u3063\u305F\u6700\u5927\u5024\u306E\u5E73\u5747\u3002\u540C\u7387\u512A\u52DD\u3082\u512A\u52DD1\u56DE\u3068\u3057\u3066\u6570\u3048\u3001\u512A\u52DD\u7387\u30FB\u8CA0\u50B5\u9000\u5834\u7387\u306F\u30B2\u30FC\u30E0\u6570\u3092\u5206\u6BCD\u306B\u3057\u307E\u3059\u3002\u5E73\u5747\u91D1\u984D\u306F1,000\u5186\u5358\u4F4D\u3001\u500D\u7387\u3068\u7387\u306F\u5C0F\u65701\u6841\u3067\u56DB\u6368\u4E94\u5165\u3057\u307E\u3059\u3002</p></details></div>`;
   }
 
-  // ../scratch/fx-survival-font-change-site/dist/legends.js
+  // dist/legends.js
   var LEGENDS = Object.freeze([
     { key: "comeback", title: "\u5927\u9006\u8EE2", description: "\u521D\u671F\u8CC7\u7523\u306E50%\u672A\u6E80\u307E\u3067\u843D\u3061\u305F\u5F8C\u306B\u512A\u52DD\u3002" },
     { key: "peakCollapse", title: "\u5929\u56FD\u304B\u3089\u5730\u7344", description: "\u6700\u9AD8\u8CC7\u7523\u304C\u5143\u672C\u306E5\u500D\u4EE5\u4E0A\u3067\u3001\u6700\u7D42\u8CC7\u7523\u306F0\u5186\u4EE5\u4E0B\u3002" },
@@ -1332,7 +1340,7 @@ registerFxUiFonts().catch(error=>{
   ]);
   var LEGEND_KEYS = LEGENDS.map((event) => event.key);
 
-  // ../scratch/fx-survival-font-change-site/dist/legend-view.js
+  // dist/legend-view.js
   var escape6 = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
   var date4 = (value) => new Intl.DateTimeFormat("ja-JP", { year: "numeric", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(value));
   var titles = Object.fromEntries(LEGENDS.map((e) => [e.key, e.title]));
@@ -1359,7 +1367,7 @@ registerFxUiFonts().catch(error=>{
     return `<div class="stats-layout legends-layout"><section class="surface stats-surface legends-intro">${heading}<nav class="record-scopes" aria-label="\u8A18\u9332\u306E\u5BFE\u8C61">${Object.entries(scopes2).map(([key, label]) => `<a href="#legends/${key}/${event}" ${scope === key ? 'aria-current="page"' : ""}>${label}</a>`).join("")}</nav><p class="stats-scope">${scope === "self" ? "\u3042\u306A\u305F\u306ECPU\u5BFE\u6226\u3067\u8D77\u304D\u305F\u51FA\u6765\u4E8B\u3002\u5BFE\u9762\u306F\u300C\u4EBA\u9593\u5168\u4F53\u300D\u3067\u78BA\u8A8D\u3067\u304D\u307E\u3059\u3002" : scope === "human" ? "\u5BFE\u9762\u3092\u542B\u3080\u3001\u4EBA\u9593\u30D7\u30EC\u30A4\u30E4\u30FC\u306E\u51FA\u6765\u4E8B\u3002" : "CPU\u306E\u51FA\u6765\u4E8B\u3092\u3001\u4EBA\u9593\u306E\u8A18\u9332\u3068\u5206\u3051\u3066\u8868\u793A\u3057\u307E\u3059\u3002"}</p><label class="legend-filter" for="legend-filter">\u51FA\u6765\u4E8B<select id="legend-filter" data-legend-filter><option value="all" ${event === "all" ? "selected" : ""}>\u3059\u3079\u3066 \xB7 ${data.matchedResults}\u4EF6</option>${LEGENDS.map((e) => `<option value="${e.key}" ${event === e.key ? "selected" : ""}>${e.title} \xB7 ${data.counts[e.key]}\u4EF6</option>`).join("")}</select></label>${event !== "all" ? `<p class="stats-definition">${LEGENDS.find((e) => e.key === event).description}</p>` : ""}<p class="legend-count" role="status">${data.entries.length.toLocaleString("ja-JP")} / ${total.toLocaleString("ja-JP")}\u4EF6 \xB7 \u65B0\u3057\u3044\u8A66\u5408\u304B\u3089</p>${pendingCount ? `<p class="stats-pending" role="status">\u4FDD\u5B58\u5B8C\u4E86\u3092\u78BA\u8A8D\u3067\u304D\u3066\u3044\u306A\u3044\u8A66\u5408\u304C${pendingCount}\u4EF6\u3042\u308A\u307E\u3059\u3002<button type="button" class="text-button" data-action="retry-records">\u4FDD\u5B58\u3092\u518D\u8A66\u884C</button></p>` : ""}${!data.entries.length ? `<p class="stats-empty">${!data.participants ? "\u3053\u306E\u5BFE\u8C61\u306E\u8A66\u5408\u8A18\u9332\u306F\u307E\u3060\u3042\u308A\u307E\u305B\u3093\u3002" : "\u8A72\u5F53\u3059\u308B\u51FA\u6765\u4E8B\u306F\u307E\u3060\u3042\u308A\u307E\u305B\u3093\u3002"}${event !== "all" ? `<br><a href="${from}/all" class="stats-link">\u3059\u3079\u3066\u306E\u51FA\u6765\u4E8B\u3092\u898B\u308B</a>` : ""}</p>` : ""}</section><div class="legend-grid">${data.entries.map((e) => entryCard(e, scope, event)).join("")}</div>${data.nextCursor || moreError ? `<div class="legend-pagination">${moreError ? `<p class="stats-message" role="alert">${escape6(moreError)}</p>` : ""}<button type="button" class="secondary" data-action="more-legends" ${loadingMore ? "disabled" : ""}>${loadingMore ? "\u8AAD\u307F\u8FBC\u307F\u4E2D\u2026" : moreError ? "\u7D9A\u304D\u3092\u518D\u8AAD\u307F\u8FBC\u307F" : "\u7D9A\u304D\u3092\u898B\u308B"}</button></div>` : ""}<details class="surface stats-surface legend-about"><summary>\u51FA\u6765\u4E8B\u306E\u6761\u4EF6</summary><dl>${LEGENDS.map((e) => `<div><dt>${e.title}</dt><dd>${e.description}</dd></div>`).join("")}</dl><p class="stats-definition">\u540C\u7387\u512A\u52DD\u3082\u5BFE\u8C61\u30021\u4EBA\u306E1\u30B2\u30FC\u30E0\u30921\u4EF6\u3068\u3057\u3066\u8868\u793A\u3057\u3001\u8907\u6570\u306E\u51FA\u6765\u4E8B\u306F\u540C\u3058\u30AB\u30FC\u30C9\u306B\u307E\u3068\u3081\u307E\u3059\u3002\u300C\u4E00\u64833\u500D\u300D\u306F\u6700\u521D\u306B\u8A72\u5F53\u3057\u305F\u30E9\u30A6\u30F3\u30C9\u3092\u8868\u793A\u3057\u307E\u3059\u3002</p><p class="stats-definition">\u6700\u5927\u8CA0\u50B5\u66F4\u65B0\u306F\u3001\u9078\u3093\u3060\u5BFE\u8C61\u306E\u904E\u53BB\u30B2\u30FC\u30E0\u3068\u6BD4\u8F03\u3002\u7D42\u4E86\u65E5\u6642\u30FB\u30B2\u30FC\u30E0ID\u9806\u3067\u5224\u5B9A\u3057\u3001\u540C\u3058\u30B2\u30FC\u30E0\u306F\u6700\u5927\u8CA0\u50B5\u8005\u5168\u54E1\u3092\u8A18\u9332\u3057\u307E\u3059\u3002\u540C\u984D\u306F\u66F4\u65B0\u306B\u542B\u307F\u307E\u305B\u3093\u3002\u6700\u521D\u306E\u8CA0\u50B5\u3082\u5BFE\u8C61\u3067\u3059\u3002</p><p class="stats-definition">\u4FDD\u5B58\u6E08\u307F\u306E\u8A66\u5408\u304B\u3089\u81EA\u52D5\u5224\u5B9A\u3059\u308B\u305F\u3081\u3001\u4EE5\u524D\u306E\u30B2\u30FC\u30E0\u3082\u5BFE\u8C61\u3002\u8FFD\u52A0\u5F97\u70B9\u3084\u30DC\u30FC\u30CA\u30B9\u306F\u3042\u308A\u307E\u305B\u3093\u3002</p></details></div>`;
   }
 
-  // ../scratch/fx-survival-font-change-site/dist/play-extras.js
+  // dist/play-extras.js
   function impactPreview(wealth, leverage2, stageId) {
     const stage = getStage(stageId), player = { id: 0, wealth, peak: wealth, maxPosition: "0", status: "active" };
     const markets = [...stage.normal.map((bps) => ({ bps, gap: false })), ...stage.shock.map((bps, i) => ({ bps, gap: i >= 3 }))];
@@ -1419,7 +1427,7 @@ registerFxUiFonts().catch(error=>{
     return [lead, gain, loss].filter(Boolean).sort((a, b) => a.round - b.round);
   }
 
-  // ../scratch/fx-survival-font-change-site/dist/app.js
+  // dist/app.js
   var root = document.querySelector("#app");
   var KEY = "fx-survival-v1";
   var marketCharts = createMarketChartRenderer(root);
@@ -1907,6 +1915,13 @@ registerFxUiFonts().catch(error=>{
     document.querySelector("#impact-content").innerHTML = `<p class="impact-context">${escape7(p.name)} \xB7 \u73FE\u5728 ${money(p.wealth)} \xB7 ${draftLeverage}\u500D</p><p class="impact-note">\u6B21\u306E\u76F8\u5834\u306E\u4E88\u60F3\u3067\u306F\u3042\u308A\u307E\u305B\u3093\u3002\u7AEF\u6570\u51E6\u7406\u30FB\u30ED\u30B9\u30AB\u30C3\u30C8\u3092\u542B\u3080\u8A66\u7B97\u3067\u3059\u3002</p><div class="table-wrap impact-table"><table><thead><tr><th>\u5024\u52D5\u304D</th><th>\u7684\u4E2D\u5F8C\u306E\u8CC7\u7523</th><th>\u9006\u884C\u5F8C\u306E\u8CC7\u7523</th></tr></thead><tbody>${preview.rows.map((r) => `<tr><td>${r.bps / 100}%<small>${r.gap ? "\u30AE\u30E3\u30C3\u30D7" : "\u901A\u5E38"}</small></td><td class="positive">${money(r.hit.after)}</td><td>${money(r.miss.after)}${r.miss.status === "active" ? "" : `<small class="negative">${labels4[r.miss.status]}</small>`}</td></tr>`).join("")}</tbody></table></div>`;
     document.querySelector("#impact-dialog").showModal();
   }
+  function previousOrderResult(player) {
+    const h = game.history.find((entry) => entry.round === game.round - 1), r = h?.results.find((result) => result.id === player.id);
+    if (!r) return "";
+    const pnl = BigInt(r.pnl), tone7 = pnl > 0n ? "positive" : pnl < 0n ? "negative" : "", leverage2 = `\u524D\u56DE ${r.leverage}\u500D`;
+    const reuse = isSolo(game) ? `<button type="button" class="text-button previous-leverage" data-action="previous-leverage">${leverage2}</button>` : `<span class="previous-leverage">${leverage2}</span>`;
+    return `<div class="previous-result" aria-label="\u524D\u56DE R${String(h.round).padStart(2, "0")} \u306E\u30EA\u30B6\u30EB\u30C8" data-previous-player="${player.id}"><div class="previous-result-heading">${reuse}<div class="previous-market"><strong class="${h.direction === "up" ? "positive" : "negative"}">${h.direction === "up" ? "\u4E0A\u6607 \uFF0B" : "\u4E0B\u843D \u2212"}${h.bps / 100}%</strong><small>${h.gap ? "\u30AE\u30E3\u30C3\u30D7" : "\u901A\u5E38"}</small></div></div><div class="previous-trade"><span class="${r.side}">${r.side === "buy" ? "\u8CB7\u3044" : "\u58F2\u308A"}</span><span>\u640D\u76CA <strong class="previous-pnl ${tone7}">${pnl > 0n ? "\uFF0B" : ""}${money(r.pnl)}</strong></span></div></div>`;
+  }
   function fastForwardDigest(data) {
     const from = game.fastForwardFromRound, events = fastForwardHighlights(data, from);
     if (!events.length) return "";
@@ -1915,7 +1930,7 @@ registerFxUiFonts().catch(error=>{
   }
   function order() {
     const p = current(), valid = Number.isInteger(draftLeverage) && draftLeverage >= 1 && draftLeverage <= 100;
-    return `<div class="order-player">${avatar(p)}<h1>${escape7(p.name)}</h1><span class="turn-count">${isSolo(game) ? "CPU\u5BFE\u6226" : `${game.cursor + 1} / ${activePlayers(game).length}\u4EBA\u76EE`}</span><p>\u73FE\u5728\u8CC7\u7523 <strong>${money(p.wealth)}</strong> ${standingBadge(standings(game.players).find((e) => e.player.id === p.id))}</p></div><p class="privacy-hint">${isSolo(game) ? "CPU\u306F\u6CE8\u6587\u6E08\u307F \xB7 \u78BA\u5B9A\u5F8C\u306B\u5168\u54E1\u516C\u958B" : "\u4ED6\u306E\u4EBA\u306B\u898B\u305B\u305A\u5165\u529B\u30FB\u5168\u54E1\u78BA\u5B9A\u5F8C\u306B\u516C\u958B"}</p><form id="order-form"><div class="choice-grid" role="group" aria-label="\u58F2\u8CB7\u65B9\u5411">${[["buy", "\u8CB7\u3044", "\u4E0A\u6607\u3067\u5229\u76CA"], ["sell", "\u58F2\u308A", "\u4E0B\u843D\u3067\u5229\u76CA"]].map(([side, name, desc]) => `<button type="button" data-side="${side}" class="${draftSide === side ? "selected" : ""}" aria-pressed="${draftSide === side}"><strong class="${side}">${name}</strong><small>${desc}</small></button>`).join("")}</div><div class="leverage-control"><label for="leverage">\u30EC\u30D0\u30EC\u30C3\u30B8</label><div class="input-row"><button type="button" class="secondary" data-adjust="-1" aria-label="\u30EC\u30D0\u30EC\u30C3\u30B8\u30921\u4E0B\u3052\u308B">\u2212</button><input id="leverage" name="leverage" type="number" min="1" max="100" step="1" value="${draftLeverage}" inputmode="numeric" required><span>\u500D</span><button type="button" class="secondary" data-adjust="1" aria-label="\u30EC\u30D0\u30EC\u30C3\u30B8\u30921\u4E0A\u3052\u308B">\uFF0B</button></div></div><input type="range" id="leverage-range" aria-label="\u30EC\u30D0\u30EC\u30C3\u30B8" min="1" max="100" step="1" value="${draftLeverage}"><div class="range-labels"><span>1\u500D</span>${previousSoloLeverage(game) !== null ? `<button type="button" class="text-button previous-leverage" data-action="previous-leverage">\u524D\u56DE ${previousSoloLeverage(game)}\u500D</button>` : ""}<span>100\u500D</span></div><div class="position"><span>\u4ECA\u56DE\u306E\u53D6\u5F15\u984D</span><strong id="position-value">${valid ? money(BigInt(p.wealth) * BigInt(draftLeverage)) : "1\u301C100\u306E\u6574\u6570\u3092\u5165\u529B"}</strong><button type="button" id="impact-open" class="impact-preview" data-action="impact-open" ${valid ? "" : "disabled"} aria-haspopup="dialog">${impactSummary()}</button></div><div class="turn-actions"><p class="error" id="form-error" role="alert"></p><button type="submit" class="primary" id="order-submit" ${draftSide && valid ? "" : "disabled"}>${isSolo(game) || game.cursor + 1 === activePlayers(game).length ? "\u78BA\u5B9A\u3057\u3066\u5168\u54E1\u5206\u3092\u516C\u958B" : "\u78BA\u5B9A\u3057\u3066\u6B21\u306E\u4EBA\u3078"}</button></div></form>`;
+    return `<div class="order-player">${avatar(p)}<h1>${escape7(p.name)}</h1><span class="turn-count">${isSolo(game) ? "CPU\u5BFE\u6226" : `${game.cursor + 1} / ${activePlayers(game).length}\u4EBA\u76EE`}</span><p>\u73FE\u5728\u8CC7\u7523 <strong>${money(p.wealth)}</strong> ${standingBadge(standings(game.players).find((e) => e.player.id === p.id))}</p></div><p class="privacy-hint">${isSolo(game) ? "CPU\u306F\u6CE8\u6587\u6E08\u307F \xB7 \u78BA\u5B9A\u5F8C\u306B\u5168\u54E1\u516C\u958B" : "\u4ED6\u306E\u4EBA\u306B\u898B\u305B\u305A\u5165\u529B\u30FB\u5168\u54E1\u78BA\u5B9A\u5F8C\u306B\u516C\u958B"}</p><form id="order-form"><div class="choice-grid" role="group" aria-label="\u58F2\u8CB7\u65B9\u5411">${[["buy", "\u8CB7\u3044", "\u4E0A\u6607\u3067\u5229\u76CA"], ["sell", "\u58F2\u308A", "\u4E0B\u843D\u3067\u5229\u76CA"]].map(([side, name, desc]) => `<button type="button" data-side="${side}" class="${draftSide === side ? "selected" : ""}" aria-pressed="${draftSide === side}"><strong class="${side}">${name}</strong><small>${desc}</small></button>`).join("")}</div><div class="leverage-control"><label for="leverage">\u30EC\u30D0\u30EC\u30C3\u30B8</label><div class="input-row"><button type="button" class="secondary" data-adjust="-1" aria-label="\u30EC\u30D0\u30EC\u30C3\u30B8\u30921\u4E0B\u3052\u308B">\u2212</button><input id="leverage" name="leverage" type="number" min="1" max="100" step="1" value="${draftLeverage}" inputmode="numeric" required><span>\u500D</span><button type="button" class="secondary" data-adjust="1" aria-label="\u30EC\u30D0\u30EC\u30C3\u30B8\u30921\u4E0A\u3052\u308B">\uFF0B</button></div></div><input type="range" id="leverage-range" aria-label="\u30EC\u30D0\u30EC\u30C3\u30B8" min="1" max="100" step="1" value="${draftLeverage}"><div class="range-labels"><span>1\u500D</span>${previousOrderResult(p)}<span>100\u500D</span></div><div class="position"><span>\u4ECA\u56DE\u306E\u53D6\u5F15\u984D</span><strong id="position-value">${valid ? money(BigInt(p.wealth) * BigInt(draftLeverage)) : "1\u301C100\u306E\u6574\u6570\u3092\u5165\u529B"}</strong><button type="button" id="impact-open" class="impact-preview" data-action="impact-open" ${valid ? "" : "disabled"} aria-haspopup="dialog">${impactSummary()}</button></div><div class="turn-actions"><p class="error" id="form-error" role="alert"></p><button type="submit" class="primary" id="order-submit" ${draftSide && valid ? "" : "disabled"}>${isSolo(game) || game.cursor + 1 === activePlayers(game).length ? "\u78BA\u5B9A\u3057\u3066\u5168\u54E1\u5206\u3092\u516C\u958B" : "\u78BA\u5B9A\u3057\u3066\u6B21\u306E\u4EBA\u3078"}</button></div></form>`;
   }
   function orderList() {
     const players = activePlayers(game);

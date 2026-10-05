@@ -1,42 +1,39 @@
 {
   "site_name": "FXサバイバル フォント変更版",
   "source_main": "b63be421b36855e3e7e2490bea316ab48b6d30a7",
-  "preview_version": 2,
-  "preview_sha256": "30f62c8133c9327bac51d183ea4cebacb771b28a9fea422b19c0d41970ca7aa5",
+  "source_branch": "ui/order-previous-result-20261005",
+  "source_commit": "5a5cb04953c0af0f272c08872d0e8ced3c18d991",
+  "source_pr": "https://github.com/kakinymax/fx-survival-1/pull/7",
+  "preview_version": 3,
+  "preview_sha256": "93040bf5122b414d9f060580262a5e8ff6e3cb964317d9b17b9dd47af8798ffe",
   "publishing_branch": "pages/font-change-preview",
   "pages_source_path": "/",
-  "issue": "https://github.com/kakinymax/fx-survival-1/issues/5",
-  "publication_status": "published",
+  "issue": "https://github.com/kakinymax/fx-survival-1/issues/6",
   "published_url": "https://kakinymax.github.io/fx-survival-1/",
-  "live_validation": {
-    "status": "passed",
-    "https_status": 200,
-    "viewports": ["320x568", "390x600", "390x844", "1280x900"],
-    "project_subpath": "/fx-survival-1/",
-    "checks": ["actual custom fonts", "tabletop/CPU start", "R04 history", "normal/gap shock outcome", "single draw", "integer axis", "rounded chart", "no horizontal overflow", "no external assets", "no JavaScript errors"]
-  },
   "online_records_api": false,
   "local_validation": {
+    "status": "passed",
     "viewports": [
       "320x568",
       "390x600",
       "390x844",
       "1280x900"
     ],
-    "project_subpath": "/fx-survival/",
-    "status": "passed",
     "checks": [
-      "title",
-      "fonts",
-      "tabletop/CPU start",
-      "R04 history",
-      "normal/gap shock outcome",
-      "single draw",
-      "integer axis",
-      "rounded chart",
+      "actual custom fonts",
+      "no initial result box",
+      "direction and rate",
+      "personal side and exact settled profit/loss",
+      "normal/gap label",
+      "solo multiplier restore only",
+      "no reroll on reload",
+      "tabletop player ID after fixed player",
+      "direct next-player handoff",
+      "controls visible without overlap",
       "no horizontal overflow",
       "no external assets",
       "no JavaScript errors"
     ]
-  }
+  },
+  "live_validation_record": "https://github.com/kakinymax/fx-survival-1/issues/6"
 }
