@@ -2,10 +2,10 @@
   "site_name": "FXサバイバル フォント変更版",
   "source_main": "b63be421b36855e3e7e2490bea316ab48b6d30a7",
   "source_branch": "ui/round-trend-colors-20261005",
-  "source_commit": "968f98ff6ed7c804a0315e77800f760949601c0c",
+  "source_commit": "e74e78bf4f95e016bc76e4e2fd4fbde11c249719",
   "source_pr": "https://github.com/kakinymax/fx-survival-1/pull/9",
-  "preview_version": 6,
-  "preview_sha256": "82a168a4305855d9cf19b50a5b4bba7a7d92252aa50cd2b5a4119642388d5204",
+  "preview_version": 7,
+  "preview_sha256": "bd8805cd3dcbaabfa3ca709414db0dc03879d1b6c2b904ea8b7c952716d1a754",
   "publishing_branch": "pages/font-change-preview",
   "pages_source_path": "/",
   "issue": "https://github.com/kakinymax/fx-survival-1/issues/8",
@@ -20,7 +20,7 @@
       "1280x900"
     ],
     "checks": [
-      "real colored pixels: green rising candles and red falling candles",
+      "exact candle fill pixels: up #7fe0be and down #ff909c",
       "filled historical and current candles",
       "one-pixel black border on all four edges outside the colored fill, including thin candles",
       "R01/R02/R12 history",
@@ -28,12 +28,16 @@
       "historical colored pixels and scale stay fixed during actual animation",
       "one actual draw",
       "same saved result after reload",
-      "rounded canvas and integer axis ticks",
+      "rounded canvas",
       "no fixed action overlap or horizontal overflow",
       "no JavaScript errors"
     ],
     "previous_order_validation_record": "https://github.com/kakinymax/fx-survival-1/issues/6"
   },
   "live_validation_record": "https://github.com/kakinymax/fx-survival-1/issues/8",
-  "depends_on_pr": "https://github.com/kakinymax/fx-survival-1/pull/7"
+  "depends_on_pr": "https://github.com/kakinymax/fx-survival-1/pull/7",
+  "fill_colors": {
+    "up": "#7fe0be",
+    "down": "#ff909c"
+  }
 }
