@@ -58,13 +58,32 @@ body,button,input,select,textarea,dialog,svg text{font-family:var(--fx-ui-font);
 
 /* Optional trade estimates and replay facts stay within the existing screens. */
 #order-form .range-labels{align-items:center;gap:6px}
-#order-form .previous-leverage{min-height:44px;padding:4px 10px;font-size:12px;color:var(--text);border-color:var(--line);margin:-10px 0;background:var(--panel2)}
+#order-form .range-labels:has(.previous-leverage){display:grid;grid-template-columns:1fr auto 1fr}
+#order-form .range-labels>span:last-child{justify-self:end}
+#order-form .previous-leverage{display:flex;align-items:center;justify-content:center;min-height:44px;padding:4px 10px;font-size:12px;color:var(--text);border:1px solid var(--line);border-radius:8px;margin:-10px 0;background:var(--panel2);white-space:nowrap}
+#order-form .previous-result{display:grid;gap:2px;min-width:0;margin-top:14px;padding-left:8px;border-left:2px solid var(--line);font-size:14px;line-height:1.4;color:var(--text)}
+#order-form .previous-market,#order-form .previous-trade{display:flex;align-items:baseline;flex-wrap:wrap;gap:0 8px}
+#order-form .previous-label{min-width:60px;font-size:12px;color:var(--muted)}
+#order-form .previous-market small{font-size:12px;padding:1px 4px;border-radius:4px;background:var(--panel2);color:var(--text)}
+#order-form .previous-trade>span:last-child{min-width:0;overflow-wrap:anywhere}
+#order-form .previous-result strong{font-weight:700;font-variant-numeric:tabular-nums}
+#order-form .previous-result+.position{margin-top:4px;padding-top:0}
 #order-form .impact-preview{flex:0 0 100%;min-height:44px;padding:4px 0;background:transparent;color:var(--muted);font-size:12px;font-weight:500;text-align:left;overflow-wrap:anywhere;line-height:1.6}
 #order-form .choice-grid{margin-bottom:8px}
 #order-form .choice-grid button{min-height:64px}
+#order-form #leverage{width:68px;flex-shrink:0;appearance:textfield}
+#leverage::-webkit-inner-spin-button,#leverage::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 #order-form input[type=range]{margin-top:8px}
 #order-form .position{padding-top:8px}
 #order-form .position strong{line-height:1.4}
+@media(max-width:760px) and (max-height:620px){
+ .playing[data-phase=order] main{margin-top:4px}
+ .playing[data-phase=order] .play-surface .round-top{margin-bottom:2px}
+ .playing[data-phase=order] .play-surface .round-track{margin-bottom:2px}
+ .playing[data-phase=order] .privacy-hint{margin:4px 0}
+ #order-form .choice-grid{margin-top:2px}
+ #order-form .input-row button,#order-form .input-row input{line-height:1.25}
+}
 /* Keep the pixel font's wider glyphs within the small-phone order viewport. */
 @media(max-width:360px){
  .playing[data-phase=order] .play-surface{padding:14px}
