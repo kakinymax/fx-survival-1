@@ -82,14 +82,27 @@ const { existsSync } = require('node:fs');
   assert.match(await page.locator('[data-cpu-intro-status]').innerText(), /未接続/);
   await page.locator('#setup-form button[type="submit"]').click();
   await submit();
+  // CPU orders are already committed. Force only the three market draws so the
+  // mobile bundle always exercises the separate acute-move/gap button.
+  await page.evaluate(() => {
+    const original = crypto.getRandomValues.bind(crypto), values = [0, 5, 4];
+    globalThis.mobileTestDraws = 0;
+    crypto.getRandomValues = array => {
+      if (values.length) { array[0] = values.shift(); globalThis.mobileTestDraws++; return array; }
+      return original(array);
+    };
+  });
   const draw = async () => {
     for (const action of ['draw-direction', 'draw-movement']) {
       await page.locator(`[data-action="${action}"]`).click();
     }
+    await page.waitForFunction(() => JSON.parse(localStorage.getItem('fx-survival-v1')).phase === 'movement-result');
     if (await page.locator('[data-action="draw-shock"]').count()) await page.locator('[data-action="draw-shock"]').click();
     await page.locator('[data-action="settle-market"]').click();
   };
   await draw();
+  assert.equal(await page.evaluate(() => globalThis.mobileTestDraws), 3);
+  assert.equal((await game()).history.at(-1).gap, true);
   await page.locator('[data-action="solo-fix"]').click();
   if ((await game()).phase !== 'end') await page.locator('[data-action="fast-forward"]').first().click();
   assert.equal((await game()).phase, 'end');
