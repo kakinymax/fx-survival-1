@@ -2,10 +2,10 @@
   "site_name": "FXサバイバル フォント変更版",
   "source_main": "b63be421b36855e3e7e2490bea316ab48b6d30a7",
   "source_branch": "ui/round-trend-colors-20261005",
-  "source_commit": "eebf63bf9a4175b931162b471747b9a91c3e26d3",
+  "source_commit": "59f43b37b5dd5ced3d70a3e72451e3683c8d58b8",
   "source_pr": "https://github.com/kakinymax/fx-survival-1/pull/9",
-  "preview_version": 11,
-  "preview_sha256": "af8e5b3d0a65c264a0dbd103c1f0a81bd8f5372345d878dcb41f832400ec2792",
+  "preview_version": 12,
+  "preview_sha256": "bad9681883111c0a8bd426c284290c6a8f17f51dce79a26a3f5d2c25870b0d74",
   "publishing_branch": "pages/font-change-preview",
   "pages_source_path": "/",
   "issue": "https://github.com/kakinymax/fx-survival-1/issues/8",
@@ -43,9 +43,11 @@
       "reserved stage range and all candle outlines remain inside the plot",
       "narrow range reference ticks: 104, 102, 100, 98, 96",
       "native and displayed image dimensions remain unchanged",
-      "larger title, statistics, axis and round text inside the existing image",
       "all text stays inside the image without overlapping text boxes",
-      "gap glyph has its own row below statistics"
+      "gap glyph has its own row below statistics",
+      "title, subtitle and statistics start at the left plot axis",
+      "MIN/MAX/LAST labels and values match subtitle size on one row",
+      "title fits beside the round number"
     ],
     "previous_order_validation_record": "https://github.com/kakinymax/fx-survival-1/issues/6",
     "raster_unit_tests": 6,
@@ -78,14 +80,13 @@
     ]
   },
   "typography": {
-    "medium_min_width": 260,
+    "medium_min_width": 302,
     "wide_min_width": 480,
     "title_scales": [
       2,
       3,
       4
     ],
-    "stats_value_scale": 2,
     "axis_scales": [
       2,
       3
@@ -98,6 +99,13 @@
     "image_heights": [
       164,
       204
-    ]
+    ],
+    "stats_value_scales": [
+      1,
+      2
+    ],
+    "stats_label_matches_value": true,
+    "stats_layout": "single row",
+    "header_alignment": "left plot axis"
   }
 }
