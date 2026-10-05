@@ -72,11 +72,11 @@ export class Raster {
   this.line(x,y,x+w-1,y);this.line(x,y+h-1,x+w-1,y+h-1);
   this.line(x,y,x,y+h-1);this.line(x+w-1,y,x+w-1,y+h-1);
  }
- text(value,x,y,scale=1){
+ text(value,x,y,scale=1,spacing=scale){
   for(const char of String(value).toUpperCase()){
    const glyph=FONT[char]??FONT[' '];
    glyph.forEach((row,yy)=>{for(let xx=0;xx<5;xx++)if(row[xx]==='1')for(let sy=0;sy<scale;sy++)for(let sx=0;sx<scale;sx++)this.pixel(x+xx*scale+sx,y+yy*scale+sy);});
-   x+=6*scale;
+   x+=5*scale+spacing;
   }
  }
  present(canvas){
@@ -108,9 +108,18 @@ export class Raster {
 
 export function drawTrend(model,width,{progress=1,moving=false}={}){
  const height=width<480?164:204,r=new Raster(width,height);
- // Keep the 7px gap glyph in its own row, below stats (y=40..46)
- // and above the plot. The previous y=46 shared a row with LAST.
- const left=72,right=width-16,top=63,bottom=height-27,gapY=50;
+ const wide=width>=480,titleScale=wide?4:width>=260?3:2;
+ const axisScale=wide?3:2,roundScale=wide?2:1,gapScale=wide?2:1;
+ const textWidth=(value,scale=1,spacing=scale)=>String(value).length*(5*scale+spacing)-spacing;
+ const labels=[];
+ const text=(value,x,y,scale=1,spacing=scale,role='')=>{
+  x=Math.round(x);y=Math.round(y);r.text(value,x,y,scale,spacing);
+  labels.push({value:String(value),x,y,width:textWidth(value,scale,spacing),height:7*scale,scale,role});
+ };
+ // Grow text inside the existing canvas; keep room for the gap's own row.
+ const subtitleY=6+7*titleScale+3,statsY=subtitleY+7*(wide?2:1)+3;
+ const statsValueY=wide?statsY:statsY+10,gapY=statsValueY+14+3;
+ const left=wide?90:64,right=width-12,top=gapY+7*gapScale+4,bottom=height-(wide?25:22);
  // Keep four dotted sections; each contains one, two, then three round slots.
  const slots=Math.max(4,Math.ceil(model.round/4)*4),cell=(right-left)/slots;
  const x=round=>Math.round(left+cell*(round-.5));
@@ -126,25 +135,32 @@ export function drawTrend(model,width,{progress=1,moving=false}={}){
  const values=[100,...known.flatMap(c=>[c.open,c.close])];
  const last=known.at(-1)?.close??100;
  const stats={min:Math.min(...values),max:Math.max(...values),last};
- // Narrow game cards have less than 280px inside the phone's margins.
- // Keep full-size glyphs while leaving a separate space for the round label.
- const headerLeft=width<280?10:left;
- r.text('ROUND TREND',headerLeft,8,2);
- r.text(`R${String(model.round).padStart(2,'0')}`,right-34,8,2);
- r.text('MARKET INDEX / START 100',headerLeft,27);
- const statText=`MIN ${stats.min.toFixed(2)}  MAX ${stats.max.toFixed(2)}  LAST ${stats.last.toFixed(2)}`;
- // Three columns on small screens avoid shrinking the bitmap glyphs.
- if(width<480){const start=width<320?10:left;r.text(`MIN ${stats.min.toFixed(2)}`,start,40);r.text(`MAX ${stats.max.toFixed(2)}`,start+76,40);r.text(`LAST ${stats.last.toFixed(2)}`,start+152,40);}
- else r.text(statText,left,40);
+ const headerLeft=wide?left:12,roundTitle=`R${String(model.round).padStart(2,'0')}`;
+ text('ROUND TREND',headerLeft,6,titleScale,1,'title');
+ text(roundTitle,right-textWidth(roundTitle,titleScale,1),6,titleScale,1,'current-round');
+ text('MARKET INDEX / START 100',headerLeft,subtitleY,wide?2:1,1,'subtitle');
+ const columns=[['MIN',stats.min],['MAX',stats.max],['LAST',stats.last]];
+ const columnWidth=(right-headerLeft)/3;
+ columns.forEach(([name,value],i)=>{
+  const xx=headerLeft+i*columnWidth;
+  if(wide)text(`${name} ${value.toFixed(2)}`,xx,statsY,2,1,'stats');
+  else {text(name,xx,statsY,1,1,'stat-name');text(value.toFixed(2),xx,statsValueY,2,1,'stats');}
+ });
  const ticks=[];
  for(let i=0;i<=(high-low)/step;i++){
   const value=high-i*step,yy=y(value);
-  const label=String(value);r.text(label,10,yy-7,2);ticks.push({value,y:yy,label});
+  const label=String(value);
+  text(label,left-8-textWidth(label,axisScale),yy-Math.floor(7*axisScale/2),axisScale,axisScale,'tick');
+  ticks.push({value,y:yy,label});
   for(let xx=left;xx<=right;xx+=4)r.pixel(xx,yy);
  }
  for(let i=0;i<=4;i++){const xx=Math.round(left+(right-left)*i/4);for(let yy=top;yy<=bottom;yy+=4)r.pixel(xx,yy);}
  r.line(left,top,left,bottom);r.line(left,bottom,right,bottom);
  const glyphWidth=5,barWidth=Math.max(3,Math.min(14,Math.floor(cell*.4)));
+ const historicalLabelWidth=textWidth('01',roundScale),currentLabelWidth=textWidth('R01',roundScale);
+ const stride=Math.ceil(slots*(historicalLabelWidth+3)/(right-left));
+ const currentLabelGap=(historicalLabelWidth+currentLabelWidth)/2+3;
+ const roundLabel=(label,xx)=>text(label,xx-Math.floor(textWidth(label,roundScale)/2),bottom+7,roundScale,roundScale,'round');
  const bodies=[];
  const candle=(c,active=false)=>{
   const close=active?c.open+(c.close-c.open)*progress:c.close;
@@ -153,14 +169,13 @@ export function drawTrend(model,width,{progress=1,moving=false}={}){
   // Frame outside the body so even a one-pixel move keeps its direction color.
   r.rect(bodyX-1,bodyY-1,barWidth+2,bodyHeight+2);
   r.rect(bodyX,bodyY,barWidth,bodyHeight,true,CANDLE_COLORS[c.direction]);
-  if(c.gap&&!(active&&moving))r.text('G',xx-2,gapY);
-  const stride=Math.ceil(slots*18/(right-left));
-  if(active||((c.round-1)%stride===0&&x(model.round)-xx>=22))r.text(`${active?'R':''}${String(c.round).padStart(2,'0')}`,xx-(active?8:5),bottom+8);
+  if(c.gap&&!(active&&moving))text('G',xx-Math.floor(textWidth('G',gapScale)/2),gapY,gapScale,gapScale,'gap');
+  if(active||((c.round-1)%stride===0&&x(model.round)-xx>=currentLabelGap))roundLabel(`${active?'R':''}${String(c.round).padStart(2,'0')}`,xx);
   bodies.push({round:c.round,x:xx,openY,closeY,open:c.open,close:c.close,displayClose:close,active});
  };
  for(const c of model.history)candle(c);
  if(model.current)candle(model.current,true);
- else {const xx=x(model.round),yy=y(model.open);r.line(xx-3,yy,xx+3,yy);r.text(`R${String(model.round).padStart(2,'0')}`,xx-8,bottom+8);}
+ else {const xx=x(model.round),yy=y(model.open);r.line(xx-3,yy,xx+3,yy);roundLabel(roundTitle,xx);}
  // One existing current round, no invented high/low wicks or extra samples.
- return {raster:r,stats,low,high,step,ticks,bodies,plot:{left,right,top,bottom},barWidth,glyphWidth};
+ return {raster:r,stats,low,high,step,ticks,bodies,labels,plot:{left,right,top,bottom},barWidth,glyphWidth};
 }

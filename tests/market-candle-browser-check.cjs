@@ -18,7 +18,7 @@ const origin='http://127.0.0.1:4173';
   const slot=Math.round(r.plot.left+(r.plot.right-r.plot.left)/Math.max(4,Math.ceil(model.round/4)*4)*(model.round-.5));
   const limit=(active?.x??slot)-Math.ceil(r.barWidth/2)-2;
   let hash=2166136261;
-  for(let y=r.plot.top;y<=r.plot.bottom+15;y++)for(let x=0;x<limit;x++)hash=Math.imul(hash^(r.raster.bits[y*r.raster.stride+(x>>3)]&(128>>(x&7))?1:0),16777619)>>>0;
+  for(let y=r.plot.top;y<=Math.min(r.raster.height-1,r.plot.bottom+24);y++)for(let x=0;x<limit;x++)hash=Math.imul(hash^(r.raster.bits[y*r.raster.stride+(x>>3)]&(128>>(x&7))?1:0),16777619)>>>0;
   return {bodies:r.bodies,stats:r.stats,domain:[r.low,r.high],ticks:r.ticks,historyPixels:hash,moving:canvas.dataset.trendMoving==='true',elapsed:Number(canvas.dataset.trendElapsed),label:canvas.getAttribute('aria-label'),radius:getComputedStyle(canvas.parentElement).borderRadius};
  });
 

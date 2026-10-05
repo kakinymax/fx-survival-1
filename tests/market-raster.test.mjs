@@ -66,7 +66,7 @@ test('animation keeps historical plot pixels and scale fixed and only moves towa
    assert.equal(frame.stats.last,model.open);
    assert.equal(frame.bodies.at(-1).displayClose,model.open+(model.current.close-model.open)*progress);
    assert.deepEqual(frame.bodies.slice(0,-1),start.bodies.slice(0,-1));
-   for(let y=start.plot.top;y<=start.plot.bottom+15;y++)for(let x=0;x<limit;x++)assert.equal(bit(frame.raster,x,y),bit(start.raster,x,y));
+   for(let y=start.plot.top;y<=Math.min(start.raster.height-1,start.plot.bottom+24);y++)for(let x=0;x<limit;x++)assert.equal(bit(frame.raster,x,y),bit(start.raster,x,y));
   }
   assert.equal(drawTrend(model,320).stats.last,model.current.close);
  }
@@ -74,12 +74,37 @@ test('animation keeps historical plot pixels and scale fixed and only moves towa
 
 test('gap glyph waits for completion and occupies a separate row beneath the statistics',()=>{
  const model=marketCandleModel({...game('usdjpy','down',6,6,1),history:[]});
- const moving=drawTrend(model,320,{progress:1,moving:true}),final=drawTrend(model,320);
- let marked=0;
- for(let y=50;y<=56;y++)for(let x=final.plot.left;x<320;x++){
-  assert(bit(moving.raster,x,y));if(!bit(final.raster,x,y))marked++;
+ for(const width of [232,264,320,480,640]){
+  const moving=drawTrend(model,width,{progress:1,moving:true}),final=drawTrend(model,width);
+  const gap=final.labels.find(l=>l.role==='gap');assert(gap);
+  assert(gap.y>=Math.max(...final.labels.filter(l=>l.role==='stats').map(l=>l.y+l.height))+3);
+  assert(final.plot.top>=gap.y+gap.height+4);
+  let marked=0;
+  for(let y=gap.y;y<gap.y+gap.height;y++)for(let x=final.plot.left;x<width;x++){
+   assert(bit(moving.raster,x,y));if(!bit(final.raster,x,y))marked++;
+  }
+  assert(marked>0);
+  const normal=drawTrend(marketCandleModel({...game('usdjpy','down',6,2,1),history:[]}),width);
+  for(let y=gap.y;y<gap.y+gap.height;y++)for(let x=normal.plot.left;x<width;x++)assert(bit(normal.raster,x,y));
  }
- assert(marked>0);assert(final.plot.top>56);
- const normal=drawTrend(marketCandleModel({...game('usdjpy','down',6,2,1),history:[]}),320);
- for(let y=50;y<=56;y++)for(let x=normal.plot.left;x<320;x++)assert(bit(normal.raster,x,y));
+});
+
+test('larger text stays inside the unchanged image dimensions without overlapping labels',()=>{
+ for(const width of [232,240,259,260,264,320,479,480,640,900])for(const round of [1,5,7,9,12]){
+  const g=game('tryjpy','up',6,6,round);
+  g.history=g.history.map(h=>({...h,direction:'up',first:6,second:6,...market(6,6,'tryjpy')}));
+  const {raster,labels,plot}=drawTrend(marketCandleModel(g),width);
+  assert.equal(raster.width,width);assert.equal(raster.height,width<480?164:204);
+  for(const label of labels){
+   assert(label.x>=0&&label.y>=0&&label.x+label.width<=width&&label.y+label.height<=raster.height,JSON.stringify(label));
+  }
+  for(let i=0;i<labels.length;i++)for(let j=i+1;j<labels.length;j++){
+   const a=labels[i],b=labels[j];
+   assert(a.x+a.width<=b.x||b.x+b.width<=a.x||a.y+a.height<=b.y||b.y+b.height<=a.y,JSON.stringify({a,b}));
+  }
+  assert(labels.filter(l=>l.role==='stats').every(l=>l.height===14));
+  const axis=labels.filter(l=>l.role==='tick');
+  assert.equal(axis.length,5);
+  assert((plot.bottom-plot.top)/4>=axis[0].height+1);
+ }
 });
