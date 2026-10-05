@@ -70,6 +70,8 @@ body,button,input,select,textarea,dialog,svg text{font-family:var(--fx-ui-font);
 #order-form .impact-preview{flex:0 0 100%;min-height:44px;padding:4px 0;background:transparent;color:var(--muted);font-size:12px;font-weight:500;text-align:left;overflow-wrap:anywhere;line-height:1.6}
 #order-form .choice-grid{margin-bottom:8px}
 #order-form .choice-grid button{min-height:64px}
+#order-form #leverage{width:68px;flex-shrink:0;appearance:textfield}
+#leverage::-webkit-inner-spin-button,#leverage::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 #order-form input[type=range]{margin-top:8px}
 #order-form .position{padding-top:8px}
 #order-form .position strong{line-height:1.4}
