@@ -24,7 +24,7 @@
 - [Issue #3](https://github.com/kakinymax/fx-survival-1/issues/3): 共同作業の文書と手順。現在の状態・完了結果はIssueを参照する。アプリの変更・再公開は対象外。
 
 - [PR #7](https://github.com/kakinymax/fx-survival-1/pull/7): 注文画面の前回結果・中央の前回倍率・100倍入力。2026-10-05に[`17b8f01`](https://github.com/kakinymax/fx-survival-1/commit/17b8f017da03f77ec2aa4ff522449ac8ef7a1ff0)としてmainへ統合。検証と完了記録は[Issue #6](https://github.com/kakinymax/fx-survival-1/issues/6)。
-- [PR #9](https://github.com/kakinymax/fx-survival-1/pull/9): 足の配色と黒枠、4区間のラウンド整列、100中央・基本2刻み、参考画像に合わせた文字密度と3行の左揃え、ラベルと同じ小さな統計値、左余白2px。PR #7統合後にmainへ取り込む最終改修。具体的な統合SHA・統合後の検証と完了記録は[Issue #8](https://github.com/kakinymax/fx-survival-1/issues/8)。
+- [PR #9](https://github.com/kakinymax/fx-survival-1/pull/9): 足の配色と黒枠、4区間のラウンド整列、100中央・基本2刻み、参考画像に合わせた文字密度と3行の左揃え、ラベルと同じ小さな統計値、左余白2px。PR #7に続く最終改修で、依頼された表示調整は完了。具体的な統合SHA・統合後の検証と完了記録は[Issue #8](https://github.com/kakinymax/fx-survival-1/issues/8)。
 
 ## 試技公開とmain
 
