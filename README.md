@@ -4,8 +4,10 @@ GitHub PagesのHTTPS試技用の静的ページです。
 公開URL: https://kakinymax.github.io/fx-survival-1/
 公開ソースはpages/font-change-previewブランチの/ (root)です。
 
+100倍の数値入力で3桁が切れる問題も修正しました。文字サイズは24pxのまま、数値欄に3桁とカーソルが収まる幅を確保し、既存の＋／−ボタンと直接入力を維持しています。
+
 今回の版は、R02以降の注文画面で「前回○倍」の枠に相場方向・変動率・通常／ギャップと、本人の買い／売り・確定損益を表示します。対面では現在の手番プレイヤーの結果を表示し、ソロの倍率復元ボタンを維持します。初回は枠を出しません。
-ソース: ui/order-previous-result-20261005 / 5a5cb04953c0af0f272c08872d0e8ced3c18d991。
+ソース: ui/order-previous-result-20261005 / d7bb47070f4609c8a06d365790f8c7850544ee49。
 変更はmain対象のdraft PR #7で共有しています。
 
 index.htmlはフロントをIIFEにまとめ、同梱WOFFをFontFaceに直接登録した単独HTMLです。英数字はFX Trend Pixel、日本語はDotGothic16。後者のライセンスをOFL.txtとHTML内に収録しています。
