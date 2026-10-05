@@ -8,7 +8,7 @@
 
 | 段階 | 完成条件 | 検証・保存する証拠 | 現在の結果 / 未完了項目 |
 | --- | --- | --- | --- |
-| 1. 現状確認 | 最新main、AGENTS、設計・開発文書、全open Issue/PRを確認。完成UI・保存・OS制約と方式を決定。編集前に担当/範囲/ブランチをIssueに記録 | 基準SHA、一覧の確認結果、構成/対応OS、ユーザーの端末情報 | 確認済み。着手時open 0件、宣言後は#10のみ。Capacitor 8.5.2でUI・エンジンを同梱。ユーザーはiPhone、古いAndroid、Mac mini 2018、Windowsを所有。OS版・WebView版は未確認 |
+| 1. 現状確認 | 最新main、AGENTS、設計・開発文書、全open Issue/PRを確認。完成UI・保存・OS制約と方式を決定。編集前に担当/範囲/ブランチをIssueに記録 | 基準SHA、一覧の確認結果、構成/対応OS、ユーザーの端末情報 | 確認済み。着手時open 0件、宣言後は#10のみ。Capacitor 8.5.2でUI・エンジンを同梱。ユーザーはiPhone、古いAndroid、Mac mini 2018、Windowsを所有。ユーザー回答: macOS Ventura13.7.8、iOS27.0.1、AQUOS sense4 basic/Android12。WebView版は未確認 |
 | 2. 両OSの試作 | オフラインで対面/CPU対戦を動かす資産、iOS/Androidプロジェクト、再現可能な手順がGitHubにある。安全領域・Android戻る対応。戦績未接続を明示。ビルド/起動できなかった環境も区別して引き継ぐ | 依存固定、ビルドログ、UIサイズ/再開/秘密注文/抽選の結果、APKとSHA256、iOSビルド・シミュレータ結果、draft PR | プロジェクト生成・同期済み。検証中。iOSのMac/Xcodeビルド、両OS実機は未実施。オンライン戦績は未接続。詳しい結果はIssue/PRに追記 |
 | 3. 開発者登録・配布準備 | Apple/Googleの登録方法と費用・本人確認を確認し、ユーザーの操作で登録。正式app ID、署名の保管先、テスト配布先、データ保存/同期方針を決める | アカウント準備の完了状況（秘密値を記録しない）、署名付きビルド、限定配布のインストール結果 | 未着手。有料登録、TestFlight、Play内部テストへのアップロードなし。試作IDは `com.kakinymax.fxsurvival.prototype`。正式IDと試作記録の移行は未確定 |
 | 4. 実機確認・修正 | iPhoneと手持ちAndroidで起動、対面2〜6人、CPU、12R/早期終了、通常/ギャップ、再開、縦横、安全領域、キーボード、Android戻るを確認。採用した戦績方式の保存・再送・再読込・本人識別も成功 | 端末/OS/WebView/Xcode、再現手順、スクリーンショット、不具合と修正SHA。古いOSと現行OSで結果を区別 | 未着手。古いAndroidはOSだけでなくWebView更新可否を確認する。通知や広告等を追加する計画はない |

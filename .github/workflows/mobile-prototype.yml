@@ -16,10 +16,10 @@ permissions:
   contents: read
 jobs:
   web:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.0.0
         with:
           node-version: 24
           cache: npm
@@ -34,29 +34,44 @@ jobs:
           done
           npm run mobile:check
   android:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.0.0
         with:
           node-version: 24
           cache: npm
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6.0.1
         with:
           distribution: temurin
           java-version: 21
-      - uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@v4.0.4
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
       - run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
       - run: npm ci && npm run mobile:apk
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7.0.1
         with:
           name: fx-survival-android-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
   ios-simulator:
-    runs-on: macos-15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            xcode: '26.3'
+            ios: '26-2'
+          - runner: xcode-27
+            xcode: '27.0'
+            ios: '27-0'
+    runs-on: ${{ matrix.runner }}
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.0.0
         with:
           node-version: 24
           cache: npm
@@ -67,7 +82,32 @@ jobs:
           -configuration Debug -sdk iphonesimulator
           -destination 'generic/platform=iOS Simulator'
           -derivedDataPath ios/build CODE_SIGNING_ALLOWED=NO build
-      - uses: actions/upload-artifact@v4
+      - name: Launch in iPhone simulator
+        env:
+          IOS_RUNTIME: ${{ matrix.ios }}
+        run: |
+          xcrun simctl list devices available --json > /tmp/simulators.json
+          simulator_id=$(python3 - <<'PY'
+          import json, os
+          devices = json.load(open('/tmp/simulators.json'))['devices']
+          for runtime, candidates in devices.items():
+              if runtime.endswith('iOS-' + os.environ['IOS_RUNTIME']):
+                  for device in candidates:
+                      if device['name'].startswith('iPhone') and device['isAvailable']:
+                          print(device['udid'])
+                          raise SystemExit(0)
+          raise SystemExit('Requested iPhone simulator is unavailable')
+          PY
+          )
+          xcrun simctl boot "$simulator_id"
+          xcrun simctl bootstatus "$simulator_id" -b
+          xcrun simctl install "$simulator_id" ios/build/Build/Products/Debug-iphonesimulator/App.app
+          xcrun simctl launch "$simulator_id" com.kakinymax.fxsurvival.prototype
+          sleep 8
+          xcrun simctl io "$simulator_id" screenshot ios/build/iphone-simulator.png
+      - uses: actions/upload-artifact@v7.0.1
         with:
-          name: fx-survival-ios-simulator
-          path: ios/build/Build/Products/Debug-iphonesimulator/App.app
+          name: fx-survival-ios-simulator-${{ matrix.xcode }}
+          path: |
+            ios/build/Build/Products/Debug-iphonesimulator/App.app
+            ios/build/iphone-simulator.png

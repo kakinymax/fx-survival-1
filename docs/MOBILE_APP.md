@@ -9,9 +9,9 @@
 3. Androidの「設定」→「デバイス情報」または「端末情報」で機種名とAndroidバージョンを確認。メーカーにより項目名が違う。
 4. 分かった機種・版をチャットへ伝える。パスワードや認証コードは送らない。
 
-ユーザーの手持ちはiPhone、古いAndroid、Mac mini 2018、Windows環境。試作の最低設定はiOS15.4、Android7.0/API24 + WebView105。古いAndroidではPlayストアから「AndroidシステムのWebView」と「Google Chrome」の更新を確認する。起動できない時は更新案内を出す。
+ユーザーの手持ちはiPhone（iOS27.0.1）、AQUOS sense4 basic（Android12）、Mac mini 2018（macOS Ventura13.7.8）、Windows環境。試作の最低設定はiOS15.4、Android7.0/API24 + WebView105。古いAndroidではPlayストアから「AndroidシステムのWebView」と「Google Chrome」の更新を確認する。起動できない時は更新案内を出す。
 
-Mac mini 2018はSequoiaに対応。Xcode26.3はmacOS15.6以降に対応するので候補にする。最新版XcodeがこのMacで動くとは限らない。iPhoneのOSがXcode26.3の対応範囲を超える場合は、別のMacまたはCIでのビルドを検討する。OSの再インストールや非公式パッチを試作の前提にしない。更新を案内する際は現在のOS・空き容量・バックアップを確認してから具体的に案内する。
+現在のVentura13.7.8では必要なXcode26を動かせない。Mac mini 2018はSequoiaに対応。Xcode26.3はmacOS15.6以降に対応するので候補にする。最新版XcodeがこのMacで動くとは限らない。手持ちiPhoneのiOS27.0.1をXcode26.3から署名・インストールできるかは未確認。iOS27シミュレータ向けにはGitHubのXcode27ランナーでビルドと起動を検証する。CIビルドだけでiPhoneにインストール可能にはならず、実機用署名・配布は後続段階で扱う。OSの再インストールや非公式パッチを試作の前提にしない。更新を案内する際は現在のOS・空き容量・バックアップを確認してから具体的に案内する。
 
 出典: [AppleのMac対応表](https://support.apple.com/ja-jp/120282)、[Xcode対応表](https://developer.apple.com/xcode/system-requirements/)、[Capacitor環境要件](https://capacitorjs.com/docs/getting-started/environment-setup)。
 
@@ -60,7 +60,7 @@ xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug \
 
 検証: `npm test`、`npm run build`、`npm run mobile:sync`。別ターミナルで `npm run mobile:preview` を起動して `npm run mobile:check`。初回に `npx playwright install chromium` が必要。Linuxでインストール済みChromiumを使う場合は `CHROMIUM_PATH`、URL変更は `MOBILE_BASE_URL` を指定できる。モバイル確認はAPI保存成功を模擬せず、通信なし・確定レコードの送信待ち保持を確認する。通常Webは既存のWorker/D1ブラウザ検証で別に確認する。
 
-CI `.github/workflows/mobile-prototype.yml` はPRのWeb確認、Android APKコンパイル、Macでの署名なしiOSシミュレータ向けコンパイル。CIの `.app` は実機IPAではない。GitHub Actionsの実行結果が成功したことを確認してからIssue/PRへ記録する。
+CI `.github/workflows/mobile-prototype.yml` はPRのWeb確認、Android APKコンパイル、MacでのXcode26.3/27.0を指定した署名なしiOSシミュレータ向けコンパイル・インストール・起動。Xcode27ランナーはpreviewのため、その状態と実行結果を記録する。CIの `.app` は実機IPAではない。GitHub Actionsの実行結果が成功したことを確認してからIssue/PRへ記録する。
 
 ## ファイルと残件
 
