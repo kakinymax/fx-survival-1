@@ -5,9 +5,16 @@
   "preview_sha256": "30f62c8133c9327bac51d183ea4cebacb771b28a9fea422b19c0d41970ca7aa5",
   "publishing_branch": "pages/font-change-preview",
   "pages_source_path": "/",
-  "issue": "https://github.com/kakinymax/fx-survival/issues/5",
-  "publication_status": "pending_activation",
-  "expected_url": "https://kakinymax.github.io/fx-survival/",
+  "issue": "https://github.com/kakinymax/fx-survival-1/issues/5",
+  "publication_status": "published",
+  "published_url": "https://kakinymax.github.io/fx-survival-1/",
+  "live_validation": {
+    "status": "passed",
+    "https_status": 200,
+    "viewports": ["320x568", "390x600", "390x844", "1280x900"],
+    "project_subpath": "/fx-survival-1/",
+    "checks": ["actual custom fonts", "tabletop/CPU start", "R04 history", "normal/gap shock outcome", "single draw", "integer axis", "rounded chart", "no horizontal overflow", "no external assets", "no JavaScript errors"]
+  },
   "online_records_api": false,
   "local_validation": {
     "viewports": [
