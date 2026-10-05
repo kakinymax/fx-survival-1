@@ -111,7 +111,8 @@ export function drawTrend(model,width,{progress=1,moving=false}={}){
  // Keep the 7px gap glyph in its own row, below stats (y=40..46)
  // and above the plot. The previous y=46 shared a row with LAST.
  const left=72,right=width-16,top=63,bottom=height-27,gapY=50;
- const slots=Math.max(4,model.round),cell=(right-left)/slots;
+ // Keep four dotted sections; each contains one, two, then three round slots.
+ const slots=Math.max(4,Math.ceil(model.round/4)*4),cell=(right-left)/slots;
  const x=round=>Math.round(left+cell*(round-.5));
  // Reserve the same stage-dependent domain as the existing display. Do not
  // derive the scale from a partially animated result or change past candles.

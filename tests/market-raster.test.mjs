@@ -29,8 +29,30 @@ test('the USD/JPY 5% fall uses the reference 102, 100, 98, 96, 94 ticks',()=>{
  assert.deepEqual(drawing.ticks.map(t=>t.value),[102,100,98,96,94]);
 });
 
+test('four grid sections contain balanced round slots with unchanged positions within each block',()=>{
+ for(const width of [232,264,320,640])for(const endRound of [4,8,12]){
+  const full=drawTrend(marketCandleModel(game('classic','up',3,null,endRound)),width);
+  const sectionWidth=(full.plot.right-full.plot.left)/4;
+  for(let section=0;section<4;section++){
+   const left=full.plot.left+section*sectionWidth,right=left+sectionWidth;
+   const bodies=full.bodies.filter(b=>b.x>left&&b.x<right);
+   assert.equal(bodies.length,endRound/4);
+   assert(Math.abs((bodies[0].x-left)-(right-bodies.at(-1).x))<=1);
+   for(const b of bodies){
+    assert(b.x-Math.floor(full.barWidth/2)-1>left);
+    assert(b.x+Math.ceil(full.barWidth/2)<right);
+   }
+  }
+  for(let round=endRound-3;round<=endRound;round++){
+   const frame=drawTrend(marketCandleModel(game('classic','up',3,null,round)),width);
+   assert.equal(frame.bodies.length,round);
+   assert.deepEqual(frame.bodies.map(b=>b.x),full.bodies.slice(0,round).map(b=>b.x));
+  }
+ }
+});
+
 test('animation keeps historical plot pixels and scale fixed and only moves toward the saved close',()=>{
- for(const direction of ['up','down'])for(const second of [1,6])for(const round of [1,2,12]){
+ for(const direction of ['up','down'])for(const second of [1,6])for(const round of [1,2,4,5,7,8,9,11,12]){
   const model=marketCandleModel(game('tryjpy',direction,6,second,round));
   const start=drawTrend(model,320,{progress:0,moving:true}),limit=start.bodies.at(-1).x-Math.ceil(start.barWidth/2)-2;
   for(const progress of [.25,.5,.75,1]){
