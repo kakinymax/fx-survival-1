@@ -1,0 +1,9 @@
+{
+  "latin": "Glyphs generated from dist/market-raster.js FONT, with matching 5x7 lowercase/punctuation additions.",
+  "japanese": "https://raw.githubusercontent.com/google/fonts/main/ofl/dotgothic16/DotGothic16-Regular.ttf",
+  "license": "SIL Open Font License 1.1",
+  "sha256": {
+    "FXTrendPixel.woff": "a88110ab4ac5378b11b01d011f6c4ee1fa178de15293584f6ecd23c854cc6e81",
+    "DotGothic16-Regular.woff": "b6dd9dadf57643100e9315971a210cc87be010005e7e8c136cb6cf558e736e40"
+  }
+}
