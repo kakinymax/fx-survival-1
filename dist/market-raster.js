@@ -1,7 +1,7 @@
 // Display-only adaptation of the supplied XIAO rendering reference.
 // A one-bit base keeps the bitmap text and grid crisp; colored candle fills
 // are presented at the same integer coordinates, without interpolation.
-const CANDLE_COLORS={up:'#168563',down:'#d33f54'};
+const CANDLE_COLORS={up:'#7fe0be',down:'#ff909c'};
 const FONT = {
  '0':['01110','10001','10011','10101','11001','10001','01110'],
  '1':['00100','01100','00100','00100','00100','00100','01110'],
