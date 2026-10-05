@@ -2,10 +2,10 @@
   "site_name": "FXサバイバル フォント変更版",
   "source_main": "b63be421b36855e3e7e2490bea316ab48b6d30a7",
   "source_branch": "ui/round-trend-colors-20261005",
-  "source_commit": "917fb0a534700031ab5ff56505c5d2e8c0ebac68",
+  "source_commit": "ec13ef5037170d2e12d2617aa09f6f5a1778b932",
   "source_pr": "https://github.com/kakinymax/fx-survival-1/pull/9",
-  "preview_version": 9,
-  "preview_sha256": "fcae7f4504e375abe82bfe3c7d82d75c31f1e11b789d09f77114eb63d21ccb49",
+  "preview_version": 10,
+  "preview_sha256": "60383fc8506c14529dbfba28412184f6b1305c47ce0587705de6321cd4f96aee",
   "publishing_branch": "pages/font-change-preview",
   "pages_source_path": "/",
   "issue": "https://github.com/kakinymax/fx-survival-1/issues/8",
@@ -31,7 +31,6 @@
       "rounded canvas",
       "no fixed action overlap or horizontal overflow",
       "no JavaScript errors",
-      "reference USD/JPY 5% fall ticks: 102, 100, 98, 96, 94",
       "base step 2, wider ranges use even integer steps",
       "starting index 100 is always a tick",
       "labels remain at least 14px apart in wide ranges",
@@ -39,7 +38,10 @@
       "candle outlines stay inside dotted section boundaries",
       "same horizontal positions within each four-round block",
       "no future candle is drawn in unused slots",
-      "actual R05/R07/R09/R12 shock animations keep historical pixels and scale fixed"
+      "actual R05/R07/R09/R12 shock animations keep historical pixels and scale fixed",
+      "100 is exactly the middle of five symmetric axis ticks",
+      "reserved stage range and all candle outlines remain inside the plot",
+      "narrow range reference ticks: 104, 102, 100, 98, 96"
     ],
     "previous_order_validation_record": "https://github.com/kakinymax/fx-survival-1/issues/6",
     "raster_unit_tests": 5,
@@ -54,7 +56,10 @@
   "axis_ticks": {
     "base_step": 2,
     "widening": "even multiples when needed",
-    "anchor": 100
+    "anchor": 100,
+    "center": 100,
+    "symmetric": true,
+    "tick_count": 5
   },
   "horizontal_grid": {
     "sections": 4,
