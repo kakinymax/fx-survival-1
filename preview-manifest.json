@@ -2,10 +2,10 @@
   "site_name": "FXサバイバル フォント変更版",
   "source_main": "b63be421b36855e3e7e2490bea316ab48b6d30a7",
   "source_branch": "ui/round-trend-colors-20261005",
-  "source_commit": "e74e78bf4f95e016bc76e4e2fd4fbde11c249719",
+  "source_commit": "ec57d378af7964733793a7f7d828d7560fae7738",
   "source_pr": "https://github.com/kakinymax/fx-survival-1/pull/9",
-  "preview_version": 7,
-  "preview_sha256": "bd8805cd3dcbaabfa3ca709414db0dc03879d1b6c2b904ea8b7c952716d1a754",
+  "preview_version": 8,
+  "preview_sha256": "40e953da8c2f08cb3e5fd0e30f68241c2e14c9eaf08bc8b8b83da98382699ccb",
   "publishing_branch": "pages/font-change-preview",
   "pages_source_path": "/",
   "issue": "https://github.com/kakinymax/fx-survival-1/issues/8",
@@ -23,14 +23,18 @@
       "exact candle fill pixels: up #7fe0be and down #ff909c",
       "filled historical and current candles",
       "one-pixel black border on all four edges outside the colored fill, including thin candles",
-      "R01/R02/R12 history",
+      "R01/R02/R04/R12 history",
       "ordinary and shock-normal and gap results",
       "historical colored pixels and scale stay fixed during actual animation",
       "one actual draw",
       "same saved result after reload",
       "rounded canvas",
       "no fixed action overlap or horizontal overflow",
-      "no JavaScript errors"
+      "no JavaScript errors",
+      "reference USD/JPY 5% fall ticks: 102, 100, 98, 96, 94",
+      "base step 2, wider ranges use even integer steps",
+      "starting index 100 is always a tick",
+      "labels remain at least 14px apart in wide ranges"
     ],
     "previous_order_validation_record": "https://github.com/kakinymax/fx-survival-1/issues/6"
   },
@@ -39,5 +43,10 @@
   "fill_colors": {
     "up": "#7fe0be",
     "down": "#ff909c"
+  },
+  "axis_ticks": {
+    "base_step": 2,
+    "widening": "even multiples when needed",
+    "anchor": 100
   }
 }

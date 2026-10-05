@@ -922,11 +922,10 @@ registerFxUiFonts().catch(error=>{
     const left = 72, right = width - 16, top = 63, bottom = height - 27, gapY = 50;
     const slots = Math.max(4, model.round), cell = (right - left) / slots;
     const x = (round) => Math.round(left + cell * (round - 0.5));
-    const targetStep = Math.max(1, (model.scale.max - model.scale.min) / 4);
-    const unit = 10 ** Math.floor(Math.log10(targetStep));
-    const step = [1, 2, 5, 10].map((n) => n * unit).find((n) => n >= targetStep);
-    const low = Math.floor(model.scale.min / step) * step;
-    const high = Math.max(low + step, Math.ceil(model.scale.max / step) * step);
+    const targetStep = (model.scale.max - model.scale.min) / 4;
+    const step = Math.max(2, Math.ceil(targetStep / 2) * 2);
+    const low = 100 + Math.floor((model.scale.min - 100) / step) * step;
+    const high = Math.max(low + step, 100 + Math.ceil((model.scale.max - 100) / step) * step);
     const y = (value) => Math.round(bottom - (value - low) * (bottom - top) / (high - low));
     const known = moving || !model.current ? model.history : [...model.history, model.current];
     const values = [100, ...known.flatMap((c) => [c.open, c.close])];
