@@ -148,7 +148,10 @@ export function drawTrend(model,width,{progress=1,moving=false}={}){
  const candle=(c,active=false)=>{
   const close=active?c.open+(c.close-c.open)*progress:c.close;
   const openY=y(c.open),closeY=y(close),xx=x(c.round);
-  r.rect(xx-Math.floor(barWidth/2),Math.min(openY,closeY),barWidth,Math.abs(closeY-openY)+1,true,CANDLE_COLORS[c.direction]);
+  const bodyX=xx-Math.floor(barWidth/2),bodyY=Math.min(openY,closeY),bodyHeight=Math.abs(closeY-openY)+1;
+  // Frame outside the body so even a one-pixel move keeps its direction color.
+  r.rect(bodyX-1,bodyY-1,barWidth+2,bodyHeight+2);
+  r.rect(bodyX,bodyY,barWidth,bodyHeight,true,CANDLE_COLORS[c.direction]);
   if(c.gap&&!(active&&moving))r.text('G',xx-2,gapY);
   const stride=Math.ceil(slots*18/(right-left));
   if(active||((c.round-1)%stride===0&&x(model.round)-xx>=22))r.text(`${active?'R':''}${String(c.round).padStart(2,'0')}`,xx-(active?8:5),bottom+8);
