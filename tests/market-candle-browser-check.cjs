@@ -15,10 +15,10 @@ const origin='http://127.0.0.1:4173';
  const chartState=()=>chart().evaluate(canvas=>{
   const r=canvas.trendResult,active=r.bodies.find(b=>b.active);
   const model=JSON.parse(decodeURIComponent(canvas.dataset.trendModel));
-  const slot=Math.round(r.plot.left+(r.plot.right-r.plot.left)/Math.max(4,model.round)*(model.round-.5));
+  const slot=Math.round(r.plot.left+(r.plot.right-r.plot.left)/Math.max(4,Math.ceil(model.round/4)*4)*(model.round-.5));
   const limit=(active?.x??slot)-Math.ceil(r.barWidth/2)-2;
   let hash=2166136261;
-  for(let y=r.plot.top;y<=r.plot.bottom+15;y++)for(let x=0;x<limit;x++)hash=Math.imul(hash^(r.raster.bits[y*r.raster.stride+(x>>3)]&(128>>(x&7))?1:0),16777619)>>>0;
+  for(let y=r.plot.top;y<=Math.min(r.raster.height-1,r.plot.bottom+24);y++)for(let x=0;x<limit;x++)hash=Math.imul(hash^(r.raster.bits[y*r.raster.stride+(x>>3)]&(128>>(x&7))?1:0),16777619)>>>0;
   return {bodies:r.bodies,stats:r.stats,domain:[r.low,r.high],ticks:r.ticks,historyPixels:hash,moving:canvas.dataset.trendMoving==='true',elapsed:Number(canvas.dataset.trendElapsed),label:canvas.getAttribute('aria-label'),radius:getComputedStyle(canvas.parentElement).borderRadius};
  });
 
@@ -124,7 +124,7 @@ const origin='http://127.0.0.1:4173';
  assert.deepEqual(await state(),settled);assert.equal(settled.history[3].first,6);assert.equal(settled.history[3].second,6);assert.equal(settled.history[3].bps,1000);
  // CPU and tabletop share the compact banner at phone and desktop sizes.
  await page.emulateMedia({reducedMotion:'reduce'});
- for(const size of [{width:320,height:568},{width:390,height:600},{width:390,height:844},{width:1280,height:900}])for(const solo of [false,true])for(const historyRounds of [0,1,11]){
+ for(const size of [{width:320,height:568},{width:390,height:600},{width:390,height:844},{width:1280,height:900}])for(const solo of [false,true])for(const historyRounds of [0,1,4,6,8,11]){
   await page.setViewportSize(size);await seed({stage:'tryjpy',direction:'down',solo,historyRounds});await visible();
   await page.evaluate(()=>rollQueue=[5]);await page.locator('[data-action="draw-shock"]').click();await wait('movement-result');await visible();
   assert.equal((await chartState()).bodies.filter(b=>!b.active).length,historyRounds);assert.equal((await chartState()).bodies.filter(b=>b.active).length,1);
@@ -133,6 +133,6 @@ const origin='http://127.0.0.1:4173';
   assert(drawing.bodies.every(b=>b.x>=0&&b.x<box.width));
   assert(drawing.ticks.every(t=>Number.isInteger(t.value)));
  }
- assert.deepEqual(errors,[]);console.log('PASS: static settled history with current candle joined to the previous close; monotonic actual up/down growth; normal dice have no animation; normal/gap rates; one draw and exact-once history; reload, reduced motion, route/reset/fast-forward; R01/R02/R12 tabletop/CPU at 320/390/1280px.');
+ assert.deepEqual(errors,[]);console.log('PASS: static settled history with current candle joined to the previous close; monotonic actual up/down growth; normal dice have no animation; normal/gap rates; one draw and exact-once history; reload, reduced motion, route/reset/fast-forward; R01/R02/R05/R07/R09/R12 tabletop/CPU at 320/390/1280px.');
  await browser.close();
 })().catch(error=>{console.error(error);process.exit(1)});
