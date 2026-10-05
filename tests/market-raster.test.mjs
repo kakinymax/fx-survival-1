@@ -17,8 +17,16 @@ test('every stage and dice result uses the actual compounded close and an intege
   assert(drawing.low<=model.scale.min&&drawing.high>=model.scale.max);
   assert(drawing.ticks.every(t=>Number.isInteger(t.value)&&t.label===String(t.value)));
   assert(drawing.ticks.slice(1).every((t,i)=>drawing.ticks[i].value-t.value===drawing.step));
-  assert(Number.isInteger(drawing.step)&&drawing.step>=1);
+  assert(Number.isInteger(drawing.step)&&drawing.step>=2&&drawing.step%2===0);
+  assert(drawing.ticks.some(t=>t.value===100));
+  assert(drawing.ticks.slice(1).every((t,i)=>t.y-drawing.ticks[i].y>=14));
  }
+});
+
+test('the USD/JPY 5% fall uses the reference 102, 100, 98, 96, 94 ticks',()=>{
+ const drawing=drawTrend(marketCandleModel(game('usdjpy','down',6,6)),264);
+ assert.equal(drawing.step,2);
+ assert.deepEqual(drawing.ticks.map(t=>t.value),[102,100,98,96,94]);
 });
 
 test('animation keeps historical plot pixels and scale fixed and only moves toward the saved close',()=>{
