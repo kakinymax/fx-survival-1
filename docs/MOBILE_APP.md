@@ -17,9 +17,9 @@
 
 ## Androidで試す
 
-配布用APKがIssue/PRに添付された場合は、Android本体へダウンロードし、タップして「インストール」を選ぶ。提供元の許可が求められた時は、そのAPKを開いたブラウザ/ファイルアプリに限って「この提供元を許可」を有効にし、インストール後に戻す。全体の保護機能を無効にする必要はない。Google Playからのインストールとは異なり、試作名は「FXサバイバル試作」。正式版とは別のapp IDを使う。
+最新版のAPKへのリンクは[Issue #10](https://github.com/kakinymax/fx-survival-1/issues/10)と[PR #11](https://github.com/kakinymax/fx-survival-1/pull/11)の最終記録にある。GitHub Actionsで配布する場合は、成功した実行のページ下部Artifacts→`fx-survival-android-debug`をダウンロードし、ZIPを展開した中の`app-debug.apk`を使う。APKをAndroid本体へダウンロードし、タップして「インストール」を選ぶ。提供元の許可が求められた時は、そのAPKを開いたブラウザ/ファイルアプリに限って「この提供元を許可」を有効にし、インストール後に戻す。全体の保護機能を無効にする必要はない。Google Playからのインストールとは異なり、試作名は「FXサバイバル試作」。正式版とは別のapp IDを使う。
 
-APKがまだ提供されていない場合はMac/WindowsのAndroid Studioで実行できる。初回のSDK取得・設定は端末情報が分かってから一緒に進める。開発者向けの再現手順は下記。USB接続による実機実行では、Androidの開発者向けオプション→USBデバッグを使い、自分のPCからの接続だけを許可する。
+APKを自分でビルドする場合はMac/WindowsのAndroid Studioで実行できる。初回のSDK取得・設定は端末情報が分かってから一緒に進める。開発者向けの再現手順は下記。USB接続による実機実行では、Androidの開発者向けオプション→USBデバッグを使い、自分のPCからの接続だけを許可する。
 
 ## iPhoneで試す
 
@@ -69,3 +69,7 @@ CI `.github/workflows/mobile-prototype.yml` はPRのWeb確認、Android APKコ�
 生成資産 `mobile/www/` の `build-info.json` に元コミットと未コミット変更の有無が入る。APK等のログと一緒に参照する。`mobile/www/`、コピー先のpublic、SDK/署名ファイル/ローカル設定/ビルド出力はGit管理しない。既存Sites/Pagesは更新しない。
 
 残件は、両OSの実機起動・不具合修正、iOSのローカルXcodeビルド、正式アイコンと配布署名、オンライン戦績の認証/保存方針、正式app IDと記録移行、掲載文・プライバシー・ストア申請。現在のビルド/CI結果はIssue/PRの最新記録を参照する。デフォルトのCapacitorアイコン/起動画面は試作用で、掲載準備段階で作り直す。
+
+## 今回確認できた範囲
+
+ユニット138件、モバイル生成/両OS同期、スマホ3サイズと安全領域・横向き・ルールダイアログ・オフラインの秘密注文/通常/ギャップ/CPU終了/再開、API通信なしを確認。通常Webのcompact-ui/records-browser/solo-browserも実際のローカルWorker/D1で成功。Android debug APKのビルドと署名検証、お手元のOSと同じiOS27のシミュレータでコンパイル/インストール/起動・画面目視を確認した。最終CIのSHA・結果と成果物URLはIssue/PRの最新記録を参照する。手持ち端末への導入・操作、Xcodeの実機署名・配布はまだ確認していない。

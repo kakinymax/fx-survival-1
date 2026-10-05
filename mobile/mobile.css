@@ -15,6 +15,10 @@
   padding-right: calc(24px + var(--mobile-safe-right));
 }
 .mobile-prototype footer { padding-bottom: calc(28px + var(--mobile-safe-bottom)); }
+.mobile-prototype dialog {
+  max-height: 85vh;
+  max-height: 85dvh;
+}
 .mobile-prototype .turn-actions {
   padding-left: calc(16px + var(--mobile-safe-left));
   padding-right: calc(16px + var(--mobile-safe-right));

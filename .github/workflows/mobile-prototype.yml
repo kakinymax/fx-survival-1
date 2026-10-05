@@ -14,6 +14,9 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: mobile-prototype-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
   web:
     runs-on: ubuntu-24.04
@@ -56,6 +59,7 @@ jobs:
           name: fx-survival-android-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
   ios-simulator:
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -83,6 +87,7 @@ jobs:
           -destination 'generic/platform=iOS Simulator'
           -derivedDataPath ios/build CODE_SIGNING_ALLOWED=NO build
       - name: Launch in iPhone simulator
+        timeout-minutes: 10
         env:
           IOS_RUNTIME: ${{ matrix.ios }}
         run: |
