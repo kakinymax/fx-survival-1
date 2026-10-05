@@ -2,10 +2,10 @@
   "site_name": "FXサバイバル フォント変更版",
   "source_main": "b63be421b36855e3e7e2490bea316ab48b6d30a7",
   "source_branch": "ui/order-previous-result-20261005",
-  "source_commit": "d7bb47070f4609c8a06d365790f8c7850544ee49",
+  "source_commit": "302ce81a7ca68c5514cbf4b648d6b1f8ff7813f1",
   "source_pr": "https://github.com/kakinymax/fx-survival-1/pull/7",
-  "preview_version": 4,
-  "preview_sha256": "fc80c793f2e847a7444c0794c726a62217f21d4c9f799408aa60c7c77139ec8d",
+  "preview_version": 5,
+  "preview_sha256": "a51c8f7c57bbc8a9d01893b1fdbd7c1d85be983f12c722e661883be49d7f761f",
   "publishing_branch": "pages/font-change-preview",
   "pages_source_path": "/",
   "issue": "https://github.com/kakinymax/fx-survival-1/issues/6",
@@ -37,7 +37,11 @@
       "no JavaScript errors",
       "all three leverage digits fit with caret at original font size",
       "no leverage control wrap",
-      "slider/direct numeric input/keyboard/plus-minus controls"
+      "slider/direct numeric input/keyboard/plus-minus controls",
+      "previous multiplier centered between 1x and 100x",
+      "separate labeled market and personal order rows below the multiplier",
+      "14px direction/rate/profit-loss figures",
+      "normal down 0.3 percent with sell profit +0.3 ten-thousand yen"
     ]
   },
   "live_validation_record": "https://github.com/kakinymax/fx-survival-1/issues/6"

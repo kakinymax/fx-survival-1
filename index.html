@@ -57,15 +57,16 @@ body,button,input,select,textarea,dialog,svg text{font-family:var(--fx-ui-font);
 
 /* Optional trade estimates and replay facts stay within the existing screens. */
 #order-form .range-labels{align-items:center;gap:6px}
-#order-form .previous-result{flex:1;min-width:0;margin:-10px 0 -2px;padding:0 6px 2px;border:1px solid var(--line);border-radius:8px;background:var(--panel2);font-size:12px;line-height:1.4;color:var(--text)}
-#order-form .previous-result-heading{display:flex;align-items:center;gap:4px}
-#order-form .previous-leverage{display:flex;align-items:center;justify-content:center;flex-shrink:0;min-height:44px;padding:4px 6px;font-size:12px;color:var(--text);border-color:var(--line);margin:0;background:transparent;white-space:nowrap}
-#order-form .previous-market{min-width:0}
-#order-form .previous-market,#order-form .previous-trade{display:flex;align-items:baseline;flex-wrap:wrap;gap:0 6px}
-#order-form .previous-market small{font-size:11px;color:var(--muted)}
+#order-form .range-labels:has(.previous-leverage){display:grid;grid-template-columns:1fr auto 1fr}
+#order-form .range-labels>span:last-child{justify-self:end}
+#order-form .previous-leverage{display:flex;align-items:center;justify-content:center;min-height:44px;padding:4px 10px;font-size:12px;color:var(--text);border:1px solid var(--line);border-radius:8px;margin:-10px 0;background:var(--panel2);white-space:nowrap}
+#order-form .previous-result{display:grid;gap:2px;min-width:0;margin-top:14px;padding-left:8px;border-left:2px solid var(--line);font-size:14px;line-height:1.4;color:var(--text)}
+#order-form .previous-market,#order-form .previous-trade{display:flex;align-items:baseline;flex-wrap:wrap;gap:0 8px}
+#order-form .previous-label{min-width:60px;font-size:12px;color:var(--muted)}
+#order-form .previous-market small{font-size:12px;padding:1px 4px;border-radius:4px;background:var(--panel2);color:var(--text)}
 #order-form .previous-trade>span:last-child{min-width:0;overflow-wrap:anywhere}
-#order-form .previous-result strong{font-weight:500;font-variant-numeric:tabular-nums}
-#order-form .range-labels:has(.previous-result)+.position{margin-top:4px;padding-top:0}
+#order-form .previous-result strong{font-weight:700;font-variant-numeric:tabular-nums}
+#order-form .previous-result+.position{margin-top:4px;padding-top:0}
 #order-form .impact-preview{flex:0 0 100%;min-height:44px;padding:4px 0;background:transparent;color:var(--muted);font-size:12px;font-weight:500;text-align:left;overflow-wrap:anywhere;line-height:1.6}
 #order-form .choice-grid{margin-bottom:8px}
 #order-form .choice-grid button{min-height:64px}
@@ -74,6 +75,14 @@ body,button,input,select,textarea,dialog,svg text{font-family:var(--fx-ui-font);
 #order-form input[type=range]{margin-top:8px}
 #order-form .position{padding-top:8px}
 #order-form .position strong{line-height:1.4}
+@media(max-width:760px) and (max-height:620px){
+ .playing[data-phase=order] main{margin-top:4px}
+ .playing[data-phase=order] .play-surface .round-top{margin-bottom:2px}
+ .playing[data-phase=order] .play-surface .round-track{margin-bottom:2px}
+ .playing[data-phase=order] .privacy-hint{margin:4px 0}
+ #order-form .choice-grid{margin-top:2px}
+ #order-form .input-row button,#order-form .input-row input{line-height:1.25}
+}
 /* Keep the pixel font's wider glyphs within the small-phone order viewport. */
 @media(max-width:360px){
  .playing[data-phase=order] .play-surface{padding:14px}
@@ -1919,10 +1928,10 @@ registerFxUiFonts().catch(error=>{
   }
   function previousOrderResult(player) {
     const h = game.history.find((entry) => entry.round === game.round - 1), r = h?.results.find((result) => result.id === player.id);
-    if (!r) return "";
+    if (!r) return { leverage: "", result: "" };
     const pnl = BigInt(r.pnl), tone7 = pnl > 0n ? "positive" : pnl < 0n ? "negative" : "", leverage2 = `\u524D\u56DE ${r.leverage}\u500D`;
     const reuse = isSolo(game) ? `<button type="button" class="text-button previous-leverage" data-action="previous-leverage">${leverage2}</button>` : `<span class="previous-leverage">${leverage2}</span>`;
-    return `<div class="previous-result" aria-label="\u524D\u56DE R${String(h.round).padStart(2, "0")} \u306E\u30EA\u30B6\u30EB\u30C8" data-previous-player="${player.id}"><div class="previous-result-heading">${reuse}<div class="previous-market"><strong class="${h.direction === "up" ? "positive" : "negative"}">${h.direction === "up" ? "\u4E0A\u6607 \uFF0B" : "\u4E0B\u843D \u2212"}${h.bps / 100}%</strong><small>${h.gap ? "\u30AE\u30E3\u30C3\u30D7" : "\u901A\u5E38"}</small></div></div><div class="previous-trade"><span class="${r.side}">${r.side === "buy" ? "\u8CB7\u3044" : "\u58F2\u308A"}</span><span>\u640D\u76CA <strong class="previous-pnl ${tone7}">${pnl > 0n ? "\uFF0B" : ""}${money(r.pnl)}</strong></span></div></div>`;
+    return { leverage: reuse, result: `<div class="previous-result" aria-label="\u524D\u56DE R${String(h.round).padStart(2, "0")} \u306E\u30EA\u30B6\u30EB\u30C8" data-previous-player="${player.id}"><div class="previous-market"><span class="previous-label">\u524D\u56DE\u306E\u76F8\u5834</span><strong class="${h.direction === "up" ? "positive" : "negative"}">${h.direction === "up" ? "\u4E0A\u6607 \uFF0B" : "\u4E0B\u843D \u2212"}${h.bps / 100}%</strong><small>${h.gap ? "\u30AE\u30E3\u30C3\u30D7" : "\u901A\u5E38"}</small></div><div class="previous-trade"><small class="previous-label">\u524D\u56DE\u306E\u6CE8\u6587</small><span class="${r.side}">${r.side === "buy" ? "\u8CB7\u3044" : "\u58F2\u308A"}</span><span>\u640D\u76CA <strong class="previous-pnl ${tone7}">${pnl > 0n ? "\uFF0B" : ""}${money(r.pnl)}</strong></span></div></div>` };
   }
   function fastForwardDigest(data) {
     const from = game.fastForwardFromRound, events = fastForwardHighlights(data, from);
@@ -1931,8 +1940,8 @@ registerFxUiFonts().catch(error=>{
     return `<section class="fast-forward-digest" aria-labelledby="digest-title"><h3 id="digest-title">\u65E9\u9001\u308A\u3057\u305F\u5C55\u958B</h3><p>R${from}\u301C${data.endedRound}\u306E\u8A18\u9332\u304B\u3089</p><ul>${events.map((e) => `<li data-highlight="${e.type}"><span>R${e.round}</span><div>${e.type === "lead" ? `${names(e.ids)}\u304C${e.ids.length > 1 ? "\u540C\u7387" : ""}\u9996\u4F4D\u3078 \xB7 ${money(e.wealth)}` : `${names([e.id])} \xB7 <strong class="${e.type === "gain" ? "positive" : "negative"}">${BigInt(e.pnl) > 0n ? "\uFF0B" : ""}${money(e.pnl)}</strong>${["debt", "cut", "empty"].includes(e.status) ? ` \xB7 ${labels4[e.status]}` : ""}<small>${money(e.before)} \u2192 ${money(e.after)}</small>`}</div></li>`).join("")}</ul></section>`;
   }
   function order() {
-    const p = current(), valid = Number.isInteger(draftLeverage) && draftLeverage >= 1 && draftLeverage <= 100;
-    return `<div class="order-player">${avatar(p)}<h1>${escape7(p.name)}</h1><span class="turn-count">${isSolo(game) ? "CPU\u5BFE\u6226" : `${game.cursor + 1} / ${activePlayers(game).length}\u4EBA\u76EE`}</span><p>\u73FE\u5728\u8CC7\u7523 <strong>${money(p.wealth)}</strong> ${standingBadge(standings(game.players).find((e) => e.player.id === p.id))}</p></div><p class="privacy-hint">${isSolo(game) ? "CPU\u306F\u6CE8\u6587\u6E08\u307F \xB7 \u78BA\u5B9A\u5F8C\u306B\u5168\u54E1\u516C\u958B" : "\u4ED6\u306E\u4EBA\u306B\u898B\u305B\u305A\u5165\u529B\u30FB\u5168\u54E1\u78BA\u5B9A\u5F8C\u306B\u516C\u958B"}</p><form id="order-form"><div class="choice-grid" role="group" aria-label="\u58F2\u8CB7\u65B9\u5411">${[["buy", "\u8CB7\u3044", "\u4E0A\u6607\u3067\u5229\u76CA"], ["sell", "\u58F2\u308A", "\u4E0B\u843D\u3067\u5229\u76CA"]].map(([side, name, desc]) => `<button type="button" data-side="${side}" class="${draftSide === side ? "selected" : ""}" aria-pressed="${draftSide === side}"><strong class="${side}">${name}</strong><small>${desc}</small></button>`).join("")}</div><div class="leverage-control"><label for="leverage">\u30EC\u30D0\u30EC\u30C3\u30B8</label><div class="input-row"><button type="button" class="secondary" data-adjust="-1" aria-label="\u30EC\u30D0\u30EC\u30C3\u30B8\u30921\u4E0B\u3052\u308B">\u2212</button><input id="leverage" name="leverage" type="number" min="1" max="100" step="1" value="${draftLeverage}" inputmode="numeric" required><span>\u500D</span><button type="button" class="secondary" data-adjust="1" aria-label="\u30EC\u30D0\u30EC\u30C3\u30B8\u30921\u4E0A\u3052\u308B">\uFF0B</button></div></div><input type="range" id="leverage-range" aria-label="\u30EC\u30D0\u30EC\u30C3\u30B8" min="1" max="100" step="1" value="${draftLeverage}"><div class="range-labels"><span>1\u500D</span>${previousOrderResult(p)}<span>100\u500D</span></div><div class="position"><span>\u4ECA\u56DE\u306E\u53D6\u5F15\u984D</span><strong id="position-value">${valid ? money(BigInt(p.wealth) * BigInt(draftLeverage)) : "1\u301C100\u306E\u6574\u6570\u3092\u5165\u529B"}</strong><button type="button" id="impact-open" class="impact-preview" data-action="impact-open" ${valid ? "" : "disabled"} aria-haspopup="dialog">${impactSummary()}</button></div><div class="turn-actions"><p class="error" id="form-error" role="alert"></p><button type="submit" class="primary" id="order-submit" ${draftSide && valid ? "" : "disabled"}>${isSolo(game) || game.cursor + 1 === activePlayers(game).length ? "\u78BA\u5B9A\u3057\u3066\u5168\u54E1\u5206\u3092\u516C\u958B" : "\u78BA\u5B9A\u3057\u3066\u6B21\u306E\u4EBA\u3078"}</button></div></form>`;
+    const p = current(), previous = previousOrderResult(p), valid = Number.isInteger(draftLeverage) && draftLeverage >= 1 && draftLeverage <= 100;
+    return `<div class="order-player">${avatar(p)}<h1>${escape7(p.name)}</h1><span class="turn-count">${isSolo(game) ? "CPU\u5BFE\u6226" : `${game.cursor + 1} / ${activePlayers(game).length}\u4EBA\u76EE`}</span><p>\u73FE\u5728\u8CC7\u7523 <strong>${money(p.wealth)}</strong> ${standingBadge(standings(game.players).find((e) => e.player.id === p.id))}</p></div><p class="privacy-hint">${isSolo(game) ? "CPU\u306F\u6CE8\u6587\u6E08\u307F \xB7 \u78BA\u5B9A\u5F8C\u306B\u5168\u54E1\u516C\u958B" : "\u4ED6\u306E\u4EBA\u306B\u898B\u305B\u305A\u5165\u529B\u30FB\u5168\u54E1\u78BA\u5B9A\u5F8C\u306B\u516C\u958B"}</p><form id="order-form"><div class="choice-grid" role="group" aria-label="\u58F2\u8CB7\u65B9\u5411">${[["buy", "\u8CB7\u3044", "\u4E0A\u6607\u3067\u5229\u76CA"], ["sell", "\u58F2\u308A", "\u4E0B\u843D\u3067\u5229\u76CA"]].map(([side, name, desc]) => `<button type="button" data-side="${side}" class="${draftSide === side ? "selected" : ""}" aria-pressed="${draftSide === side}"><strong class="${side}">${name}</strong><small>${desc}</small></button>`).join("")}</div><div class="leverage-control"><label for="leverage">\u30EC\u30D0\u30EC\u30C3\u30B8</label><div class="input-row"><button type="button" class="secondary" data-adjust="-1" aria-label="\u30EC\u30D0\u30EC\u30C3\u30B8\u30921\u4E0B\u3052\u308B">\u2212</button><input id="leverage" name="leverage" type="number" min="1" max="100" step="1" value="${draftLeverage}" inputmode="numeric" required><span>\u500D</span><button type="button" class="secondary" data-adjust="1" aria-label="\u30EC\u30D0\u30EC\u30C3\u30B8\u30921\u4E0A\u3052\u308B">\uFF0B</button></div></div><input type="range" id="leverage-range" aria-label="\u30EC\u30D0\u30EC\u30C3\u30B8" min="1" max="100" step="1" value="${draftLeverage}"><div class="range-labels"><span>1\u500D</span>${previous.leverage}<span>100\u500D</span></div>${previous.result}<div class="position"><span>\u4ECA\u56DE\u306E\u53D6\u5F15\u984D</span><strong id="position-value">${valid ? money(BigInt(p.wealth) * BigInt(draftLeverage)) : "1\u301C100\u306E\u6574\u6570\u3092\u5165\u529B"}</strong><button type="button" id="impact-open" class="impact-preview" data-action="impact-open" ${valid ? "" : "disabled"} aria-haspopup="dialog">${impactSummary()}</button></div><div class="turn-actions"><p class="error" id="form-error" role="alert"></p><button type="submit" class="primary" id="order-submit" ${draftSide && valid ? "" : "disabled"}>${isSolo(game) || game.cursor + 1 === activePlayers(game).length ? "\u78BA\u5B9A\u3057\u3066\u5168\u54E1\u5206\u3092\u516C\u958B" : "\u78BA\u5B9A\u3057\u3066\u6B21\u306E\u4EBA\u3078"}</button></div></form>`;
   }
   function orderList() {
     const players = activePlayers(game);
