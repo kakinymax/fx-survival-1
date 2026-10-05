@@ -756,6 +756,7 @@ registerFxUiFonts().catch(error=>{
   }
 
   // dist/market-raster.js
+  var CANDLE_COLORS = { up: "#168563", down: "#d33f54" };
   var FONT = {
     "0": ["01110", "10001", "10011", "10101", "11001", "10001", "01110"],
     "1": ["00100", "01100", "00100", "00100", "00100", "00100", "01110"],
@@ -807,6 +808,7 @@ registerFxUiFonts().catch(error=>{
       this.height = height;
       this.stride = Math.ceil(width / 8);
       this.bits = new Uint8Array(this.stride * height).fill(255);
+      this.colorRects = [];
     }
     pixel(x, y) {
       x = Math.round(x);
@@ -835,11 +837,12 @@ registerFxUiFonts().catch(error=>{
         }
       }
     }
-    rect(x, y, w, h, filled = false) {
+    rect(x, y, w, h, filled = false, color = null) {
       x = Math.round(x);
       y = Math.round(y);
       w = Math.max(1, Math.round(w));
       h = Math.max(1, Math.round(h));
+      if (filled && color) this.colorRects.push({ x, y, w, h, color });
       if (filled) {
         for (let row = y; row < y + h; row++) this.line(x, row, x + w - 1, row);
         return;
@@ -869,6 +872,10 @@ registerFxUiFonts().catch(error=>{
       }
       context3.imageSmoothingEnabled = false;
       context3.putImageData(frame, 0, 0);
+      for (const { x, y, w, h, color } of this.colorRects) {
+        context3.fillStyle = color;
+        context3.fillRect(x, y, w, h);
+      }
     }
     // Export an actual 1bit grayscale PNG, independently of Canvas's RGBA encoder.
     png() {
@@ -955,7 +962,9 @@ registerFxUiFonts().catch(error=>{
     const candle = (c, active = false) => {
       const close = active ? c.open + (c.close - c.open) * progress : c.close;
       const openY = y(c.open), closeY = y(close), xx = x(c.round);
-      r.rect(xx - Math.floor(barWidth / 2), Math.min(openY, closeY), barWidth, Math.abs(closeY - openY) + 1, c.direction === "down");
+      const bodyX = xx - Math.floor(barWidth / 2), bodyY = Math.min(openY, closeY), bodyHeight = Math.abs(closeY - openY) + 1;
+      r.rect(bodyX - 1, bodyY - 1, barWidth + 2, bodyHeight + 2);
+      r.rect(bodyX, bodyY, barWidth, bodyHeight, true, CANDLE_COLORS[c.direction]);
       if (c.gap && !(active && moving)) r.text("G", xx - 2, gapY);
       const stride = Math.ceil(slots * 18 / (right - left));
       if (active || (c.round - 1) % stride === 0 && x(model.round) - xx >= 22) r.text(`${active ? "R" : ""}${String(c.round).padStart(2, "0")}`, xx - (active ? 8 : 5), bottom + 8);
