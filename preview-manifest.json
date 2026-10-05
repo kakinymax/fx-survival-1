@@ -2,10 +2,10 @@
   "site_name": "FXサバイバル フォント変更版",
   "source_main": "b63be421b36855e3e7e2490bea316ab48b6d30a7",
   "source_branch": "ui/round-trend-colors-20261005",
-  "source_commit": "59f43b37b5dd5ced3d70a3e72451e3683c8d58b8",
+  "source_commit": "cca05240a4cd3aeedae034892d1063338bc3b946",
   "source_pr": "https://github.com/kakinymax/fx-survival-1/pull/9",
-  "preview_version": 12,
-  "preview_sha256": "bad9681883111c0a8bd426c284290c6a8f17f51dce79a26a3f5d2c25870b0d74",
+  "preview_version": 13,
+  "preview_sha256": "5ebe2325dae16f34f4b6c9161e686c2d8a21d22327a2241ab0f4e36b743a5828",
   "publishing_branch": "pages/font-change-preview",
   "pages_source_path": "/",
   "issue": "https://github.com/kakinymax/fx-survival-1/issues/8",
@@ -36,7 +36,6 @@
       "labels remain at least 14px apart in wide ranges",
       "four dotted sections contain 4, 8, or 12 round slots",
       "candle outlines stay inside dotted section boundaries",
-      "same horizontal positions within each four-round block",
       "no future candle is drawn in unused slots",
       "actual R05/R07/R09/R12 shock animations keep historical pixels and scale fixed",
       "100 is exactly the middle of five symmetric axis ticks",
@@ -47,7 +46,10 @@
       "gap glyph has its own row below statistics",
       "title, subtitle and statistics start at the left plot axis",
       "MIN/MAX/LAST labels and values match subtitle size on one row",
-      "title fits beside the round number"
+      "title fits beside the round number",
+      "2px left margin for the longest axis label and 12px right margin",
+      "8px axis-label-to-plot gap",
+      "same horizontal positions within each four-round block while axis label width is unchanged"
     ],
     "previous_order_validation_record": "https://github.com/kakinymax/fx-survival-1/issues/6",
     "raster_unit_tests": 6,
@@ -80,7 +82,6 @@
     ]
   },
   "typography": {
-    "medium_min_width": 302,
     "wide_min_width": 480,
     "title_scales": [
       2,
@@ -106,6 +107,10 @@
     ],
     "stats_label_matches_value": true,
     "stats_layout": "single row",
-    "header_alignment": "left plot axis"
+    "header_alignment": "left plot axis",
+    "heading_fits_available_width": true,
+    "axis_left_margin": 2,
+    "axis_to_plot_gap": 8,
+    "right_margin": 12
   }
 }
