@@ -2,10 +2,10 @@
   "site_name": "FXサバイバル フォント変更版",
   "source_main": "b63be421b36855e3e7e2490bea316ab48b6d30a7",
   "source_branch": "ui/round-trend-colors-20261005",
-  "source_commit": "ec57d378af7964733793a7f7d828d7560fae7738",
+  "source_commit": "917fb0a534700031ab5ff56505c5d2e8c0ebac68",
   "source_pr": "https://github.com/kakinymax/fx-survival-1/pull/9",
-  "preview_version": 8,
-  "preview_sha256": "40e953da8c2f08cb3e5fd0e30f68241c2e14c9eaf08bc8b8b83da98382699ccb",
+  "preview_version": 9,
+  "preview_sha256": "fcae7f4504e375abe82bfe3c7d82d75c31f1e11b789d09f77114eb63d21ccb49",
   "publishing_branch": "pages/font-change-preview",
   "pages_source_path": "/",
   "issue": "https://github.com/kakinymax/fx-survival-1/issues/8",
@@ -23,7 +23,7 @@
       "exact candle fill pixels: up #7fe0be and down #ff909c",
       "filled historical and current candles",
       "one-pixel black border on all four edges outside the colored fill, including thin candles",
-      "R01/R02/R04/R12 history",
+      "R01/R02/R04/R05/R06/R07/R08/R09/R10/R11/R12 history",
       "ordinary and shock-normal and gap results",
       "historical colored pixels and scale stay fixed during actual animation",
       "one actual draw",
@@ -34,9 +34,16 @@
       "reference USD/JPY 5% fall ticks: 102, 100, 98, 96, 94",
       "base step 2, wider ranges use even integer steps",
       "starting index 100 is always a tick",
-      "labels remain at least 14px apart in wide ranges"
+      "labels remain at least 14px apart in wide ranges",
+      "four dotted sections contain 4, 8, or 12 round slots",
+      "candle outlines stay inside dotted section boundaries",
+      "same horizontal positions within each four-round block",
+      "no future candle is drawn in unused slots",
+      "actual R05/R07/R09/R12 shock animations keep historical pixels and scale fixed"
     ],
-    "previous_order_validation_record": "https://github.com/kakinymax/fx-survival-1/issues/6"
+    "previous_order_validation_record": "https://github.com/kakinymax/fx-survival-1/issues/6",
+    "raster_unit_tests": 5,
+    "market_candle_browser_check": "passed"
   },
   "live_validation_record": "https://github.com/kakinymax/fx-survival-1/issues/8",
   "depends_on_pr": "https://github.com/kakinymax/fx-survival-1/pull/7",
@@ -48,5 +55,17 @@
     "base_step": 2,
     "widening": "even multiples when needed",
     "anchor": 100
+  },
+  "horizontal_grid": {
+    "sections": 4,
+    "round_slots": [
+      4,
+      8,
+      12
+    ],
+    "switch_rounds": [
+      5,
+      9
+    ]
   }
 }

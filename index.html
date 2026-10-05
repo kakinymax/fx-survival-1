@@ -920,7 +920,7 @@ registerFxUiFonts().catch(error=>{
   function drawTrend(model, width, { progress = 1, moving = false } = {}) {
     const height = width < 480 ? 164 : 204, r = new Raster(width, height);
     const left = 72, right = width - 16, top = 63, bottom = height - 27, gapY = 50;
-    const slots = Math.max(4, model.round), cell = (right - left) / slots;
+    const slots = Math.max(4, Math.ceil(model.round / 4) * 4), cell = (right - left) / slots;
     const x = (round) => Math.round(left + cell * (round - 0.5));
     const targetStep = (model.scale.max - model.scale.min) / 4;
     const step = Math.max(2, Math.ceil(targetStep / 2) * 2);
