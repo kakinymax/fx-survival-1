@@ -18,15 +18,20 @@ test('every stage and dice result uses the actual compounded close and an intege
   assert(drawing.ticks.every(t=>Number.isInteger(t.value)&&t.label===String(t.value)));
   assert(drawing.ticks.slice(1).every((t,i)=>drawing.ticks[i].value-t.value===drawing.step));
   assert(Number.isInteger(drawing.step)&&drawing.step>=2&&drawing.step%2===0);
-  assert(drawing.ticks.some(t=>t.value===100));
+  assert.equal(drawing.ticks.length,5);
+  assert.equal(drawing.ticks[2].value,100);
+  assert.equal(drawing.ticks[2].y,Math.round((drawing.plot.top+drawing.plot.bottom)/2));
+  assert.equal(drawing.low+drawing.high,200);
   assert(drawing.ticks.slice(1).every((t,i)=>t.y-drawing.ticks[i].y>=14));
+  assert(drawing.bodies.every(b=>Math.min(b.openY,b.closeY)-1>=drawing.plot.top&&Math.max(b.openY,b.closeY)+1<=drawing.plot.bottom));
  }
 });
 
-test('the USD/JPY 5% fall uses the reference 102, 100, 98, 96, 94 ticks',()=>{
- const drawing=drawTrend(marketCandleModel(game('usdjpy','down',6,6)),264);
+test('a narrow range around 100 uses the centered reference 104, 102, 100, 98, 96 ticks',()=>{
+ const model=marketCandleModel(game('usdjpy','down',6,4));
+ const drawing=drawTrend({...model,scale:{min:96.87,max:102.48}},264);
  assert.equal(drawing.step,2);
- assert.deepEqual(drawing.ticks.map(t=>t.value),[102,100,98,96,94]);
+ assert.deepEqual(drawing.ticks.map(t=>t.value),[104,102,100,98,96]);
 });
 
 test('four grid sections contain balanced round slots with unchanged positions within each block',()=>{

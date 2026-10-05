@@ -116,12 +116,11 @@ export function drawTrend(model,width,{progress=1,moving=false}={}){
  const x=round=>Math.round(left+cell*(round-.5));
  // Reserve the same stage-dependent domain as the existing display. Do not
  // derive the scale from a partially animated result or change past candles.
- // Start with 2-point ticks; widen by multiples of 2 when labels would crowd.
- // Anchor at the starting index so 100 remains a tick at every scale.
- const targetStep=(model.scale.max-model.scale.min)/4;
- const step=Math.max(2,Math.ceil(targetStep/2)*2);
- const low=100+Math.floor((model.scale.min-100)/step)*step;
- const high=Math.max(low+step,100+Math.ceil((model.scale.max-100)/step)*step);
+ // Center 100 between two intervals on either side, including reserved moves.
+ // Five evenly spaced ticks start at 2 points and widen by even multiples.
+ const radius=Math.max(100-model.scale.min,model.scale.max-100);
+ const step=Math.max(2,Math.ceil(radius/4)*2);
+ const low=100-2*step,high=100+2*step;
  const y=value=>Math.round(bottom-(value-low)*(bottom-top)/(high-low));
  const known=moving||!model.current?model.history:[...model.history,model.current];
  const values=[100,...known.flatMap(c=>[c.open,c.close])];
