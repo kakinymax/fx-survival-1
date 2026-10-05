@@ -2,10 +2,10 @@
   "site_name": "FXサバイバル フォント変更版",
   "source_main": "b63be421b36855e3e7e2490bea316ab48b6d30a7",
   "source_branch": "ui/round-trend-colors-20261005",
-  "source_commit": "ec13ef5037170d2e12d2617aa09f6f5a1778b932",
+  "source_commit": "eebf63bf9a4175b931162b471747b9a91c3e26d3",
   "source_pr": "https://github.com/kakinymax/fx-survival-1/pull/9",
-  "preview_version": 10,
-  "preview_sha256": "60383fc8506c14529dbfba28412184f6b1305c47ce0587705de6321cd4f96aee",
+  "preview_version": 11,
+  "preview_sha256": "af8e5b3d0a65c264a0dbd103c1f0a81bd8f5372345d878dcb41f832400ec2792",
   "publishing_branch": "pages/font-change-preview",
   "pages_source_path": "/",
   "issue": "https://github.com/kakinymax/fx-survival-1/issues/8",
@@ -41,10 +41,14 @@
       "actual R05/R07/R09/R12 shock animations keep historical pixels and scale fixed",
       "100 is exactly the middle of five symmetric axis ticks",
       "reserved stage range and all candle outlines remain inside the plot",
-      "narrow range reference ticks: 104, 102, 100, 98, 96"
+      "narrow range reference ticks: 104, 102, 100, 98, 96",
+      "native and displayed image dimensions remain unchanged",
+      "larger title, statistics, axis and round text inside the existing image",
+      "all text stays inside the image without overlapping text boxes",
+      "gap glyph has its own row below statistics"
     ],
     "previous_order_validation_record": "https://github.com/kakinymax/fx-survival-1/issues/6",
-    "raster_unit_tests": 5,
+    "raster_unit_tests": 6,
     "market_candle_browser_check": "passed"
   },
   "live_validation_record": "https://github.com/kakinymax/fx-survival-1/issues/8",
@@ -71,6 +75,29 @@
     "switch_rounds": [
       5,
       9
+    ]
+  },
+  "typography": {
+    "medium_min_width": 260,
+    "wide_min_width": 480,
+    "title_scales": [
+      2,
+      3,
+      4
+    ],
+    "stats_value_scale": 2,
+    "axis_scales": [
+      2,
+      3
+    ],
+    "round_scales": [
+      1,
+      2
+    ],
+    "tight_spacing": true,
+    "image_heights": [
+      164,
+      204
     ]
   }
 }
