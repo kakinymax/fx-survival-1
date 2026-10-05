@@ -58,7 +58,15 @@ body,button,input,select,textarea,dialog,svg text{font-family:var(--fx-ui-font);
 
 /* Optional trade estimates and replay facts stay within the existing screens. */
 #order-form .range-labels{align-items:center;gap:6px}
-#order-form .previous-leverage{min-height:44px;padding:4px 10px;font-size:12px;color:var(--text);border-color:var(--line);margin:-10px 0;background:var(--panel2)}
+#order-form .previous-result{flex:1;min-width:0;margin:-10px 0 -2px;padding:0 6px 2px;border:1px solid var(--line);border-radius:8px;background:var(--panel2);font-size:12px;line-height:1.4;color:var(--text)}
+#order-form .previous-result-heading{display:flex;align-items:center;gap:4px}
+#order-form .previous-leverage{display:flex;align-items:center;justify-content:center;flex-shrink:0;min-height:44px;padding:4px 6px;font-size:12px;color:var(--text);border-color:var(--line);margin:0;background:transparent;white-space:nowrap}
+#order-form .previous-market{min-width:0}
+#order-form .previous-market,#order-form .previous-trade{display:flex;align-items:baseline;flex-wrap:wrap;gap:0 6px}
+#order-form .previous-market small{font-size:11px;color:var(--muted)}
+#order-form .previous-trade>span:last-child{min-width:0;overflow-wrap:anywhere}
+#order-form .previous-result strong{font-weight:500;font-variant-numeric:tabular-nums}
+#order-form .range-labels:has(.previous-result)+.position{margin-top:4px;padding-top:0}
 #order-form .impact-preview{flex:0 0 100%;min-height:44px;padding:4px 0;background:transparent;color:var(--muted);font-size:12px;font-weight:500;text-align:left;overflow-wrap:anywhere;line-height:1.6}
 #order-form .choice-grid{margin-bottom:8px}
 #order-form .choice-grid button{min-height:64px}
