@@ -1,6 +1,6 @@
 # 現在地と引き継ぎ
 
-確認日: 2026-10-04 UTC。コードの基準: [`35306e5`](https://github.com/kakinymax/fx-survival/commit/35306e5514deb233fff22d63f2b787386108f29f)。本書は節目の要約であり、以後の進行中作業は[open Issues](https://github.com/kakinymax/fx-survival/issues?q=is%3Aissue%20is%3Aopen)と[open PRs](https://github.com/kakinymax/fx-survival/pulls?q=is%3Apr%20is%3Aopen)を必ず確認する。
+確認日: 2026-10-05 JST。注文画面とトレンド描画の実装基準: [`cca0524`](https://github.com/kakinymax/fx-survival-1/commit/cca05240a4cd3aeedae034892d1063338bc3b946)。本書はPR #7・PR #9の実装を含む節目の要約。最新コードは[main](https://github.com/kakinymax/fx-survival-1/tree/main)、進行中作業は[open Issues](https://github.com/kakinymax/fx-survival-1/issues?q=is%3Aissue%20is%3Aopen)と[open PRs](https://github.com/kakinymax/fx-survival-1/pulls?q=is%3Apr%20is%3Aopen)を確認する。
 
 ## 実装済み
 
@@ -10,26 +10,35 @@
 | ステージ | 全員共通のベーシック、ドル円、トルコリラ円 |
 | CPU対戦 | 固定3人格、先に注文・進退を確定、結果に沿うセリフ、観戦・早送り |
 | 戦績 Phase 1〜7 | 試合保存、生涯、歴代記録、TRIP A/B、モード別、殿堂入り、実際の履歴に基づく振り返り |
-| 操作・結果 | 倍率の試算、ソロの前回倍率、同じ設定で再戦、早送りの見せ場、5〜6人のスクロール案内 |
+| 操作・結果 | 倍率の試算、中央の前回倍率と本人の前回相場・注文・損益、100倍入力の数字切れ修正、同じ設定で再戦、早送りの見せ場、5〜6人のスクロール案内 |
 | 周回の記録 | ソロ自己ベスト通知、CPUの通算戦績と前回結果に沿う紹介 |
 | UI | コンパクトな設定・秘密入力・注文一覧・一括進退・抽選。方向と値動きは別ボタン |
-| 相場の表示 | 履歴、急変判定の確定値に沿う足の演出、白黒のドット描画・同梱のピクセル字体 |
+| 相場の表示 | 実際の履歴と急変判定に沿う足の演出、緑／赤の塗りと黒枠、点線4区間の整列、100中央の対称5目盛り・偶数刻み、3行の左揃え・小さな1行統計・左余白2px、同梱のピクセル字体 |
 | 順位 | 現在・精算・最終・保存済み試合の順位。同率と確定・退場者も含む |
 
 ## 直近の変更の出典
 
-- [PR #1](https://github.com/kakinymax/fx-survival/pull/1): UI刷新6単位。2026-10-03に統合。本スレッドでは公開成功を確認し、ユーザーも動作確認済み。
-- [`c3ae013`](https://github.com/kakinymax/fx-survival/commit/c3ae013f0b3737b2695eaaf48e9d871b6265882b): 順位の表示と並べ替え。2026-10-03に公開成功を確認。
-- [PR #2](https://github.com/kakinymax/fx-survival/pull/2): ピクセル字体・白黒トレンド・小画面の順位表示調整。2026-10-04に `35306e5` として統合。検証結果はPR本文を参照。本書の作成時点では、この版の本番公開状況は別途照合していない。
-- [Issue #3](https://github.com/kakinymax/fx-survival/issues/3): 共同作業の文書と手順。現在の状態・完了結果はIssueを参照する。アプリの変更・再公開は対象外。
+- [PR #1](https://github.com/kakinymax/fx-survival-1/pull/1): UI刷新6単位。2026-10-03に統合。本スレッドでは公開成功を確認し、ユーザーも動作確認済み。
+- [`c3ae013`](https://github.com/kakinymax/fx-survival-1/commit/c3ae013f0b3737b2695eaaf48e9d871b6265882b): 順位の表示と並べ替え。2026-10-03に公開成功を確認。
+- [PR #2](https://github.com/kakinymax/fx-survival-1/pull/2): ピクセル字体・白黒トレンド・小画面の順位表示調整。2026-10-04に `35306e5` として統合。検証結果はPR本文を参照。本書の作成時点では、この版の本番公開状況は別途照合していない。
+- [Issue #3](https://github.com/kakinymax/fx-survival-1/issues/3): 共同作業の文書と手順。現在の状態・完了結果はIssueを参照する。アプリの変更・再公開は対象外。
 
-公開先: https://fx-survival-table.asai-ram.chatgpt.site/
+- [PR #7](https://github.com/kakinymax/fx-survival-1/pull/7): 注文画面の前回結果・中央の前回倍率・100倍入力。2026-10-05に[`17b8f01`](https://github.com/kakinymax/fx-survival-1/commit/17b8f017da03f77ec2aa4ff522449ac8ef7a1ff0)としてmainへ統合。検証と完了記録は[Issue #6](https://github.com/kakinymax/fx-survival-1/issues/6)。
+- [PR #9](https://github.com/kakinymax/fx-survival-1/pull/9): 足の配色と黒枠、4区間のラウンド整列、100中央・基本2刻み、参考画像に合わせた文字密度と3行の左揃え、ラベルと同じ小さな統計値、左余白2px。PR #7統合後にmainへ取り込む最終改修。具体的な統合SHA・統合後の検証と完了記録は[Issue #8](https://github.com/kakinymax/fx-survival-1/issues/8)。
+
+## 試技公開とmain
+
+本スレッドの試技公開先: https://kakinymax.github.io/fx-survival-1/
+
+Pagesの配布ブランチは`pages/font-change-preview`（root）、完成版はpreview_version 13、公開SHAは`9b5160dbd67c08705858bf927671856081bb8ec6`。PR #7とPR #9のアプリ変更を含み、ビルド成功・HTTPS 200・配布HTMLとmanifestの一致・スマホ3サイズとPCのブラウザ検証を確認済み。静的PagesはWorker/D1とオンライン戦績保存・生涯戦績・ランキング・TRIPの通信機能が未接続という既存の制約を維持する。mainへの統合とPagesの配布履歴は別管理。
+
+過去に案内された別チャットのSites公開先: https://fx-survival-table.asai-ram.chatgpt.site/
 
 GitHubの最新mainが公開先と一致するとは限らない。公開作業時はSitesの成功した公開結果と対象コミットを確認する。`v1.0.0` は過去の安定版を指すタグで、最新mainの別名ではない。
 
 ## 未完了・今後の案
 
-この文書の作成開始時点で、GitHub上に本Issue以外のopen作業Issue/PRはなかった。別チャット内だけの未保存作業や案の完了状況までは判断できない。新しい依頼はIssueへ登録し、依頼・検討段階・実装中を区別する。アイデアの列挙を実装指示と扱わない。
+注文画面とトレンド描画の本スレッドの追加改修は実装・試技反映完了。main統合・検証・Issue完了処理の結果はIssue #6／#8とPR #7／#9を参照する。以後の新しい依頼はIssueへ登録し、最新のopen一覧と担当範囲を確認する。別チャット内だけの未保存作業や案の完了状況は本書で判断せず、アイデアの列挙を実装指示と扱わない。
 
 次の担当は、既存の12ラウンドゲームと戦績を維持したまま、依頼された範囲だけに着手する。個別ステージ等の基本仕様の拡張は、この文書を根拠に自動で開始しない。
 
