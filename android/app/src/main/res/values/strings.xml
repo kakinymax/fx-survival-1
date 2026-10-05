@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">FXサバイバル試作</string>
+    <string name="title_activity_main">FXサバイバル試作</string>
+    <string name="package_name">com.kakinymax.fxsurvival.prototype</string>
+    <string name="custom_url_scheme">com.kakinymax.fxsurvival.prototype</string>
+</resources>

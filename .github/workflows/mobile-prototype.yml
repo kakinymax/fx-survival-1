@@ -1,0 +1,73 @@
+name: Mobile prototype checks
+on:
+  pull_request:
+    paths:
+      - 'dist/**'
+      - 'mobile/**'
+      - 'android/**'
+      - 'ios/**'
+      - 'scripts/**'
+      - 'tests/**'
+      - 'package*.json'
+      - 'capacitor.config.json'
+      - '.github/workflows/mobile-prototype.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm test && npm run build && npm run mobile:build
+      - run: npx playwright install --with-deps chromium
+      - run: |
+          node scripts/preview-mobile.mjs > /tmp/mobile-preview.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4174/ > /dev/null; then break; fi
+            sleep 1
+          done
+          npm run mobile:check
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: android-actions/setup-android@v3
+      - run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
+      - run: npm ci && npm run mobile:apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fx-survival-android-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+  ios-simulator:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: xcodebuild -version
+      - run: npm ci && npm run mobile:sync
+      - run: >-
+          xcodebuild -project ios/App/App.xcodeproj -scheme App
+          -configuration Debug -sdk iphonesimulator
+          -destination 'generic/platform=iOS Simulator'
+          -derivedDataPath ios/build CODE_SIGNING_ALLOWED=NO build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fx-survival-ios-simulator
+          path: ios/build/Build/Products/Debug-iphonesimulator/App.app

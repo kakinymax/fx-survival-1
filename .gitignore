@@ -5,3 +5,23 @@ node_modules/
 dist/server/
 server/generated-assets.js
 *.tar.gz
+
+# Mobile generated assets, IDE state, SDK selectors and signing material
+mobile/www/
+android/app/src/main/assets/public/
+android/app/src/main/assets/capacitor.config.json
+android/app/src/main/assets/capacitor.plugins.json
+android/.gradle/
+android/**/build/
+android/local.properties
+android/.idea/
+ios/App/App/public/
+ios/App/App/capacitor.config.json
+ios/**/xcuserdata/
+ios/build/
+*.jks
+*.keystore
+*.p12
+*.mobileprovision
+!android/app/src/main/res/**/*.png
+!ios/App/App/Assets.xcassets/**/*.png
