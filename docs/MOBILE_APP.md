@@ -111,4 +111,4 @@ CI `.github/workflows/mobile-prototype.yml` はPRのWeb確認、Android APKコ�
 | AQUOS sense4 basic / Android12 | Google Files経由で導入・起動 | 問題なし | 問題なし | 問題なし |
 | iPhone SE（第3世代）/ iOS27.0.1 | Xcode26.3の手順で導入し、証明書信頼後に起動 | 問題なし | 問題なし | 問題なし |
 
-Androidは2026-10-05 JST、iPhoneは2026-10-06 JSTの報告。今回の試作と基本確認は完了し、正式登録・配布準備以降は後続指示待ち。mainは未統合、PR #11はdraft、親Issue #10はopenを維持する。
+Androidは2026-10-05 JST、iPhoneは2026-10-06 JSTの報告。試作と基本確認は完了。2026-10-06の後続指示で段階3「開発者登録・配布準備」を再開し、[登録・配布手順](MOBILE_DISTRIBUTION.md)にApple Accountの氏名確認、個人登録、費用、署名と限定配布の具体的手順を保存した。本人確認・登録/支払完了、正式IDと戦績の方針、配布署名ビルド/限定配布は未完了。mainは未統合、PR #11はdraft、親Issue #10はopenを維持する。一般公開の申請・公開は後続指示で進める。
