@@ -9,9 +9,11 @@
 3. Androidの「設定」→「デバイス情報」または「端末情報」で機種名とAndroidバージョンを確認。メーカーにより項目名が違う。
 4. 分かった機種・版をチャットへ伝える。パスワードや認証コードは送らない。
 
-ユーザーの手持ちはiPhone（iOS27.0.1）、AQUOS sense4 basic（Android12）、Mac mini 2018（macOS Ventura13.7.8）、Windows環境。試作の最低設定はiOS15.4、Android7.0/API24 + WebView105。古いAndroidではPlayストアから「AndroidシステムのWebView」と「Google Chrome」の更新を確認する。起動できない時は更新案内を出す。
+2026-10-06 JST現在のユーザー環境はiPhone SE（第3世代）/iOS27.0.1、AQUOS sense4 basic/Android12、Mac mini2018/macOS Sequoia15.8.1、Xcode26.3、Node.js24.21.0/npm11.19.0、外付けSSDのWindows11環境。試作の最低設定はiOS15.4、Android7.0/API24 + WebView105。AndroidのWebView版は未照合だが、手持ち端末で基本操作は問題なしとの報告を受領した。
 
-現在のVentura13.7.8では必要なXcode26を動かせない。Mac mini 2018はSequoiaに対応。Xcode26.3はmacOS15.6以降に対応するので候補にする。最新版XcodeがこのMacで動くとは限らない。手持ちiPhoneのiOS27.0.1をXcode26.3から署名・インストールできるかは未確認。iOS27シミュレータ向けにはGitHubのXcode27ランナーでビルドと起動を検証する。CIビルドだけでiPhoneにインストール可能にはならず、実機用署名・配布は後続段階で扱う。OSの再インストールや非公式パッチを試作の前提にしない。更新を案内する際は現在のOS・空き容量・バックアップを確認してから具体的に案内する。
+当初のVentura13.7.8からSequoia15.8.1へ更新し、Xcode26.3でiPhoneへ試作を導入・起動した。両OSでCPU対戦、対面2人の注文後の受け渡し、ホームへ戻り10秒後に復帰する操作が問題なしとのユーザー報告があり、今回の試作と基本確認は完了。端末上の全項目を検証した結果ではなく、追加の実機確認はロードマップ段階4に残す。CIのシミュレータ成果物は実機用の配布物ではない。
+
+ユーザーはバックアップを不要と明示している。バックアップ作成や別ドライブ購入を再開の条件にしない。外付け1TB SSDはWindows11起動用で、試作のために消去・用途変更しない。Windowsの再起動結果は未報告。
 
 出典: [AppleのMac対応表](https://support.apple.com/ja-jp/120282)、[Xcode対応表](https://developer.apple.com/xcode/system-requirements/)、[Capacitor環境要件](https://capacitorjs.com/docs/getting-started/environment-setup)。
 
@@ -26,6 +28,34 @@ APKを自分でビルドする場合はMac/WindowsのAndroid Studioで実行で�
 iOS用の `.app`（シミュレータ向け）はiPhoneへタップしてインストールできない。MacのXcodeからUSB接続したiPhoneへ実行する。Apple Accountの無料Personal Teamでの個人実機確認を第一候補とし、署名の有効期限・対象端末の制約がある。有料のApple Developer Program登録は、TestFlight等の配布を進める段階で扱う。
 
 開発環境を用意した後、`npm run mobile:ios` でXcodeを開く。左のApp→TARGETSのApp→Signing & CapabilitiesでAutomatically manage signingを有効にし、自分のTeamを選ぶ。上部の実行先に接続したiPhoneを選び、▶を押す。iPhone側に「このコンピュータを信頼」や開発者モードが求められた場合だけ、画面の案内に従う。提出や公開はこの操作に含まれない。署名エラーの場合は表示された文を共有する。
+
+### 今回使用したMacでの取得・起動手順
+
+試作の取得先として案内したフォルダは、Macのデスクトップの`fx-survival-iphone-prototype`。初めて取得する場合はターミナルで次を1行ずつ実行し、毎回処理の終了を待つ。既に同じフォルダがある場合は既存フォルダの再起動手順へ進む。ビルドがGitのコミット情報を使うため、ソースのZIPではなくcloneを使用する。
+
+```sh
+git clone --branch mobile/prototype-20261005-codex-root --single-branch https://github.com/kakinymax/fx-survival-1.git ~/Desktop/fx-survival-iphone-prototype
+cd ~/Desktop/fx-survival-iphone-prototype
+npm ci
+npm run mobile:ios
+```
+
+Xcodeで青いApp→TARGETSのApp→Signing & Capabilitiesを開く。Automatically manage signingを有効にし、本人のTeam（無料の場合はPersonal Team）を選ぶ。iPhoneをUSBで接続・ロック解除し、実行先に選んで▶を押す。Register Deviceが出たら登録する。Run中にキーチェーン「ログイン」のパスワードを求められた場合は、通常Macのログインパスワードを本人が入力して「許可」を押す。
+
+今回出た「Developer Mode disabled」は、iPhoneの設定→プライバシーとセキュリティ→開発者モードをオンにし、再起動後の確認を完了して解消した。続く「Developer App Certificate is not trusted」は、iPhoneの設定→一般→VPNとデバイス管理→今回のApple AccountのデベロッパAppを開き、「FXサバイバル試作」が対象であることを確認して本人の証明書を信頼する手順で解消し、起動できたとの報告を受領した。確認・再起動は実際の画面の案内に従う。Xcodeの推奨設定変更ダイアログにはCancelを案内した。推奨設定の変更を起動の前提にしない。
+
+### 既存フォルダからの再起動・再導入
+
+iPhoneをMacに接続し、ロックを解除する。ターミナルで次を1行ずつ実行する。
+
+```sh
+cd ~/Desktop/fx-survival-iphone-prototype
+npm run mobile:ios
+```
+
+XcodeのAppターゲットで本人のTeamと実行先のiPhoneを確認し、▶を押して導入・起動する。無料Personal Teamのプロビジョニングは発行から7日で期限切れになり、その場合は再ビルド・再導入が必要。今回は署名チームの表示や実機ビルドの個別ログを受領していないため、ユーザーの実際の署名種別・期限を断定しない。エラーが出たら表示文を保存して対応する。
+
+出典: [Appleの個人実機試験とPersonal Teamの制約](https://developer.apple.com/jp/help/account/basics/about-your-developer-account/)、[Xcodeの実機実行](https://developer.apple.com/documentation/xcode/running-your-app-on-simulated-or-physical-devices)、[開発者モード](https://developer.apple.com/documentation/xcode/enabling-developer-mode-on-a-device)。
 
 ## 試す操作
 
@@ -68,8 +98,17 @@ CI `.github/workflows/mobile-prototype.yml` はPRのWeb確認、Android APKコ�
 
 生成資産 `mobile/www/` の `build-info.json` に元コミットと未コミット変更の有無が入る。APK等のログと一緒に参照する。`mobile/www/`、コピー先のpublic、SDK/署名ファイル/ローカル設定/ビルド出力はGit管理しない。既存Sites/Pagesは更新しない。
 
-残件は、両OSの実機起動・不具合修正、iOSのローカルXcodeビルド、正式アイコンと配布署名、オンライン戦績の認証/保存方針、正式app IDと記録移行、掲載文・プライバシー・ストア申請。現在のビルド/CI結果はIssue/PRの最新記録を参照する。デフォルトのCapacitorアイコン/起動画面は試作用で、掲載準備段階で作り直す。
+残件は、対面3〜6人、12ラウンド/早期終了/ギャップの個別照合、キーボード・安全領域・縦横・Android戻る・アプリ強制終了後の挙動、端末上のビルド版/資産の照合、正式アイコンと配布署名、オンライン戦績の認証/保存方針、正式app IDと記録移行、掲載文・プライバシー・ストア申請。実機での導入・起動と基本3項目は両OSで問題なしとの報告を受領済み。確認済みの基本項目を再び未実施として扱わない。デフォルトのCapacitorアイコン/起動画面は試作用で、掲載準備段階で作り直す。
 
 ## 今回確認できた範囲
 
-ユニット138件、モバイル生成/両OS同期、スマホ3サイズと安全領域・横向き・ルールダイアログ・オフラインの秘密注文/通常/ギャップ/CPU終了/再開、API通信なしを確認。通常Webのcompact-ui/records-browser/solo-browserも実際のローカルWorker/D1で成功。Android debug APKのビルドと署名検証、お手元のOSと同じiOS27のシミュレータでコンパイル/インストール/起動・画面目視を確認した。最終CIのSHA・結果と成果物URLはIssue/PRの最新記録を参照する。手持ち端末への導入・操作、Xcodeの実機署名・配布はまだ確認していない。
+アプリコードの検証基準は`9919ee7`。[CI 37290829957](https://github.com/kakinymax/fx-survival-1/actions/runs/37290829957)でWeb/Android/iOS26.2/iOS27.0の4ジョブが成功。ユニット138件、モバイル生成/両OS同期、スマホ3サイズと安全領域・横向き・ルールダイアログ・オフラインの秘密注文/通常/ギャップ/CPU終了/再開、API通信なしを確認。通常Webのcompact-ui/records-browser/solo-browserも実際のローカルWorker/D1で成功。Android APKのビルド/署名検証、両iPhoneシミュレータのコンパイル/インストール/起動と開始画面を確認した。成果物のSHAとURLはIssue/PRを参照する。
+
+実機はユーザー報告として次を保存する。Codexの自動検証とは別の証拠で、個別ビルドログ・署名チーム・端末のビルド版/資産は未照合。
+
+| 端末 | 導入・起動 | CPU対戦 | 対面2人の注文後の受け渡し | ホームへ戻り10秒後に復帰 |
+| --- | --- | --- | --- | --- |
+| AQUOS sense4 basic / Android12 | Google Files経由で導入・起動 | 問題なし | 問題なし | 問題なし |
+| iPhone SE（第3世代）/ iOS27.0.1 | Xcode26.3の手順で導入し、証明書信頼後に起動 | 問題なし | 問題なし | 問題なし |
+
+Androidは2026-10-05 JST、iPhoneは2026-10-06 JSTの報告。今回の試作と基本確認は完了し、正式登録・配布準備以降は後続指示待ち。mainは未統合、PR #11はdraft、親Issue #10はopenを維持する。

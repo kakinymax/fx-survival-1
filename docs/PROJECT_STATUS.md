@@ -1,6 +1,6 @@
 # 現在地と引き継ぎ
 
-確認日: 2026-10-05 JST。注文画面とトレンド描画の実装基準: [`cca0524`](https://github.com/kakinymax/fx-survival-1/commit/cca05240a4cd3aeedae034892d1063338bc3b946)。本書はPR #7・PR #9の実装を含む節目の要約。最新コードは[main](https://github.com/kakinymax/fx-survival-1/tree/main)、進行中作業は[open Issues](https://github.com/kakinymax/fx-survival-1/issues?q=is%3Aissue%20is%3Aopen)と[open PRs](https://github.com/kakinymax/fx-survival-1/pulls?q=is%3Apr%20is%3Aopen)を確認する。
+確認日: 2026-10-06 JST。注文画面とトレンド描画の実装基準: [`cca0524`](https://github.com/kakinymax/fx-survival-1/commit/cca05240a4cd3aeedae034892d1063338bc3b946)。本書はPR #7・PR #9の実装を含む節目の要約。最新コードは[main](https://github.com/kakinymax/fx-survival-1/tree/main)、進行中作業は[open Issues](https://github.com/kakinymax/fx-survival-1/issues?q=is%3Aissue%20is%3Aopen)と[open PRs](https://github.com/kakinymax/fx-survival-1/pulls?q=is%3Apr%20is%3Aopen)を確認する。
 
 ## 実装済み
 
@@ -38,11 +38,15 @@ GitHubの最新mainが公開先と一致するとは限らない。公開作業�
 
 ## 未完了・今後の案
 
-### iPhone・Androidアプリ化（試作ブランチで進行中）
+### iPhone・Androidアプリ化（試作・両OS基本動作確認完了）
 
 [Issue #10](https://github.com/kakinymax/fx-survival-1/issues/10)、専用ブランチ `mobile/prototype-20261005-codex-root`、担当 `mobile-prototype-20261005-codex-root`。UI完成版のmain `90c758b` を基準にCapacitorで両OSのプロジェクトと同梱資産を作成。[共有ロードマップ](MOBILE_ROADMAP.md)に6段階の完成条件・未完了項目、[試作手順](MOBILE_APP.md)に具体的な操作と再現方法を保存する。main統合・ストア公開済みとして扱わない。現在の検証結果はIssue/PRを参照する。今回は試作まで、登録・配布準備以降とストア申請・公開は後続指示で進める。
 
-試作では対面/CPU対戦をオフラインで動かし、オンライン戦績は未接続と明示。確定レコードは端末内の送信待ちとして保持し、Web版と同期しない。署名・両OS実機・正式アイコン・オンライン保存方針は未完了。既存Web公開先は変更しない。
+試作では対面/CPU対戦をオフラインで動かし、オンライン戦績は未接続と明示。確定レコードは端末内の送信待ちとして保持し、Web版と同期しない。2026-10-06 JSTまでに、AQUOS sense4 basic/Android12とiPhone SE第3世代/iOS27.0.1で導入/起動、CPU対戦、対面2人の注文後の受け渡し、ホームへ戻り10秒後の復帰がすべて問題なしとのユーザー報告を受領し、今回の試作と基本確認は完了した。
+
+ユーザーのMac mini2018はSequoia15.8.1へ更新し、Xcode26.3・Node.js24.21.0/npm11.19.0でiPhone用Appを準備。開発者モードと開発者証明書の信頼設定を経て起動できた。具体的な再導入手順は[試作手順](MOBILE_APP.md)、自動検証と実機報告・未確認項目の正本は[Issue #10](https://github.com/kakinymax/fx-survival-1/issues/10)/[draft PR #11](https://github.com/kakinymax/fx-survival-1/pull/11)。
+
+対面3〜6人やキーボード/縦横/安全領域/Android戻る/強制終了後等の追加実機確認、実機ビルド版の照合、正式アイコン/ID/配布署名、オンライン保存方針は未完了。親Issueはopen、PRはdraft、main未統合、既存Web公開先は変更なし、有料登録・ストア申請/公開は今回未実施。次は正式な登録・配布準備の後続指示で再開する。バックアップを不要としたユーザー指示を継続する。
 
 注文画面とトレンド描画の本スレッドの追加改修は実装・試技反映完了。main統合・検証・Issue完了処理の結果はIssue #6／#8とPR #7／#9を参照する。以後の新しい依頼はIssueへ登録し、最新のopen一覧と担当範囲を確認する。別チャット内だけの未保存作業や案の完了状況は本書で判断せず、アイデアの列挙を実装指示と扱わない。
 
