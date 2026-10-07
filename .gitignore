@@ -25,3 +25,10 @@ ios/build/
 *.mobileprovision
 !android/app/src/main/res/**/*.png
 !ios/App/App/Assets.xcassets/**/*.png
+.env
+.env.*
+!.env.example
+.dev.vars
+.dev.vars.*
+*.pem
+*.key

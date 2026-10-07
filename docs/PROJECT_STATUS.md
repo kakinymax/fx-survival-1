@@ -57,3 +57,9 @@ GitHubの最新mainが公開先と一致するとは限らない。公開作業�
 ## 節目で更新するもの
 
 新しい機能や方針をmainへ統合したら、本書の実装済み項目と出典を追記する。ルールは[GAME_DESIGN.md](GAME_DESIGN.md)、構成・確認方法は[DEVELOPMENT.md](DEVELOPMENT.md)、共同作業は[COLLABORATION.md](COLLABORATION.md)を更新する。日々の担当・進捗はIssue/PRへ記録し、本書だけで予約を管理しない。
+
+## 安全性強化（2026-10-07 UTC）
+
+[PR #13](https://github.com/kakinymax/fx-survival-1/pull/13)で保存レコード・JSON本文の検証、15秒の読取制限、Workerと静的HTMLのCSP、認証所有者別のD1頻度制限、依存監査の警告修正を追加。ゲームの計算・秘密注文・既存レコードは維持する。追加DBマイグレーションは0003。Webのユニット146件、実Worker/D1の攻撃再現とブラウザ検証、npm監査0を確認。
+
+統合・Sites／Pagesの公開SHAと成功結果は[Issue #12](https://github.com/kakinymax/fx-survival-1/issues/12)で照合する。モバイルへの正式取込と両OSのCIは[PR #11](https://github.com/kakinymax/fx-survival-1/pull/11)で追跡。更新版の実機確認はユーザー指定により後日に回す。
