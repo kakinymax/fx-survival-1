@@ -25,3 +25,7 @@ GitHub Pagesは静的ページなので、Worker/D1や認証付き戦績APIは�
 
 公開状況・検証・制約の正本: https://github.com/kakinymax/fx-survival-1/issues/8
 このブランチは公開成果物専用で、mainへの統合対象ではありません。
+
+## 安全性更新版（preview_version 14）
+
+main `706ba49` / PR #13のフロントを配布。CSPを付け、同一オリジンのJS・CSS・フォントを個別に読み込む。4画面サイズで秘密注文の受け渡し・再読込・ソロ開始・フォント・CSP拒否・JSエラーなしを確認。オンライン戦績のWorker/D1は従来どおり未接続。正本はIssue #12。
