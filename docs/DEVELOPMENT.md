@@ -42,6 +42,8 @@ npm start -- --port 4173
 
 ## 変更に合わせた確認
 
+攻撃に対する検証・認証入口の前提・依存の修正理由は [SECURITY_REVIEW.md](SECURITY_REVIEW.md) を参照する。保存境界を変えた場合は `tests/security.test.mjs` と `tests/security-browser-check.cjs` も確認する。後者はローカルWorker/D1を使用し、必要なら `CHROMIUM_PATH=/usr/bin/chromium` を指定する。
+
 - ゲーム・集計・保存の変更は `npm test` と対象の既存テストを使う。ソース変更後のビルドは `npm run build`。
 - UI変更は、最低320×568、390×600、390×844で、横はみ出し・固定ボタンとの重なり・操作を確認する。既存のPC配置を触る時はPCも確認する。
 - 代表的なブラウザ検証: 注文は `tests/compact-ui-check.cjs` と `tests/orders-browser-check.cjs`、精算は `tests/settlement-browser-check.cjs`、順位は `tests/standings-browser-check.cjs`、抽選演出は `tests/market-candle-browser-check.cjs`。保存・各戦績は対応する `tests/*-browser-check.cjs` を参照する。
