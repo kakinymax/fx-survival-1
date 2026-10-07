@@ -28,6 +28,13 @@ const { existsSync } = require('node:fs');
   };
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(base);
+  await page.evaluate(()=>{
+    window.mobileCspBlocked=false;
+    document.addEventListener('securitypolicyviolation',()=>{window.mobileCspBlocked=true},{once:true});
+    const script=document.createElement('script');script.textContent='window.mobileInlineExecuted=true';document.body.append(script);
+  });
+  await page.waitForFunction(()=>window.mobileCspBlocked);
+  assert.equal(await page.evaluate(()=>window.mobileInlineExecuted),undefined);
   await page.evaluate(() => document.fonts.ready);
   assert.match(await page.locator('.prototype-note').innerText(), /未接続/);
   await page.locator('#rules-open').click();

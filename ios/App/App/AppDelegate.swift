@@ -7,7 +7,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        excludeWebKitFromBackup()
         return true
     }
 
@@ -26,7 +26,25 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func applicationDidBecomeActive(_ application: UIApplication) {
+        excludeWebKitFromBackup()
         // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
+    }
+
+    // Keep existing games on this device; exclude WKWebView's local storage
+    // from iCloud/computer backups without deleting or moving user data.
+    private func excludeWebKitFromBackup() {
+        do {
+            let library = try FileManager.default.url(for: .libraryDirectory,
+                in: .userDomainMask, appropriateFor: nil, create: true)
+            var webKit = library.appendingPathComponent("WebKit", isDirectory: true)
+            try FileManager.default.createDirectory(at: webKit,
+                withIntermediateDirectories: true, attributes: nil)
+            var values = URLResourceValues()
+            values.isExcludedFromBackup = true
+            try webKit.setResourceValues(values)
+        } catch {
+            NSLog("Could not exclude local WebKit data from backup")
+        }
     }
 
     func applicationWillTerminate(_ application: UIApplication) {

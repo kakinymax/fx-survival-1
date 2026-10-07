@@ -27,6 +27,7 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - run: npm audit --audit-level=low
       - run: npm test && npm run build && npm run mobile:build
       - run: npx playwright install --with-deps chromium
       - run: |
@@ -109,6 +110,14 @@ jobs:
           xcrun simctl install "$simulator_id" ios/build/Build/Products/Debug-iphonesimulator/App.app
           xcrun simctl launch "$simulator_id" com.kakinymax.fxsurvival.prototype
           sleep 8
+          app_data=$(xcrun simctl get_app_container "$simulator_id" com.kakinymax.fxsurvival.prototype data)
+          swift - "$app_data/Library/WebKit" <<'SWIFT'
+          import Foundation
+          let directory = URL(fileURLWithPath: CommandLine.arguments[1], isDirectory: true)
+          let values = try directory.resourceValues(forKeys: [.isExcludedFromBackupKey])
+          precondition(values.isExcludedFromBackup == true, "WebKit backup exclusion is missing")
+          print("PASS: WebKit storage is excluded from backup")
+          SWIFT
           xcrun simctl io "$simulator_id" screenshot ios/build/iphone-simulator.png
       - uses: actions/upload-artifact@v7.0.1
         with:
