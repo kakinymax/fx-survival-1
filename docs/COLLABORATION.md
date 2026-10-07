@@ -1,17 +1,17 @@
 # スレッド間の作業共有
 
-リポジトリ: https://github.com/kakinymax/fx-survival
+リポジトリ: https://github.com/kakinymax/fx-survival-1
 
 文書は方針の共有、Issueは担当と進行状況、PRは実際の変更の共有に使う。別スレッドのチャットや未コミットのファイルは自動で共有されない。
 
 ## 最新状態を見る場所
 
-- [open Issues](https://github.com/kakinymax/fx-survival/issues?q=is%3Aissue%20is%3Aopen): 予定、作業中、検証中、引き継ぎ、ブロック中。
-- [open PRs](https://github.com/kakinymax/fx-survival/pulls?q=is%3Apr%20is%3Aopen): draftも含めた変更中の範囲とブランチ。
-- [main](https://github.com/kakinymax/fx-survival/tree/main): 統合済みコードと共有文書。
+- [open Issues](https://github.com/kakinymax/fx-survival-1/issues?q=is%3Aissue%20is%3Aopen): 予定、作業中、検証中、引き継ぎ、ブロック中。
+- [open PRs](https://github.com/kakinymax/fx-survival-1/pulls?q=is%3Apr%20is%3Aopen): draftも含めた変更中の範囲とブランチ。
+- [main](https://github.com/kakinymax/fx-survival-1/tree/main): 統合済みコードと共有文書。
 - [現在地](PROJECT_STATUS.md): 完了した機能や節目の要約。進行中の一覧の代用にはしない。
 
-APIでは `GET /repos/kakinymax/fx-survival/issues?state=open` と `GET /repos/kakinymax/fx-survival/pulls?state=open` の全ページを確認する。Issue一覧にはPRも含まれるため、作業IssueとPRを区別する。検索は補助として使い、反映遅延がある検索結果だけで予約の有無を判断しない。
+APIでは `GET /repos/kakinymax/fx-survival-1/issues?state=open` と `GET /repos/kakinymax/fx-survival-1/pulls?state=open` の全ページを確認する。Issue一覧にはPRも含まれるため、作業IssueとPRを区別する。検索は補助として使い、反映遅延がある検索結果だけで予約の有無を判断しない。
 
 ## 着手から共有まで
 
@@ -51,15 +51,42 @@ APIでは `GET /repos/kakinymax/fx-survival/issues?state=open` と `GET /repos/k
 
 この方式は、全スレッドが確認・宣言することで重複を減らす運用であり、GitHubが編集を自動ロックする仕組みではない。予約を記録せずに進める作業、まだGitHubへ出していない別スレッドの作業は検出できない。
 
+## スレッド終了時の最終報告
+
+ユーザーがエージェント側の作業状況を把握できるよう、スレッド終了時のユーザー向け最終報告には「終了区分」と「次の操作」を必ず明示する。終了区分は次の4つから1つ選び、同じ区分・次の操作を作業Issue/PRにも保存する。
+
+| 終了区分 | 判断基準 |
+| --- | --- |
+| 完了 | 今回の依頼の完了条件を満たし、必要な検証・mainへの統合・公開を確認済み。統合・公開が対象外なら、その旨を記録する。 |
+| 統合待ち | 実装と必要な検証が済み、コミット・push・PRへの記録も済んでいるが、mainへの統合が残る。待つ理由と統合を行う担当を記録する。 |
+| 公開待ち | 必要なmainへの統合は済んでいるが、依頼範囲の公開または公開成功の確認が残る。対象コミット、公開先、担当と待つ理由を記録する。 |
+| 引き継ぎ | 実装・検証・本人操作などに残件があり、作業を中断する、または担当を移す。GitHubに保存した範囲、残件、再現手順、対象ファイル、既知の制約、再開条件を記録する。受け手未定なら、その旨も記録する。 |
+
+「次の操作」には、Codex・ユーザー・次の担当の誰が、何をするかを具体的に書く。待機する場合は、何を待ち、どの確認や報告で再開できるかを書く。今回の依頼に残件がなければ「次の操作：なし」と明示する。承認済みで実行可能なエージェント側の作業は、終了前に進める。
+
+終了区分は今回の依頼範囲について判定する。親Issueや別段階に残件があれば、それも報告し、今回の作業だけの完了を理由に親Issue全体を完了扱いにしない。複数の段階が残る場合は、次に必要な段階に合う区分を選び、後続の残件も「次の操作」に記す。
+
+報告形式:
+
+```text
+終了区分：<完了／統合待ち／公開待ち／引き継ぎから1つ>
+作業結果：<今回の依頼範囲でできたことと残件>
+検証：<実施内容と結果。未実施・失敗・ユーザー報告を区別>
+統合・公開：<それぞれの状態。対象外なら明記>
+次の操作：<担当と具体的な操作。待機なら理由と再開条件。残件なしなら「なし」>
+記録：<Issue／PRのリンクと対象SHA>
+```
+
 ## 別スレッドの最初の指示
 
 以下に作業内容を追記して渡せる。
 
 ```text
-リポジトリ: https://github.com/kakinymax/fx-survival
+リポジトリ: https://github.com/kakinymax/fx-survival-1
 最新mainを取得し、AGENTS.mdとdocs/PROJECT_STATUS.mdを読んでください。
 open Issuesとdraftを含むopen PRsを確認し、重複する作業がなければ、
 担当セッション・変更範囲・固有ブランチを作業Issueへ記録してから着手してください。
 作業中・中断時・完了時の進捗と引き継ぎも同じIssue/PRへ保存してください。
+終了時の最終報告には「終了区分」と「次の操作」を明示してください。
 今回の依頼: （ここに作業内容を記入）
 ```
