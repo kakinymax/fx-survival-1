@@ -63,3 +63,9 @@ GitHubの最新mainが公開先と一致するとは限らない。公開作業�
 [PR #13](https://github.com/kakinymax/fx-survival-1/pull/13)で保存レコード・JSON本文の検証、15秒の読取制限、Workerと静的HTMLのCSP、認証所有者別のD1頻度制限、依存監査の警告修正を追加。ゲームの計算・秘密注文・既存レコードは維持する。追加DBマイグレーションは0003。Webのユニット146件、実Worker/D1の攻撃再現とブラウザ検証、npm監査0を確認。
 
 統合・Sites／Pagesの公開SHAと成功結果は[Issue #12](https://github.com/kakinymax/fx-survival-1/issues/12)で照合する。モバイルへの正式取込と両OSのCIは[PR #11](https://github.com/kakinymax/fx-survival-1/pull/11)で追跡。更新版の実機確認はユーザー指定により後日に回す。
+
+### 安全性更新の統合・公開結果
+
+PR #13はmain `706ba49bd6747d78d648c05b0682fd590a130cfe`へ統合済み。Sites v22へ公開成功、既存アクセス設定を維持し、新しい配布ソースと防御ヘッダーの一致を確認。Pagesはpreview14／`e350598463f7b3a621b64023b0aa2b400e7ba114`のビルド成功・配布ファイル一致を確認（公開URLへの直接確認は実行環境の通信制限で未実施）。
+
+モバイルPR #11 head `80dba37`へ共有修正とバックアップ除外／専用共有パスを正式取込。Web152件、全依存監査0、3サイズのブラウザ検証、[CIの4ジョブ](https://github.com/kakinymax/fx-survival-1/actions/runs/37632716390)すべて成功。両iOSで起動とバックアップ除外設定も確認。更新版の実機は本人の指示で後日。モバイル本体は引き続きdraft PRで、Appleの有料メンバーシップ有効化／正式仕様／署名／ストア限定配布の工程はIssue #10を継続する。
