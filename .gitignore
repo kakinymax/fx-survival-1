@@ -5,3 +5,10 @@ node_modules/
 dist/server/
 server/generated-assets.js
 *.tar.gz
+.env
+.env.*
+!.env.example
+.dev.vars
+.dev.vars.*
+*.pem
+*.key

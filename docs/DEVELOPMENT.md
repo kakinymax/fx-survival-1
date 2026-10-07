@@ -29,18 +29,21 @@ FINAL RESULTSと保存APIは同じ `finalRecord` を使う。現在の `schemaVe
 
 ## ローカル起動
 
-依存関係がなければ `npm ci`、続いて `npm run build`。新しいローカルD1には下記の0000、0001、0002を順に適用する。既存環境では適用状況を確認し、未適用のファイルだけを実行する。
+依存関係がなければ `npm ci`、続いて `npm run build`。新しいローカルD1には下記の0000〜0003を順に適用する。既存環境では適用状況を確認し、未適用のファイルだけを実行する。
 
 ```sh
 WRANGLER_LOG_PATH=.wrangler/logs/wrangler.log node node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0000_dusty_wiccan.sql
 WRANGLER_LOG_PATH=.wrangler/logs/wrangler.log node node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0001_jazzy_kang.sql
 WRANGLER_LOG_PATH=.wrangler/logs/wrangler.log node node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0002_sparkling_invisible_woman.sql
+WRANGLER_LOG_PATH=.wrangler/logs/wrangler.log node node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0003_late_wallow.sql
 npm start -- --port 4173
 ```
 
 ローカルの保存API検証ではテスト用の `oai-authenticated-user-id` ヘッダーを付与する。本番ではSitesが認証済みヘッダーを付与する。これは本番の認証を外すための設定ではない。
 
 ## 変更に合わせた確認
+
+攻撃に対する検証・認証入口の前提・依存の修正理由は [SECURITY_REVIEW.md](SECURITY_REVIEW.md) を参照する。保存境界を変えた場合は `tests/security.test.mjs`・`tests/rate-limit.test.mjs` と `tests/security-browser-check.cjs` も確認する。後者はローカルWorker/D1を使用し、必要なら `CHROMIUM_PATH=/usr/bin/chromium` を指定する。
 
 - ゲーム・集計・保存の変更は `npm test` と対象の既存テストを使う。ソース変更後のビルドは `npm run build`。
 - UI変更は、最低320×568、390×600、390×844で、横はみ出し・固定ボタンとの重なり・操作を確認する。既存のPC配置を触る時はPCも確認する。

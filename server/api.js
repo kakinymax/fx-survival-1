@@ -2,6 +2,7 @@ import {validateMatchRecord} from '../dist/records.js';
 import {storeMatch,readStatistics,readRecords,readMatch,readTrips,changeTrip,readModes,readLegends,readCpuCareers,readPersonalBests} from './database.js';
 import {TRIP_IDS,validateTripChange} from './trips.js';
 import {legendQuery} from './legends.js';
+import {sameOriginWrite,readJsonBody} from './http-security.js';
 
 const json=(body,status=200)=>Response.json(body,{status,headers:{'Cache-Control':'no-store'}});
 export async function cpuCareersRequest(request,env){
@@ -58,14 +59,11 @@ export async function tripsRequest(request,env){
   if(url.pathname==='/api/trips')return json({error:'Method not allowed'},405);
   if(!TRIP_IDS.includes(id))return json({error:'TRIPが見つかりません'},404);
   if(request.method!=='PUT')return json({error:'Method not allowed'},405);
-  const origin=request.headers.get('origin');if(origin&&origin!==url.origin)return json({error:'Forbidden'},403);
-  if(!request.headers.get('content-type')?.startsWith('application/json'))return json({error:'JSON required'},415);
-  const reader=request.body?.getReader();if(!reader)return json({error:'Empty change'},400);
-  let size=0;const chunks=[];
-  while(true){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;if(size>2000){await reader.cancel();return json({error:'Change too large'},413)}chunks.push(value)}
+  if(!sameOriginWrite(request))return json({error:'Forbidden'},403);
+  const input=await readJsonBody(request,2000);if(input.status)return json({error:input.error},input.status);
   let change;
-  try{const bytes=new Uint8Array(size);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length}change=validateTripChange(JSON.parse(new TextDecoder().decode(bytes)))}
-  catch(error){return json({error:error.message||'計測設定を確認できませんでした'},400)}
+  try{change=validateTripChange(input.value)}
+  catch{return json({error:'計測設定を確認できませんでした'},400)}
   try{
     const result=await changeTrip(env.DB,owner,id,change);
     return result.conflict?json({error:'別の画面でTRIPが更新されました。再読み込みして確認してください。',trip:result.trip},409):json({trip:result.trip});
@@ -81,17 +79,12 @@ export async function matchRequest(request,env){
     catch(error){console.error('Match read failed',error);return json({error:'試合記録を読み込めませんでした'},503)}
   }
   if(request.method!=='PUT')return json({error:'Method not allowed'},405);
-  const url=new URL(request.url),origin=request.headers.get('origin');
-  if(origin&&origin!==url.origin)return json({error:'Forbidden'},403);
-  if(!request.headers.get('content-type')?.startsWith('application/json'))return json({error:'JSON required'},415);
-  // A bounded streaming read also covers clients that omit Content-Length.
-  const reader=request.body?.getReader();if(!reader)return json({error:'Empty record'},400);
-  let size=0;const chunks=[];
-  while(true){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;if(size>128000){await reader.cancel();return json({error:'Record too large'},413)}chunks.push(value)}
+  const url=new URL(request.url);
+  if(!sameOriginWrite(request))return json({error:'Forbidden'},403);
+  const input=await readJsonBody(request,128000);if(input.status)return json({error:input.error},input.status);
   let record;
   try{
-    const bytes=new Uint8Array(size);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length}
-    record=validateMatchRecord(JSON.parse(new TextDecoder().decode(bytes)));
+    record=validateMatchRecord(input.value);
     if(url.pathname!==`/api/matches/${record.id}`)throw Error('ID mismatch');
   }catch{return json({error:'試合記録を確認できませんでした'},400)}
   try{

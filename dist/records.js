@@ -1,4 +1,5 @@
 import {INITIAL,getStage,settle,winners} from './engine.js';
+import {CPU_PROFILES} from './solo.js';
 
 // Money is always a decimal string in ¥1,000 units, including in stored records.
 export const RECORD_VERSION=1;
@@ -44,31 +45,42 @@ export function createMatchRecord(game){
 // settlement function. It does not calculate a different version of the result.
 export function validateMatchRecord(record){
   const fail=()=>{throw Error('試合記録が正しくありません')};
-  if(!record||record.schemaVersion!==RECORD_VERSION||!/^[-a-zA-Z0-9_]{1,100}$/.test(record.id??'')||
+  const object=v=>v!==null&&typeof v==='object'&&(Object.getPrototypeOf(v)===Object.prototype||Object.getPrototypeOf(v)===null);
+  const fields=(v,keys)=>{if(!object(v)||Object.keys(v).some(k=>!keys.includes(k)))fail()};
+  fields(record,['schemaVersion','id','startedAt','endedAt','stage','playMode','drawMode','maxRounds','endedRound','ownerPlayerId','players','winnerIds','history','lastDecisions']);
+  if(record.schemaVersion!==RECORD_VERSION||typeof record.id!=='string'||!/^[-a-zA-Z0-9_]{1,100}$/.test(record.id)||
     !['solo','tabletop'].includes(record.playMode)||!['auto','manual'].includes(record.drawMode)||
     record.maxRounds!==12||!Number.isInteger(record.endedRound)||record.endedRound<1||record.endedRound>12||
     !Array.isArray(record.players)||record.players.length<2||record.players.length>6||
     !Array.isArray(record.history)||record.history.length!==record.endedRound)fail();
-  const date=v=>typeof v==='string'&&new Date(v).toISOString()===v;
+  const date=v=>typeof v==='string'&&Number.isFinite(Date.parse(v))&&new Date(v).toISOString()===v;
   if(!date(record.endedAt)||record.startedAt!==null&&!date(record.startedAt)||record.startedAt&&record.startedAt>record.endedAt)fail();
-  const stage=getStage(record.stage?.id);
+  fields(record.stage,['id','name']);
+  if(typeof record.stage.id!=='string')fail();
+  const stage=getStage(record.stage.id);
   // Immutable records created before the Basic rename retain their original name.
   if(record.stage.name!==stage.name&&!(stage.id==='classic'&&record.stage.name==='クラシック'))fail();
   const amounts=['initial','wealth','peak','maxPosition'];
   const ids=new Set();
-  for(const p of record.players){
-    if(!Number.isInteger(p.id)||p.id<0||p.id>5||ids.has(p.id)||typeof p.name!=='string'||!p.name.trim()||p.name.length>20||
-      !['human','cpu'].includes(p.kind)||p.kind==='human'&&p.cpu!==null||p.kind==='cpu'&&typeof p.cpu!=='string'||
+  for(const [index,p] of record.players.entries()){
+    fields(p,['id','name','kind','cpu','initial','wealth','peak','maxPosition','status','metrics']);
+    fields(p.metrics,['maxLeverage','uses100','uses50Plus','maxRoundProfit','maxRoundLoss','maxDrawdown']);
+    if(p.id!==index||ids.has(p.id)||typeof p.name!=='string'||!p.name.trim()||p.name.length>20||
+      !['human','cpu'].includes(p.kind)||p.kind==='human'&&p.cpu!==null||p.kind==='cpu'&&(typeof p.cpu!=='string'||!Object.hasOwn(CPU_PROFILES,p.cpu))||
       !['fixed','cut','empty','debt'].includes(p.status)||amounts.some(k=>typeof p[k]!=='string'||!/^(-?[1-9]\d*|0)$/.test(p[k])||p[k].length>50)||p.initial!==INITIAL)fail();
     ids.add(p.id);
   }
   const humans=record.players.filter(p=>p.kind==='human');
-  if(record.playMode==='solo'?(humans.length!==1||record.ownerPlayerId!==humans[0].id):record.ownerPlayerId!==null)fail();
+  if(record.playMode==='solo'?(record.drawMode!=='auto'||record.players.length!==4||humans.length!==1||humans[0].id!==0||record.ownerPlayerId!==0||
+    record.players.slice(1).some((p,i)=>p.cpu!==Object.keys(CPU_PROFILES)[i])):
+    (humans.length!==record.players.length||record.ownerPlayerId!==null))fail();
   const state=new Map(record.players.map(p=>[p.id,{id:p.id,wealth:p.initial,peak:p.initial,maxPosition:'0',status:'active'}]));
   for(const [i,h] of record.history.entries()){
+    fields(h,['round','stage','direction','first','second','bps','gap','results','decisions','cpuQuotes']);
     if(h.round!==i+1||h.stage!==stage.id||!Array.isArray(h.results)||!h.results.length||h.results.length>record.players.length)fail();
     const seen=new Set();
     for(const r of h.results){
+      fields(r,['id','side','leverage','position','before','after','pnl','win','status']);
       if(!ids.has(r.id)||seen.has(r.id))fail();seen.add(r.id);
       const before=state.get(r.id),expected=settle(before,r,h.direction,{bps:h.bps,gap:h.gap}).result;
       // Verify the dice table as well as balance arithmetic.
@@ -79,18 +91,26 @@ export function validateMatchRecord(record){
       state.set(r.id,settle(before,r,h.direction,{bps:h.bps,gap:h.gap}).player);
     }
     for(const p of state.values())if(p.status==='active'&&!seen.has(p.id))fail();
-    if(h.decisions){
-      if(Object.keys(h.decisions).some(id=>!ids.has(Number(id))))fail();
+    const active=[...state.values()].filter(p=>p.status==='active');
+    if(h.round<12&&active.length){
+      fields(h.decisions,active.map(p=>String(p.id)));
+      if(Object.keys(h.decisions).length!==active.length)fail();
       for(const [id,choice] of Object.entries(h.decisions)){
         const p=state.get(Number(id));if(p.status!=='active'||!['continue','fix'].includes(choice))fail();
         if(choice==='fix')p.status='fixed';
       }
+    }else if(h.decisions!==undefined)fail();
+    if(h.cpuQuotes!==undefined){
+      fields(h.cpuQuotes,record.players.filter(p=>p.kind==='cpu').map(p=>String(p.id)));
+      if(Object.values(h.cpuQuotes).some(quote=>typeof quote!=='string'||quote.length>200))fail();
     }
   }
+  const last=[...record.history].reverse().find(h=>h.decisions),decisions=last?{round:last.round,choices:Object.entries(last.decisions).map(([id,choice])=>({id:Number(id),choice}))}:null;
+  if(JSON.stringify(record.lastDecisions)!==JSON.stringify(decisions))fail();
   for(const p of record.players){
     const computed=state.get(p.id);
     if(['wealth','peak','maxPosition'].some(k=>p[k]!==computed[k])||
-      (computed.status==='active'?p.status!=='fixed':p.status!==computed.status)||
+      (computed.status==='active'?(record.endedRound!==12||p.status!=='fixed'):p.status!==computed.status)||
       JSON.stringify(p.metrics)!==JSON.stringify(playerMetrics(p.id,record.history,p.initial)))fail();
   }
   if(JSON.stringify(record.winnerIds)!==JSON.stringify(winners(record).map(p=>p.id)))fail();
