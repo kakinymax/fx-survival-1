@@ -43,6 +43,12 @@ const origin=process.env.SECURITY_TEST_ORIGIN||'http://127.0.0.1:4173';
     assert.equal((await other.request.get(origin+'/api/matches/'+record.id)).status(),404);
     const anonymous=await browser.newContext();
     assert.equal((await anonymous.request.get(origin+'/api/matches/'+record.id)).status(),401);
+    const limiter=await browser.newContext({extraHTTPHeaders:{'oai-authenticated-user-id':owner+'-limit'}});
+    for(let i=0;i<60;i++)assert.equal((await limiter.request.put(origin+'/api/trips/a',{data:{}})).status(),400);
+    const blocked=await limiter.request.put(origin+'/api/trips/a',{data:{}});
+    assert.equal(blocked.status(),429);assert(Number(blocked.headers()['retry-after'])>0);
+    assert(blocked.headers()['content-security-policy']);
+    assert.equal((await limiter.request.get(origin+'/api/matches/'+record.id)).status(),404);
     await page.evaluate(()=>{
       window.securityViolations=[];
       document.addEventListener('securitypolicyviolation',e=>window.securityViolations.push(e.effectiveDirective));
@@ -52,6 +58,6 @@ const origin=process.env.SECURITY_TEST_ORIGIN||'http://127.0.0.1:4173';
     await page.waitForFunction(()=>window.securityViolations.length>=2);
     assert.equal(await page.evaluate(()=>window.inlineExecuted),undefined);
     assert.deepEqual(errors,[]);
-    console.log('PASS: real Worker/D1 save and read, escaped names, malformed/oversized/poisoned inputs, owner isolation, anonymous rejection, error headers, CSP blocking inline and external scripts.');
+    console.log('PASS: real Worker/D1 save and read, escaped names, malformed/oversized/poisoned inputs, owner isolation, anonymous rejection, shared write limit/Retry-After, error headers, CSP blocking inline and external scripts.');
   }finally{await browser.close()}
 })().catch(error=>{console.error(error);process.exit(1)});

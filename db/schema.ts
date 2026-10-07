@@ -1,5 +1,12 @@
 import {sqliteTable,text,integer,primaryKey,index} from 'drizzle-orm/sqlite-core';
 
+export const apiRateLimits=sqliteTable('api_rate_limits',{
+  ownerId:text('owner_id').notNull(),
+  scope:text('scope').notNull(),
+  windowStart:integer('window_start').notNull(),
+  requests:integer('requests').notNull(),
+},table=>[primaryKey({columns:[table.ownerId,table.scope]})]);
+
 export const matches=sqliteTable('matches',{
   ownerId:text('owner_id').notNull(),
   gameId:text('game_id').notNull(),

@@ -1,10 +1,14 @@
 import {matchRequest,statisticsRequest,recordsRequest,tripsRequest,modesRequest,legendsRequest,cpuCareersRequest,personalBestsRequest} from './api.js';
 import assets from './generated-assets.js';
 import {secureResponse} from './http-security.js';
+import {rateLimitRequest} from './rate-limit.js';
 
 export default {async fetch(request,env){return secureResponse(await route(request,env))}};
 async function route(request,env){
   const path=new URL(request.url).pathname;
+  if(path.startsWith('/api/')){
+    const limited=await rateLimitRequest(request,env.DB);if(limited)return limited;
+  }
   if(path==='/api/statistics')return statisticsRequest(request,env);
   if(path==='/api/cpu-careers')return cpuCareersRequest(request,env);
   if(path.startsWith('/api/matches/')&&path.endsWith('/bests'))return personalBestsRequest(request,env);
