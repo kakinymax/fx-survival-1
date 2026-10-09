@@ -1,6 +1,6 @@
 {
-  "appId": "com.kakinymax.fxsurvival.prototype",
-  "appName": "FXサバイバル試作",
+  "appId": "com.kakinymax.fxsurvival",
+  "appName": "Fiction eXchange",
   "webDir": "mobile/www",
   "backgroundColor": "#10141b",
   "android": {

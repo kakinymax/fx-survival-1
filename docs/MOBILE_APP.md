@@ -1,6 +1,6 @@
-# アプリ試作の使い方・引き継ぎ
+# アプリの使い方・試作からの引き継ぎ
 
-[ロードマップ](MOBILE_ROADMAP.md) / [作業Issue #10](https://github.com/kakinymax/fx-survival-1/issues/10)。今回は端末でゲームを試すための版。2026-10-09にApple登録完了・開発者機能有効と、正式App ID `com.kakinymax.fxsurvival`（DescriptionはFiction eXchange）の登録を確認。ストア申請・一般公開は行っていない。最新のモバイル版は本人選択の端末内戦績保存に対応する。
+[ロードマップ](MOBILE_ROADMAP.md) / [作業Issue #10](https://github.com/kakinymax/fx-survival-1/issues/10)。現在は正式IDの限定テスト準備版。旧試作は別アプリとして残す。2026-10-09にApple登録完了・開発者機能有効と、正式App ID `com.kakinymax.fxsurvival`（DescriptionはFiction eXchange）の登録を確認。ストア申請・一般公開は行っていない。最新のモバイル版は本人選択の端末内戦績保存に対応する。
 
 ## 最初にユーザーが確認すること
 
@@ -19,34 +19,29 @@
 
 ## Androidで試す
 
-最新版のAPKへのリンクは[Issue #10](https://github.com/kakinymax/fx-survival-1/issues/10)と[PR #11](https://github.com/kakinymax/fx-survival-1/pull/11)の最終記録にある。GitHub Actionsで配布する場合は、成功した実行のページ下部Artifacts→`fx-survival-android-debug`をダウンロードし、ZIPを展開した中の`app-debug.apk`を使う。APKをAndroid本体へダウンロードし、タップして「インストール」を選ぶ。提供元の許可が求められた時は、そのAPKを開いたブラウザ/ファイルアプリに限って「この提供元を許可」を有効にし、インストール後に戻す。全体の保護機能を無効にする必要はない。Google Playからのインストールとは異なり、試作名は「FXサバイバル試作」。正式版とは別のapp IDを使う。
+最新版のAPKへのリンクは[Issue #10](https://github.com/kakinymax/fx-survival-1/issues/10)と[PR #11](https://github.com/kakinymax/fx-survival-1/pull/11)の最終記録にある。GitHub Actionsで配布する場合は、成功した実行のページ下部Artifacts→`fx-survival-android-debug`をダウンロードし、ZIPを展開した中の`app-debug.apk`を使う。APKをAndroid本体へダウンロードし、タップして「インストール」を選ぶ。提供元の許可が求められた時は、そのAPKを開いたブラウザ/ファイルアプリに限って「この提供元を許可」を有効にし、インストール後に戻す。全体の保護機能を無効にする必要はない。Google Playからのインストールとは異なり、最新版は「Fiction eXchange」／`com.kakinymax.fxsurvival` のテスト版。旧「FXサバイバル試作」／`com.kakinymax.fxsurvival.prototype` とは別アプリとして入り、新しい戦績で始める。
 
 APKを自分でビルドする場合はMac/WindowsのAndroid Studioで実行できる。初回のSDK取得・設定は端末情報が分かってから一緒に進める。開発者向けの再現手順は下記。USB接続による実機実行では、Androidの開発者向けオプション→USBデバッグを使い、自分のPCからの接続だけを許可する。
 
 ## iPhoneで試す
 
-iOS用の `.app`（シミュレータ向け）はiPhoneへタップしてインストールできない。MacのXcodeからUSB接続したiPhoneへ実行する。Apple Accountの無料Personal Teamでの個人実機確認を第一候補とし、署名の有効期限・対象端末の制約がある。有料のApple Developer Program登録は、TestFlight等の配布を進める段階で扱う。
+iOS用の `.app`（シミュレータ向け）はiPhoneへタップしてインストールできない。MacのXcodeからUSB接続したiPhoneへ実行する。当初の試作では無料Personal Teamも候補だったが、現在は有料登録済みの本人のTeamを使い、正式IDのTestFlight用準備を進める。
 
 開発環境を用意した後、`npm run mobile:ios` でXcodeを開く。左のApp→TARGETSのApp→Signing & CapabilitiesでAutomatically manage signingを有効にし、自分のTeamを選ぶ。上部の実行先に接続したiPhoneを選び、▶を押す。iPhone側に「このコンピュータを信頼」や開発者モードが求められた場合だけ、画面の案内に従う。提出や公開はこの操作に含まれない。署名エラーの場合は表示された文を共有する。
 
-### 今回使用したMacでの取得・起動手順
+### 当初の試作で使用したMacの取得・起動手順
 
-試作の取得先として案内したフォルダは、Macのデスクトップの`fx-survival-iphone-prototype`。初めて取得する場合はターミナルで次を1行ずつ実行し、毎回処理の終了を待つ。既に同じフォルダがある場合は既存フォルダの再起動手順へ進む。ビルドがGitのコミット情報を使うため、ソースのZIPではなくcloneを使用する。
+試作の取得先として案内したフォルダは、Macのデスクトップの`fx-survival-iphone-prototype`。以下は当初の取得手順の記録。現在の正式ID版は後述の別フォルダへ取得し、この試作フォルダを上書きしない。ビルドがGitのコミット情報を使うため、ソースのZIPではなくcloneを使用する。
 
-```sh
-git clone --branch mobile/prototype-20261005-codex-root --single-branch https://github.com/kakinymax/fx-survival-1.git ~/Desktop/fx-survival-iphone-prototype
-cd ~/Desktop/fx-survival-iphone-prototype
-npm ci
-npm run mobile:ios
-```
+当初はこのフォルダに試作IDのソースをcloneし、`npm ci` と `npm run mobile:ios` で起動した。現在の正式ID版のcloneコマンドは後述の別フォルダ用を使う。
 
 Xcodeで青いApp→TARGETSのApp→Signing & Capabilitiesを開く。Automatically manage signingを有効にし、本人のTeam（無料の場合はPersonal Team）を選ぶ。iPhoneをUSBで接続・ロック解除し、実行先に選んで▶を押す。Register Deviceが出たら登録する。Run中にキーチェーン「ログイン」のパスワードを求められた場合は、通常Macのログインパスワードを本人が入力して「許可」を押す。
 
 今回出た「Developer Mode disabled」は、iPhoneの設定→プライバシーとセキュリティ→開発者モードをオンにし、再起動後の確認を完了して解消した。続く「Developer App Certificate is not trusted」は、iPhoneの設定→一般→VPNとデバイス管理→今回のApple AccountのデベロッパAppを開き、「FXサバイバル試作」が対象であることを確認して本人の証明書を信頼する手順で解消し、起動できたとの報告を受領した。確認・再起動は実際の画面の案内に従う。Xcodeの推奨設定変更ダイアログにはCancelを案内した。推奨設定の変更を起動の前提にしない。
 
-### 既存フォルダからの再起動・再導入
+### 旧試作フォルダからの再起動・再導入
 
-iPhoneをMacに接続し、ロックを解除する。ターミナルで次を1行ずつ実行する。
+旧試作IDのソースを保持したフォルダだけを使う。正式ID版は次節の別フォルダを使う。iPhoneをMacに接続し、ロックを解除する。ターミナルで次を1行ずつ実行する。
 
 ```sh
 cd ~/Desktop/fx-survival-iphone-prototype
@@ -57,25 +52,24 @@ XcodeのAppターゲットで本人のTeamと実行先のiPhoneを確認し、�
 
 出典: [Appleの個人実機試験とPersonal Teamの制約](https://developer.apple.com/jp/help/account/basics/about-your-developer-account/)、[Xcodeの実機実行](https://developer.apple.com/documentation/xcode/running-your-app-on-simulated-or-physical-devices)、[開発者モード](https://developer.apple.com/documentation/xcode/enabling-developer-mode-on-a-device)。
 
-## 端末内戦績版へソースを更新する（2026-10-09）
+## 正式IDのテスト版を別フォルダに取得する（2026-10-09）
 
-既存のMacフォルダでは、先にターミナルで次を1行ずつ実行する。
+現在のブランチは正式名 `Fiction eXchange`／正式ID `com.kakinymax.fxsurvival` のテスト版を生成する。本人は新しい戦績で始めると選択した。旧試作 `com.kakinymax.fxsurvival.prototype` とは別アプリになり、旧試作とその記録は残す。最新ソースを旧試作の更新用とは扱わない。
 
-```sh
-cd ~/Desktop/fx-survival-iphone-prototype
-git status --short --branch
-git rev-parse --short HEAD
-```
-
-変更ファイルが表示される場合は、本人の署名設定などを保持する手順を案内するので、秘密値を除いた状態を共有する。強制reset/cleanやフォルダ削除はしない。変更がなく、ブランチが `mobile/prototype-20261005-codex-root` なら次で更新する。
+旧試作のMacフォルダには本人の署名設定などの変更があり得るため、別フォルダへcloneする。ターミナルで次を1行ずつ実行し、処理の終了を待ってから次へ進む。エラーが出たらその行で止め、表示文を報告する。既存フォルダの削除・強制reset/cleanはしない。
 
 ```sh
-git pull --ff-only
+git clone --branch mobile/prototype-20261005-codex-root --single-branch https://github.com/kakinymax/fx-survival-1.git ~/Desktop/fiction-exchange-iphone
+cd ~/Desktop/fiction-exchange-iphone
 npm ci
 npm run mobile:ios
 ```
 
-同じ試作IDのアプリへ上書き導入し、アンインストールしない。登録済みの正式IDをこの試作更新の手順では適用しない。古い版での実機成功報告は、新しい保存版の成功として扱わない。
+Xcodeで青いApp → TARGETSのApp → Signing & Capabilitiesを開く。Automatically manage signingを有効にし、本人の有料Teamを選ぶ。Bundle Identifierは `com.kakinymax.fxsurvival`、GeneralのVersionは1.0、Buildは1を確認する。Team名・メール・証明書・秘密鍵は共有しない。
+
+この時点ではアプリの取得/設定確認だけで、配布署名Archiveやアップロード成功とは扱わない。確認後は[登録・配布手順](MOBILE_DISTRIBUTION.md)に沿って本人向けTestFlight内部テストを進める。一般公開は後続指示で扱う。
+
+正式版フォルダを後日更新する場合は、先に `git status --short --branch` で本人の変更を確認する。変更がない場合だけ `git pull --ff-only`、`npm ci`、`npm run mobile:ios` の順で更新する。変更がある場合は保存してから対応し、署名設定を捨てる操作をしない。
 
 ## 試す操作
 
@@ -83,7 +77,7 @@ npm run mobile:ios
 
 画面上部/下部のボタンが時刻・ノッチ・ホームバーと重ならないか、倍率入力中でも確定ボタンを押せるか、縦横で横はみ出しがないかを見る。Androidの戻るは、開いている説明を閉じる→戦績からゲームへ戻る→ゲーム画面ではアプリを背面へ送る。前のプレイヤーの秘密注文へ戻らない。
 
-最新のモバイル版は確定レコードとTRIP設定を端末内に保存し、完成UIの履歴・生涯戦績・歴代記録・TRIP・モード別・殿堂・自己ベスト/CPUの前回記録を表示する。対面は履歴と「人間全体」へ保存し、本人未指定のため生涯戦績へは合算しない。試合終了後の「この端末にゲームの戦績を保存しました」を確認する。保存失敗時は同じ記録を再試行でき、成功を確認するまで送信待ちから除かない。旧試作の送信待ちは同じ試作ID・署名で更新できた場合に取り込む。ログインや外部API通信はなく、端末間/Web版との同期はない。削除/データ消去で失われる。別IDの正式版への記録移行は未実装。
+最新のモバイル版は確定レコードとTRIP設定を端末内に保存し、完成UIの履歴・生涯戦績・歴代記録・TRIP・モード別・殿堂・自己ベスト/CPUの前回記録を表示する。対面は履歴と「人間全体」へ保存し、本人未指定のため生涯戦績へは合算しない。試合終了後の「この端末にゲームの戦績を保存しました」を確認する。保存失敗時は同じ記録を再試行でき、成功を確認するまで送信待ちから除かない。旧試作の送信待ちは同じ試作ID・署名で更新できた場合に取り込む。ログインや外部API通信はなく、端末間/Web版との同期はない。削除/データ消去で失われる。本人が正式版は新しい戦績で始めると選択したため、別アプリからの移行・削除処理は追加しない。旧試作は残す。
 
 ## 開発者向け再現手順
 
@@ -118,7 +112,7 @@ CI `.github/workflows/mobile-prototype.yml` はPRのWeb確認、Android APKコ�
 
 生成資産 `mobile/www/` の `build-info.json` に元コミットと未コミット変更の有無が入る。APK等のログと一緒に参照する。`mobile/www/`、コピー先のpublic、SDK/署名ファイル/ローカル設定/ビルド出力はGit管理しない。既存Sites/Pagesは更新しない。
 
-残件は、対面3〜6人、12ラウンド/早期終了/ギャップの個別照合、キーボード・安全領域・縦横・Android戻る・アプリ強制終了後の挙動、端末上のビルド版/資産の照合、正式アイコンと配布署名、新しい端末内保存版の実機確認、正式IDのコード反映と別IDへの記録移行、掲載文・プライバシー・ストア申請。実機での導入・起動と基本3項目は両OSで問題なしとの報告を受領済み。確認済みの基本項目を再び未実施として扱わない。デフォルトのCapacitorアイコン/起動画面は試作用で、掲載準備段階で作り直す。
+残件は、対面3〜6人、12ラウンド/早期終了/ギャップの個別照合、キーボード・安全領域・縦横・Android戻る・アプリ強制終了後の挙動、端末上のビルド版/資産の照合、正式アイコンと配布署名、新しい端末内保存版の実機確認、本人のMacでの正式ID/署名設定確認、掲載文・プライバシー・ストア申請。実機での導入・起動と基本3項目は両OSで問題なしとの報告を受領済み。確認済みの基本項目を再び未実施として扱わない。デフォルトのCapacitorアイコン/起動画面は試作用で、掲載準備段階で作り直す。
 
 ## 今回確認できた範囲
 
@@ -131,7 +125,7 @@ CI `.github/workflows/mobile-prototype.yml` はPRのWeb確認、Android APKコ�
 | AQUOS sense4 basic / Android12 | Google Files経由で導入・起動 | 問題なし | 問題なし | 問題なし |
 | iPhone SE（第3世代）/ iOS27.0.1 | Xcode26.3の手順で導入し、証明書信頼後に起動 | 問題なし | 問題なし | 問題なし |
 
-Androidは2026-10-05 JST、iPhoneは2026-10-06 JSTの報告。試作と基本確認は完了。2026-10-06の後続指示で段階3「開発者登録・配布準備」を再開し、[登録・配布手順](MOBILE_DISTRIBUTION.md)にApple Accountの氏名確認、個人登録、費用、署名と限定配布の具体的手順を保存した。2026-10-09にApple登録完了報告・App Store Connectアクセス・Xcode開発者機能有効を確認し、端末内保存を採用/実装した。Appleの正式App ID登録も確認済み。Google登録、正式IDのコード反映/別IDへの記録移行、料金/広告/課金、配布署名ビルド/限定配布は未完了。mainは未統合、PR #11はdraft、親Issue #10はopenを維持する。一般公開の申請・公開は後続指示で進める。
+Androidは2026-10-05 JST、iPhoneは2026-10-06 JSTの報告。試作と基本確認は完了。2026-10-06の後続指示で段階3「開発者登録・配布準備」を再開し、[登録・配布手順](MOBILE_DISTRIBUTION.md)にApple Accountの氏名確認、個人登録、費用、署名と限定配布の具体的手順を保存した。2026-10-09にApple登録完了報告・App Store Connectアクセス・Xcode開発者機能有効を確認し、端末内保存を採用/実装した。Appleの正式App ID登録も確認済み。App Store Connectレコード作成も確認。正式名/IDをコードへ反映し、新しい戦績で始める方針を確認。Google登録、料金/広告/課金、配布署名ビルド/限定配布は未完了。mainは未統合、PR #11はdraft、親Issue #10はopenを維持する。一般公開の申請・公開は後続指示で進める。
 
 ## 安全性更新後の実機確認（2026-10-07）
 

@@ -1,4 +1,4 @@
-package com.kakinymax.fxsurvival.prototype;
+package com.kakinymax.fxsurvival;
 
 import com.getcapacitor.BridgeActivity;
 

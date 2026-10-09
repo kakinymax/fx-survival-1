@@ -108,9 +108,9 @@ jobs:
           xcrun simctl boot "$simulator_id"
           xcrun simctl bootstatus "$simulator_id" -b
           xcrun simctl install "$simulator_id" ios/build/Build/Products/Debug-iphonesimulator/App.app
-          xcrun simctl launch "$simulator_id" com.kakinymax.fxsurvival.prototype
+          xcrun simctl launch "$simulator_id" com.kakinymax.fxsurvival
           sleep 8
-          app_data=$(xcrun simctl get_app_container "$simulator_id" com.kakinymax.fxsurvival.prototype data)
+          app_data=$(xcrun simctl get_app_container "$simulator_id" com.kakinymax.fxsurvival data)
           swift - "$app_data/Library/WebKit" <<'SWIFT'
           import Foundation
           let directory = URL(fileURLWithPath: CommandLine.arguments[1], isDirectory: true)
