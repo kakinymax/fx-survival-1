@@ -1,6 +1,6 @@
 # アプリの使い方・試作からの引き継ぎ
 
-[ロードマップ](MOBILE_ROADMAP.md) / [作業Issue #10](https://github.com/kakinymax/fx-survival-1/issues/10)。現在は正式IDの限定テスト準備版。旧試作は別アプリとして残す。2026-10-09にApple登録完了・開発者機能有効と、正式App ID `com.kakinymax.fxsurvival`（DescriptionはFiction eXchange）の登録を確認。ストア申請・一般公開は行っていない。最新のモバイル版は本人選択の端末内戦績保存に対応する。
+[ロードマップ](MOBILE_ROADMAP.md) / [作業Issue #10](https://github.com/kakinymax/fx-survival-1/issues/10)。現在は正式IDの限定テスト準備版。旧試作は別アプリとして残す。2026-10-09にApple登録完了・正式App ID `com.kakinymax.fxsurvival`（DescriptionはFiction eXchange）の登録に続き、本人のMacでのArchive 1.0（1）とアップロード成功を確認。TestFlightにはビルドが表示され、暗号化に関する回答待ち。内部テストからの実機導入は未確認。ストア申請・一般公開は行っていない。最新のモバイル版は本人選択の端末内戦績保存に対応する。
 
 ## 最初にユーザーが確認すること
 
@@ -67,7 +67,7 @@ npm run mobile:ios
 
 Xcodeで青いApp → TARGETSのApp → Signing & Capabilitiesを開く。Automatically manage signingを有効にし、本人の有料Teamを選ぶ。Bundle Identifierは `com.kakinymax.fxsurvival`、GeneralのVersionは1.0、Buildは1を確認する。Team名・メール・証明書・秘密鍵は共有しない。
 
-この時点ではアプリの取得/設定確認だけで、配布署名Archiveやアップロード成功とは扱わない。確認後は[登録・配布手順](MOBILE_DISTRIBUTION.md)に沿って本人向けTestFlight内部テストを進める。一般公開は後続指示で扱う。
+この取得/設定の操作だけでは、Archiveやアップロード成功とは扱わない。2026-10-09には本人が有料Teamを選択し、Archive 1.0（1）の作成とXcodeアップロード成功を確認した。同梱情報の元コードは `fc8b6e5bb99722ce661d44837fcc6487d01ce010`、未コミット変更なし、端末内保存・オンライン保存なし、正式名/IDが一致し、mobile.jsのSHA256も検証済み資産と一致した。TestFlightは暗号化に関する回答待ち。[登録・配布手順](MOBILE_DISTRIBUTION.md)に証拠と次の本人操作を保存する。今回の文書更新だけではMacの取得し直し・再ビルドを求めない。一般公開は後続指示で扱う。
 
 正式版フォルダを後日更新する場合は、先に `git status --short --branch` で本人の変更を確認する。変更がない場合だけ `git pull --ff-only`、`npm ci`、`npm run mobile:ios` の順で更新する。変更がある場合は保存してから対応し、署名設定を捨てる操作をしない。
 
@@ -112,7 +112,7 @@ CI `.github/workflows/mobile-prototype.yml` はPRのWeb確認、Android APKコ�
 
 生成資産 `mobile/www/` の `build-info.json` に元コミットと未コミット変更の有無が入る。APK等のログと一緒に参照する。`mobile/www/`、コピー先のpublic、SDK/署名ファイル/ローカル設定/ビルド出力はGit管理しない。既存Sites/Pagesは更新しない。
 
-残件は、対面3〜6人、12ラウンド/早期終了/ギャップの個別照合、キーボード・安全領域・縦横・Android戻る・アプリ強制終了後の挙動、端末上のビルド版/資産の照合、正式アイコンと配布署名、新しい端末内保存版の実機確認、本人のMacでの正式ID/署名設定確認、掲載文・プライバシー・ストア申請。実機での導入・起動と基本3項目は両OSで問題なしとの報告を受領済み。確認済みの基本項目を再び未実施として扱わない。デフォルトのCapacitorアイコン/起動画面は試作用で、掲載準備段階で作り直す。
+残件は、対面3〜6人、12ラウンド/早期終了/ギャップの個別照合、キーボード・安全領域・縦横・Android戻る・アプリ強制終了後の挙動、実機上のビルド版/資産の照合、正式アイコン、Androidの配布署名、TestFlightの暗号化回答/内部グループ/実機導入、新しい端末内保存版の実機確認、掲載文・プライバシー・ストア申請。旧試作での導入・起動と基本3項目は両OSで問題なしとの報告を受領済み。本人のMacでの正式ID、有料Team選択、Archive生成・同梱資産照合・アップロード成功は確認済みだが、正式版の実機確認とは区別する。デフォルトのCapacitorアイコン/起動画面は試作用で、掲載準備段階で作り直す。
 
 ## 今回確認できた範囲
 
@@ -125,13 +125,13 @@ CI `.github/workflows/mobile-prototype.yml` はPRのWeb確認、Android APKコ�
 | AQUOS sense4 basic / Android12 | Google Files経由で導入・起動 | 問題なし | 問題なし | 問題なし |
 | iPhone SE（第3世代）/ iOS27.0.1 | Xcode26.3の手順で導入し、証明書信頼後に起動 | 問題なし | 問題なし | 問題なし |
 
-Androidは2026-10-05 JST、iPhoneは2026-10-06 JSTの報告。試作と基本確認は完了。2026-10-06の後続指示で段階3「開発者登録・配布準備」を再開し、[登録・配布手順](MOBILE_DISTRIBUTION.md)にApple Accountの氏名確認、個人登録、費用、署名と限定配布の具体的手順を保存した。2026-10-09にApple登録完了報告・App Store Connectアクセス・Xcode開発者機能有効を確認し、端末内保存を採用/実装した。Appleの正式App ID登録も確認済み。App Store Connectレコード作成も確認。正式名/IDをコードへ反映し、新しい戦績で始める方針を確認。Google登録、料金/広告/課金、配布署名ビルド/限定配布は未完了。mainは未統合、PR #11はdraft、親Issue #10はopenを維持する。一般公開の申請・公開は後続指示で進める。
+Androidは2026-10-05 JST、iPhoneは2026-10-06 JSTの報告。試作と基本確認は完了。2026-10-06の後続指示で段階3「開発者登録・配布準備」を再開し、[登録・配布手順](MOBILE_DISTRIBUTION.md)にApple Accountの氏名確認、個人登録、費用、署名と限定配布の具体的手順を保存した。2026-10-09にApple登録完了報告・App Store Connectアクセス・Xcode開発者機能有効を確認し、端末内保存を採用/実装した。Appleの正式App ID登録も確認済み。App Store Connectレコード作成も確認。正式名/IDをコードへ反映し、新しい戦績で始める方針を確認。iOSは正式IDのArchive 1.0（1）とアップロード成功・TestFlightへの表示を確認。暗号化回答/内部グループ/実機導入は残件。Google登録、Androidの配布署名AAB/限定配布、料金/広告/課金は未完了。mainは未統合、PR #11はdraft、親Issue #10はopenを維持する。一般公開の申請・公開は後続指示で進める。
 
 ## 安全性更新後の実機確認（2026-10-07）
 
 mainの安全性修正をこの試作ブランチへ正式に統合。Androidはバックアップと端末移行を無効にし、FileProviderを`cache/shared/`に限定。iOSは`Library/WebKit`を起動時・復帰時にバックアップから除外する。既存のゲーム／未送信レコードは消去しない。署名・正式アプリID・登録手続きは従来の方針を維持する。
 
-更新版の実機確認はユーザーの指定で後日。以前の版で報告されたAndroid／iPhoneの起動・対戦・復帰の成功は、更新版の確認とは区別する。
+更新版の実機確認はユーザーの指定で後日。以前の版で報告されたAndroid／iPhoneの起動・対戦・復帰の成功は、更新版の確認とは区別する。以下は旧試作IDの更新用に記録した手順。現在の正式ID版は前述の別フォルダとTestFlight手順を使い、旧試作へ上書きしない。
 
 1. Macでこのブランチをpullし、`npm ci`、`npm run mobile:sync`を実行する。既存のiPhone署名設定を使ってXcodeから同じ試作アプリへ更新する（アンインストールしない）。
 2. Androidは最新CIのdebug APKと既存版の署名一致を確認してから同じアプリへ上書き導入する。CIごとのdebug署名が同じとは限らず、この一致は未照合。更新が拒否された場合は削除せず、署名・記録移行の対応を先に確認する。
@@ -144,4 +144,4 @@ mainの安全性修正をこの試作ブランチへ正式に統合。Androidは
 - 実際のIndexedDBで保存のコミット/中断、同一試合の競合、旧送信待ちの取り込み、保存領域が使えない時のエラー表示を確認。
 - 履歴・本人/人間/CPUの分離・TRIPの境界/名前/リセット/再試行・大きな整数・20件を超える殿堂ページング、ブラウザプロセス再起動、スマホ3サイズと横向き、外部API/外部資産の通信なしを確認。
 - 通常Webは実際のWorker/D1で保存/再読込/競合/障害後の再試行、本人所有権、入力検証/頻度制限、CSPを確認。Webの認証付き保存を維持する。
-- この版の両OSネイティブCI結果とコミットはIssue #10/PR #11の最新記録に保存する。実機確認と配布署名・限定配布は別の残件。従来の実機成功をこの更新版の成功とは扱わない。
+- この版の両OSネイティブCI結果とコミットはIssue #10/PR #11の最新記録に保存する。正式名/ID反映後の元コード `fc8b6e5` はCIのWeb/Android/iOS26.2/iOS27.0で成功し、本人のiOS Archive同梱資産と一致した。iOSアップロード成功後、TestFlightは暗号化の回答待ち。新しい版の実機確認と内部テスト導入、Androidの配布署名AABは残件。従来の実機成功をこの更新版の成功とは扱わない。

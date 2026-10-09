@@ -2,7 +2,7 @@
 
 更新: 2026-10-09 JST。正本は[Issue #10](https://github.com/kakinymax/fx-survival-1/issues/10) / [draft PR #11](https://github.com/kakinymax/fx-survival-1/pull/11)。担当 `mobile-prototype-20261005-codex-root`、固有ブランチ `mobile/prototype-20261005-codex-root`。6段階の全体像は[ロードマップ](MOBILE_ROADMAP.md)、試作の再導入は[試作手順](MOBILE_APP.md)を参照する。
 
-段階3を継続中。Appleの支払・登録完了を本人報告で確認し、App Store Connectのアプリ一覧へのアクセスと、Xcode開発者チームのCertificates, Identifiers & Profiles有効・実機1台登録を画面で確認した。正式App ID `com.kakinymax.fxsurvival` をDescription「Fiction eXchange」で登録済みと確認した。App Store ConnectにFiction eXchangeのiOSアプリ1.0「提出準備中」とTestFlightタブが表示され、アプリレコード作成を確認した。正式名/IDをコードへ反映。本人のMacでの署名・Archive・限定配布はまだ未確認。レコードのBundle ID/SKUはこの画面だけでは確認しない。Google登録は未報告。登録名義は個人。個人情報や秘密値は保存しない。一般公開の審査・申請・リリースは後続指示で進める。
+段階3を継続中。Appleの支払・登録完了を本人報告で確認し、App Store ConnectへのアクセスとXcodeの開発者機能有効・実機1台登録を画面で確認した。正式App ID `com.kakinymax.fxsurvival`（DescriptionはFiction eXchange）と同名のApp Store Connectレコードを作成済み。本人がレコードのBundle ID一致と有料Team選択を報告し、本人のMacでArchive 1.0（1）を作成した。元コード・同梱資産の一致とXcodeの「App 1.0 (1) uploaded」表示を確認済み。TestFlightには「コンプライアンスがありません／管理」「期限切れまで90日」と表示されたとの報告があり、暗号化に関する回答待ち。Internal Onlyの表示、本人用グループと実機導入は未確認。SKU・Google登録は未報告。登録名義は個人。個人情報や秘密値は保存しない。一般公開の審査・申請・リリースは後続指示で進める。
 
 ## 登録時の本人情報の確認（実施済み）
 
@@ -43,7 +43,7 @@ Appleの個人開発者登録には、本人確認書類と一致する正式な
 5. 完了通知と[Developer Account](https://developer.apple.com/account/)のメンバーシップ状況を確認する。申込済み・本人確認中・購入済み・有効化済みを区別して報告する。
 6. MacのXcode → Settings → Apple Accountsで同じApple Accountを確認する。登録が有効になったTeamを使って準備する。無料Personal Teamの実機Run成功と有料メンバーシップの有効化は別の証拠として扱う。
 
-有料メンバーシップの登録完了を本人が報告済み。App Store Connectのアプリ一覧とXcodeの開発者チーム機能を確認した。これは配布用Archiveの署名成功とは区別する。Codexは本人のアカウント内を操作していない。登録情報や金額の画面が異なる場合は実際の文言に合わせて案内する。
+有料メンバーシップの登録完了、有料Teamの選択を本人が報告済み。App Store Connectのアプリ一覧とXcodeの開発者チーム機能を確認した。Archive生成とアップロードは後述の画面・メタデータで別途確認済み。Codexは本人のAppleアカウント内を操作したり、証明書・秘密鍵を取得したりしていない。登録情報や金額の画面が異なる場合は実際の文言に合わせて案内する。
 
 出典: [Apple Developerアプリでの登録・本人確認・購入](https://developer.apple.com/help/account/membership/enrolling-in-the-app)。
 
@@ -61,7 +61,7 @@ Appleの個人開発者登録には、本人確認書類と一致する正式な
 
 ## 正式版を作る前に決める項目
 
-以下は本人が選んだ方針と未決事項。Appleの正式App IDは登録済み。正式版コードへID/表示名を反映した。本人は正式版の戦績を新しく始めると選択。配布用署名/Archiveは未実施。
+以下は本人が選んだ方針と未決事項。Appleの正式App IDは登録済み。正式版コードへID/表示名を反映した。本人は正式版の戦績を新しく始めると選択。iOSのArchive 1.0（1）生成・アップロードは確認済み。Androidの配布署名AABと両OSのストア経由実機導入は未実施。
 
 | 項目 | 提案 / 決めること | 現在の結果 |
 | --- | --- | --- |
@@ -71,7 +71,7 @@ Appleの個人開発者登録には、本人確認書類と一致する正式な
 | 戦績 | 2026-10-09に本人が端末内保存を選択。ログインなし、各端末で独立 | IndexedDBに確定レコード/TRIP設定を保存。履歴・生涯/歴代/モード別戦績・殿堂・自己ベスト/CPU前回記録を完成UIで表示。新しい版の実機確認は未実施 |
 | 料金・広告・課金 | 本人回答は未定 | 今回の限定テスト版に支払・広告・課金処理は追加しない。無料公開の決定とは扱わない |
 | 配布対象 | 最初は本人の両OS。第三者の人数・参加方法は後で指定 | テスターの招待・連絡は未実施 |
-| 署名の管理 | Appleは本人のMac/Xcodeの有料Team。AndroidはPlayアプリ署名と本人管理のアップロード鍵を使う案 | 配布署名・鍵保管先は未確定。クラウドに秘密鍵を生成/保存していない |
+| 署名の管理 | Appleは本人のMac/Xcodeの有料Team。AndroidはPlayアプリ署名と本人管理のアップロード鍵を使う案 | Appleは有料Team選択報告とArchive生成・アップロードを確認。Codexは証明書・秘密鍵を取得/共有していない。Androidのアップロード鍵と保管先は未確定 |
 
 AppleのBundle IDは初回ビルドをApp Store Connectにアップロードした後に変更できない。正式IDと保存/移行の方針を先に確定する。ゲーム確率・BigInt・確定レコード・秘密注文の処理は維持する。
 
@@ -109,7 +109,7 @@ DescriptionはApple Developer内の管理名。App Store Connectのアプリ名�
 
 3. 「作成」を押す。アプリの管理画面が開いたら作成できたと報告する。作成できない場合はエラー文言を報告する。
 
-SKUは利用者に表示されない内部管理番号で、作成後に変更できない。上記は作成時に案内した値であり、SKUの入力結果は受領画面から確認できていない。配布前に「アプリ情報」でBundle IDが `com.kakinymax.fxsurvival` と一致することを照合する。正式版は新しい戦績で始める方針が本人回答で確定し、コードの表示名/OS別IDへ反映した。
+SKUは利用者に表示されない内部管理番号で、作成後に変更できない。上記は作成時に案内した値であり、SKUの入力結果は受領画面から確認できていない。2026-10-09に本人が「アプリ情報」のBundle IDを `com.kakinymax.fxsurvival` と報告し、Archiveの実際の識別子と一致を確認した。正式版は新しい戦績で始める方針が本人回答で確定し、コードの表示名/OS別IDへ反映した。
 
 出典: [Appleのアプリレコード作成](https://developer.apple.com/help/app-store-connect/create-an-app-record/add-a-new-app/)、[アプリ情報とSKU](https://developer.apple.com/help/app-store-connect/reference/app-information/app-information)。
 
@@ -121,13 +121,33 @@ SKUは利用者に表示されない内部管理番号で、作成後に変更�
 
 1. 前節の手順でApp Store Connectのアプリレコードを作成し、登録済みの正式Bundle IDと対応していることを確認する。アプリ名Fiction eXchange・日本語・Bundle ID・内部管理用SKUを照合する。名前やIDが利用できない場合はその時点で対応する。
 2. [正式IDのテスト版を別フォルダに取得する手順](MOBILE_APP.md)で本人のMacに取得してXcodeを開く。旧試作フォルダや署名設定を上書きしない。AppターゲットのSigning & CapabilitiesでAutomatically manage signingを有効にし、有料TeamとBundle Identifier `com.kakinymax.fxsurvival` を確認する。GeneralのVersionは1.0、Buildは1。初回の提出済みBuildがある場合は次の番号に増やす。
-3. 実行先に汎用iOSデバイスを選び、Product → Archive。OrganizerでArchiveと元コミット・版を確認し、Distribute AppからApp Store Connect/TestFlight向けの配布を選ぶ。内部テスト専用を選択できる場合は今回の対象に合わせ、画面の処理に従う。輸出コンプライアンス等は実装を確認して回答する。
+3. Xcode上部の実行先に `Any iOS Device (arm64)` を選び、Product → Archive。Xcode Cloudの案内には `Don’t Ask Again` を案内した。OrganizerはArchiveの一覧画面で、閉じた場合はWindow → Organizerで開ける。Archiveの識別子・元コード・同梱資産・版を照合し、Distribute App → TestFlight Internal Onlyから本人向けのアップロードを進める。この方法で送ったビルドはTestFlightのビルド番号下の「internal」表示で照合する。アップロード成功後、App Store Connect → Fiction eXchange → TestFlightで別途処理状態を確認する。輸出コンプライアンスの質問は実装と実際の文言を確認して回答する。
 4. App Store Connectの処理完了と検証エラーの有無を確認し、TestFlight → Internal Testingにグループを作成する。最初は本人のみを対象にビルドを手動で追加する。内部テスターはApp Store Connectの権限を持つユーザーに限られる。
 5. 本人のiPhoneでTestFlightから導入し、版・起動・CPU/対面/復帰を確認する。限定配布URL/版/元SHA/結果をIssue/PRへ保存する。
 
 内部テストは最大100人、ビルドの試験可能期間は90日。外部テスターへ広げる場合はベータ審査が必要になることがあり、一般公開の審査とは区別する。今回の準備では外部テスターの招待やベータ審査の送信をしていない。
 
 出典: [アプリレコード](https://developer.apple.com/help/app-store-connect/create-an-app-record/add-a-new-app/)、[TestFlight内部テスト](https://developer.apple.com/help/app-store-connect/test-a-beta-version/add-internal-testers/)、[TestFlight全体](https://developer.apple.com/help/app-store-connect/test-a-beta-version/testflight-overview/)。
+
+### iOSのArchive・アップロード確認（2026-10-09）
+
+本人のMacで作成したArchiveとApp Store Connectを照合した。証拠は本人の画面・ターミナル結果・回答であり、Codexの自動ビルドとは区別する。
+
+| 確認対象 | 結果 |
+| --- | --- |
+| レコードとArchiveの識別子 | 両方とも `com.kakinymax.fxsurvival`。レコードは本人回答、ArchiveはInfo.plist抽出結果 |
+| 版・形式 | XcodeのArchive一覧は1.0（1）、iOS App Archive |
+| 同梱ビルド情報 | `kind: mobile-local`、`sourceCommit: fc8b6e5bb99722ce661d44837fcc6487d01ce010`、`dirty: false`、`records: device-indexeddb`、`onlineRecords: disabled`、正式名/IDが一致 |
+| 同梱mobile.js | SHA256 `eca156cc5124d7064b3476bad6b02f4fcdfbcce0492182bf2c02960a487e5901`。検証済みの同じ元コードの資産と一致 |
+| アップロード | Xcodeの緑のチェックと「App 1.0 (1) uploaded」を画面で確認 |
+| TestFlight | 本人報告「コンプライアンスがありません／管理」「期限切れまで90日」。暗号化に関する回答待ち |
+| 未確認 | Internal Onlyの表示、コンプライアンス回答の保存結果、本人用グループへの追加、TestFlightからの実機導入/新しい戦績版の確認 |
+
+今回の共有文書更新でアプリコードは変更しない。アップロード済みアプリの元コードは上記 `fc8b6e5` のまま扱い、文書だけの更新を理由に本人へclone・再ビルド・再アップロードを求めない。将来、実装を変更して新たに送る場合はBuild番号を増やし、元コード・同梱資産を再照合する。
+
+「コンプライアンスがありません」は、輸出コンプライアンスの回答や書類がまだ設定されていない状態。ビルド横の「管理」から質問を開く。対象コードのモバイル起動・ローカル保存・同梱JS・iOS設定/依存を確認した範囲では、独自またはOS外の暗号化アルゴリズムの実装は見つからなかった。乱数・ゲームIDに使う `crypto.getRandomValues` / `crypto.randomUUID` はOS/WebKitのAPIで、データの暗号化処理ではない。戦績はIndexedDBに保存し、オンラインAPIは使わない。本人から「アプリには、どんな種類の暗号化アルゴリズムが実装されていますか？」と4択を受領した。対象実装に合う回答として「上記のアルゴリズムのどれでもない」を選び保存するよう案内済み。別の文言の質問にも一律「いいえ」とは案内しない。保存完了とビルド状態の変化はまだ未報告なので、次の本人報告で記録する。Info.plistの申告キーは今回追加せず、回答済み/テスト可能とはまだ扱わない。
+
+出典（2026-10-09確認）: [ベータビルドの輸出コンプライアンス](https://developer.apple.com/help/app-store-connect/test-a-beta-version/provide-export-compliance-information-for-beta-builds/)、[暗号化の種類と必要書類](https://developer.apple.com/help/app-store-connect/reference/app-information/export-compliance-documentation-for-encryption/)、[内部テストとInternal Onlyの表示](https://developer.apple.com/help/app-store-connect/test-a-beta-version/add-internal-testers/)。
 
 ### Android：本人へのGoogle Play内部テスト
 
@@ -147,12 +167,12 @@ SKUは利用者に表示されない内部管理番号で、作成後に変更�
 
 | 完成条件 | 確認方法 | 現在の結果 |
 | --- | --- | --- |
-| 最新ルール・担当・重複確認 | main・AGENTS・設計・全open一覧/コメントとIssue予約 | 2026-10-09 main eee32bd、着手head6c75351。openは#10/draft #11のみ。他担当との重複なし、編集前に予約済み |
+| 最新ルール・担当・重複確認 | main・AGENTS・設計・全open一覧/コメントとIssue予約 | 2026-10-09 main eee32bd、今回の文書更新着手head fc8b6e5。openは#10/draft #11のみ。他担当との重複なし、編集前のIssue予約後にも一覧を再確認済み |
 | 登録料・名義・限定配布条件が具体的な案内になっている | Apple/Googleの一次情報を2026-10-06に照合 | 文書準備済み。Appleの登録後の管理画面を確認 |
 | 本人の登録・本人確認・アカウント有効化 | 本人報告で各状態を区別し、秘密値を残さない | Appleは支払/登録完了報告・App Store Connectアクセス・Xcode開発者機能有効を確認。Googleは未報告 |
 | 正式ID・記録移行・保存方式が決まっている | 仕様を共有し、実装とアカウント内のIDを照合 | 端末内保存は本人が選択し実装/自動検証済み。Appleの正式App ID登録を確認。正式ID/表示名をコードへ反映。正式版は新しい戦績で始め、旧試作を残すと本人が選択。料金は未決 |
-| 配布用署名ビルドを作れる | 元SHA/版/署名/同梱資産とビルド結果 | debug APKとiOSシミュレータは検証済み。配布署名AAB/Archiveは未作成 |
-| 本人への限定配布が両OSで動く | TestFlight/Play参加からの実機導入と基本操作 | 手動導入の基本3項目は両OS問題なし。ストア経由の限定配布は未実施 |
+| 配布用署名ビルドを作れる | 元SHA/版/署名/同梱資産とビルド結果 | iOSは本人の有料Team選択報告、Archive 1.0（1）の元コード/識別子/同梱JSの一致、Xcodeアップロード成功を確認。Appleのコンプライアンス回答は未完了。Androidはdebug APK検証済み、配布署名AABは未作成 |
+| 本人への限定配布が両OSで動く | TestFlight/Play参加からの実機導入と基本操作 | 旧試作の手動導入・基本3項目は両OS問題なし。iOSはTestFlightに表示され暗号化の回答待ち。内部グループ/ストア経由実機導入は未確認。Play内部テストは未実施 |
 
 提出SDKの照合: Appleは2026-04-28以降Xcode26/iOS26 SDK以上、Googleの新規スマホアプリは2026-08-31以降target API36以上。試作のXcode26.3/iOS26.2 CIとAndroid compile/target36はこれらの版条件に合う。提出直前にも公式条件・署名・警告・プライバシー等を確認し、この版条件の一致だけをストア提出可能という判定にしない。
 
