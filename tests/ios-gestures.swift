@@ -23,14 +23,11 @@ final class HeaderGestures: XCTestCase {
                       CGVector(dx: initial.minX - 6, dy: initial.midY)]
         for point in points {
             app.coordinate(withNormalizedOffset: .zero).withOffset(point).doubleTap()
-            let sameSize = NSPredicate { _, _ in
-                abs(logo.frame.width - initial.width) < 1 && abs(logo.frame.minX - initial.minX) < 1
-            }
-            XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: sameSize, object: nil)], timeout: 3), .completed)
             // Wait through the native zoom animation before accepting equality.
             Thread.sleep(forTimeInterval: 0.7)
-            XCTAssertEqual(logo.frame.width, initial.width, accuracy: 1, "Header smart-zoomed")
-            XCTAssertEqual(logo.frame.minX, initial.minX, accuracy: 1, "Header panned")
+            let after = logo.frame
+            XCTAssertEqual(after.width, initial.width, accuracy: 1, "Header smart-zoomed")
+            XCTAssertEqual(after.minX, initial.minX, accuracy: 1, "Header panned")
         }
     }
 
@@ -51,13 +48,18 @@ final class HeaderGestures: XCTestCase {
         app.webViews.buttons["ルール"].tap()
         XCTAssertTrue(app.webViews.buttons["閉じる"].waitForExistence(timeout: 5))
         app.webViews.buttons["閉じる"].tap()
-        app.webViews.buttons["1人でCPU対戦"].tap()
+        // WebKit exposes aria-pressed choices as toggle controls, not ordinary
+        // XCTest Buttons. Match the accessible label independently of type.
+        let solo = app.webViews.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "1人でCPU対戦")).firstMatch
+        XCTAssertTrue(solo.waitForExistence(timeout: 5), app.debugDescription)
+        solo.tap()
         let start = app.webViews.buttons["CPUと対戦を始める"]
         if !start.isHittable { app.swipeUp() }
         start.tap()
         app.swipeDown()
         assertHeaderStaysAtInitialSize(app)
-        let sell = app.webViews.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "売り")).firstMatch
+        let sell = app.webViews.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH %@", "売り")).firstMatch
+        XCTAssertTrue(sell.waitForExistence(timeout: 5), app.debugDescription)
         sell.doubleTap()
         let submit = app.webViews.buttons["確定して全員分を公開"]
         XCTAssertTrue(submit.isHittable, app.debugDescription)
