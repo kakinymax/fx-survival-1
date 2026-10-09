@@ -238,6 +238,7 @@ const { join } = require('node:path');
     await page.setViewportSize({ width: 390, height: 844 });
     await page.screenshot({ path: process.env.MOBILE_SCREENSHOT_PATH, fullPage: true });
   }
+  await require('./mobile-viewport-check.cjs')(browser, base);
   await browser.close();
   // A real browser-process restart must reopen the committed archive on disk.
   const profile = mkdtempSync(join(tmpdir(), 'fx-survival-local-records-'));
@@ -253,5 +254,5 @@ const { join } = require('node:path');
     assert.deepEqual(await persistentPage.evaluate(async () => (await (await FX_SURVIVAL_BUILD.apiFetch('/api/matches/legacy-imported')).json()).record), legacy);
     await persistent.close();
   } finally { rmSync(profile, { recursive: true, force: true }); }
-  console.log('PASS: mobile offline games/full statistics, actual IndexedDB commit/abort/concurrent writes, old outbox migration, TRIP boundaries/retry/conflict, exact BigInt, pagination, process restart, 3 phone sizes, landscape, no API/external requests or JS errors.');
+  console.log('PASS: mobile offline games/full statistics, actual IndexedDB commit/abort/concurrent writes, old outbox migration, TRIP boundaries/retry/conflict, exact BigInt, pagination, process restart, phone layouts, touch double-taps, zoomed/panned action docks, no API/external requests or JS errors.');
 })().catch(error => { console.error(error); process.exit(1); });
