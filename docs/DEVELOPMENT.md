@@ -15,6 +15,7 @@
 | D1スキーマ・履歴 | `db/schema.ts`、`drizzle/` |
 | Workerビルド | `scripts/build.mjs` |
 | フォントとライセンス | `dist/fonts/`、`scripts/build-pixel-font.py` |
+| 端末内戦績 | `mobile/local-records.js`（IndexedDB）、`mobile/local-api.js`（集計/保存接続） |
 | 検証 | `tests/*.test.mjs`、`tests/*-check.cjs` |
 
 `dist/` にあるフロントのファイルはソースとしてGit管理する。`dist/server/` は生成物で、画面の変更後はWorkerをビルドし直してからブラウザ確認する。フォントの由来とライセンスを維持する。
@@ -23,7 +24,8 @@
 
 - GitHub: コード・仕様・作業記録・テスト・設定・マイグレーション。実際のユーザーの戦績、データベースの内容、認証情報は登録しない。
 - ブラウザ: 進行中ゲーム、未送信レコードなどの端末内状態。未確定の注文は再読み込みで初期状態へ戻す。
-- D1: 所有者ごとの確定試合レコードとTRIP設定。確定レコードは同一ゲームIDで冪等保存し、書き換えない。
+- D1: Web版の所有者ごとの確定試合レコードとTRIP設定。確定レコードは同一ゲームIDで冪等保存し、書き換えない。
+- モバイルのIndexedDB: この端末の確定レコードとTRIP設定。取引完了後にのみ保存確認を返し、同一ゲームIDの異なるスナップショットは409。既存の送信待ちを取り込み、同梱の集計関数で完成UIを表示。ログイン/外部API通信/端末間同期はなく、削除/データ消去で失われる。正式版で別IDを使う場合の移行は未実装。
 
 FINAL RESULTSと保存APIは同じ `finalRecord` を使う。現在の `schemaVersion` は1。本人の生涯戦績には `ownerPlayerId` がある人間を使い、本人未指定の対面とCPUは合算しない。新しい指標も元ログから再計算可能にし、ゲーム結果を再抽選・再精算しない。
 
@@ -55,7 +57,7 @@ npm start -- --port 4173
 
 ## iPhone・Android試作
 
-UI完成版を同梱するCapacitorプロジェクトを追加。方式・完成条件は[アプリ化ロードマップ](MOBILE_ROADMAP.md)、端末で試す操作と生成/ビルドは[アプリ試作手順](MOBILE_APP.md)を参照。`npm run mobile:sync` で両OSへ資産をコピーする。生成物はGit管理しない。オンライン戦績は試作では未接続で、確定レコードを送信待ちとして保持する。
+UI完成版を同梱するCapacitorプロジェクトを追加。方式・完成条件は[アプリ化ロードマップ](MOBILE_ROADMAP.md)、端末で試す操作と生成/ビルドは[アプリ試作手順](MOBILE_APP.md)を参照。`npm run mobile:sync` で両OSへ資産をコピーする。生成物はGit管理しない。2026-10-09に本人が端末内保存を選択。完成UIの戦績へ接続し、旧試作の送信待ちは同じIDでの更新時に取り込む。外部API通信は行わない。`tests/mobile-local.test.mjs` は保存境界/集計/失敗とWeb切替、`npm run mobile:check` は実際のIndexedDBとUI・プロセス再起動を確認する。
 
 ## 統合と公開の扱い
 

@@ -22,7 +22,7 @@ await writeFile(`${destination}/index.html`, html);
 const sourceCommit = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
 const dirty = !!execFileSync('git', ['status', '--porcelain'], { encoding: 'utf8' }).trim();
 await writeFile(`${destination}/build-info.json`, JSON.stringify({
-  kind: 'mobile-prototype', sourceCommit, dirty, onlineRecords: 'disconnected',
+  kind: 'mobile-local', sourceCommit, dirty, records: 'device-indexeddb', onlineRecords: 'disabled',
   appId: 'com.kakinymax.fxsurvival.prototype'
 }, null, 2) + '\n');
-console.log(`Mobile assets: ${destination} (${sourceCommit}); online records disconnected.`);
+console.log(`Mobile assets: ${destination} (${sourceCommit}); records saved on this device.`);

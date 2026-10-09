@@ -1,6 +1,6 @@
 # アプリ試作の使い方・引き継ぎ
 
-[ロードマップ](MOBILE_ROADMAP.md) / [作業Issue #10](https://github.com/kakinymax/fx-survival-1/issues/10)。今回は端末でゲームを試すための版。ストア申請・公開と有料の開発者登録はまだ行っていない。
+[ロードマップ](MOBILE_ROADMAP.md) / [作業Issue #10](https://github.com/kakinymax/fx-survival-1/issues/10)。今回は端末でゲームを試すための版。2026-10-09にApple登録完了と開発者機能有効を確認。ストア申請・一般公開は行っていない。最新のモバイル版は本人選択の端末内戦績保存に対応する。
 
 ## 最初にユーザーが確認すること
 
@@ -57,13 +57,33 @@ XcodeのAppターゲットで本人のTeamと実行先のiPhoneを確認し、�
 
 出典: [Appleの個人実機試験とPersonal Teamの制約](https://developer.apple.com/jp/help/account/basics/about-your-developer-account/)、[Xcodeの実機実行](https://developer.apple.com/documentation/xcode/running-your-app-on-simulated-or-physical-devices)、[開発者モード](https://developer.apple.com/documentation/xcode/enabling-developer-mode-on-a-device)。
 
+## 端末内戦績版へソースを更新する（2026-10-09）
+
+既存のMacフォルダでは、先にターミナルで次を1行ずつ実行する。
+
+```sh
+cd ~/Desktop/fx-survival-iphone-prototype
+git status --short --branch
+git rev-parse --short HEAD
+```
+
+変更ファイルが表示される場合は、本人の署名設定などを保持する手順を案内するので、秘密値を除いた状態を共有する。強制reset/cleanやフォルダ削除はしない。変更がなく、ブランチが `mobile/prototype-20261005-codex-root` なら次で更新する。
+
+```sh
+git pull --ff-only
+npm ci
+npm run mobile:ios
+```
+
+同じ試作IDのアプリへ上書き導入し、アンインストールしない。正式ID候補をまだこの手順で変更しない。古い版での実機成功報告は、新しい保存版の成功として扱わない。
+
 ## 試す操作
 
 対面2人で開始し、Aの注文確定後にBの入力が未選択になることを確認。全注文を公開し、方向と値動きを別々に抽選して精算。続行/資産確定を選び、最後の結果を確認する。CPU対戦も開始し、資産確定後の観戦/早送りを試す。試合の途中でホームに戻ってからアプリを開き直し、未確定入力はリセット、確定した相場は維持されることを確認する。
 
 画面上部/下部のボタンが時刻・ノッチ・ホームバーと重ならないか、倍率入力中でも確定ボタンを押せるか、縦横で横はみ出しがないかを見る。Androidの戻るは、開いている説明を閉じる→戦績からゲームへ戻る→ゲーム画面ではアプリを背面へ送る。前のプレイヤーの秘密注文へ戻らない。
 
-オンライン戦績は試作では未接続。確定レコードは端末内に送信待ちとして残すが、生涯戦績・TRIP・自己ベスト等は表示しない。試作削除/データ消去で記録が消える。Web版との同期・正式版への移行は未実装。重要な結果は画面を控える。
+最新のモバイル版は確定レコードとTRIP設定を端末内に保存し、完成UIの履歴・生涯戦績・歴代記録・TRIP・モード別・殿堂・自己ベスト/CPUの前回記録を表示する。対面は履歴と「人間全体」へ保存し、本人未指定のため生涯戦績へは合算しない。試合終了後の「この端末にゲームの戦績を保存しました」を確認する。保存失敗時は同じ記録を再試行でき、成功を確認するまで送信待ちから除かない。旧試作の送信待ちは同じ試作IDで更新すれば取り込む。ログインや外部API通信はなく、端末間/Web版との同期はない。削除/データ消去で失われる。別IDの正式版への記録移行は未実装。
 
 ## 開発者向け再現手順
 
@@ -88,17 +108,17 @@ xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug \
   -derivedDataPath ios/build CODE_SIGNING_ALLOWED=NO build
 ```
 
-検証: `npm test`、`npm run build`、`npm run mobile:sync`。別ターミナルで `npm run mobile:preview` を起動して `npm run mobile:check`。初回に `npx playwright install chromium` が必要。Linuxでインストール済みChromiumを使う場合は `CHROMIUM_PATH`、URL変更は `MOBILE_BASE_URL` を指定できる。モバイル確認はAPI保存成功を模擬せず、通信なし・確定レコードの送信待ち保持を確認する。通常Webは既存のWorker/D1ブラウザ検証で別に確認する。
+検証: `npm test`、`npm run build`、`npm run mobile:sync`。別ターミナルで `npm run mobile:preview` を起動して `npm run mobile:check`。初回に `npx playwright install chromium` が必要。Linuxでインストール済みChromiumを使う場合は `CHROMIUM_PATH`、URL変更は `MOBILE_BASE_URL` を指定できる。モバイル確認は実際のIndexedDBを使い、取引のコミット/中断・競合・旧キューの取り込み・TRIP境界/再試行・大きな整数/ページング・ブラウザプロセス再起動後の保存を確認する。通常Webは既存のWorker/D1ブラウザ検証で別に確認する。
 
 CI `.github/workflows/mobile-prototype.yml` はPRのWeb確認、Android APKコンパイル、MacでのXcode26.3/27.0を指定した署名なしiOSシミュレータ向けコンパイル・インストール・起動。Xcode27ランナーはpreviewのため、その状態と実行結果を記録する。CIの `.app` は実機IPAではない。GitHub Actionsの実行結果が成功したことを確認してからIssue/PRへ記録する。
 
 ## ファイルと残件
 
-`dist/platform.js` と `dist/app.js` はWeb/試作の表示と通信の切替。通常Webには試作マーカーがなく、既存認証/保存を使う。`dist/record-store.js` の `autoRetry:false` は送信を止め、既存の送信待ち形式を保持する。モバイル固有の起動・戻る・安全領域は `mobile/`。生成処理は `scripts/build-mobile.mjs`、設定は `capacitor.config.json`、OS別は `android/` と `ios/`。
+`dist/platform.js` と `dist/app.js` はWeb/モバイルの表示と保存先の切替。通常Webは既存認証/保存を使う。モバイルは `mobile/local-api.js` から `mobile/local-records.js` のIndexedDBへ接続し、既存の `dist/record-store.js` の送信待ち形式と再試行を使う。`server/` の集計関数は同梱して再利用するが、Worker/D1や外部APIは使わない。モバイル固有の起動・戻る・安全領域は `mobile/`。生成処理は `scripts/build-mobile.mjs`、設定は `capacitor.config.json`、OS別は `android/` と `ios/`。
 
 生成資産 `mobile/www/` の `build-info.json` に元コミットと未コミット変更の有無が入る。APK等のログと一緒に参照する。`mobile/www/`、コピー先のpublic、SDK/署名ファイル/ローカル設定/ビルド出力はGit管理しない。既存Sites/Pagesは更新しない。
 
-残件は、対面3〜6人、12ラウンド/早期終了/ギャップの個別照合、キーボード・安全領域・縦横・Android戻る・アプリ強制終了後の挙動、端末上のビルド版/資産の照合、正式アイコンと配布署名、オンライン戦績の認証/保存方針、正式app IDと記録移行、掲載文・プライバシー・ストア申請。実機での導入・起動と基本3項目は両OSで問題なしとの報告を受領済み。確認済みの基本項目を再び未実施として扱わない。デフォルトのCapacitorアイコン/起動画面は試作用で、掲載準備段階で作り直す。
+残件は、対面3〜6人、12ラウンド/早期終了/ギャップの個別照合、キーボード・安全領域・縦横・Android戻る・アプリ強制終了後の挙動、端末上のビルド版/資産の照合、正式アイコンと配布署名、新しい端末内保存版の実機確認、正式app IDと記録移行、掲載文・プライバシー・ストア申請。実機での導入・起動と基本3項目は両OSで問題なしとの報告を受領済み。確認済みの基本項目を再び未実施として扱わない。デフォルトのCapacitorアイコン/起動画面は試作用で、掲載準備段階で作り直す。
 
 ## 今回確認できた範囲
 
@@ -111,7 +131,7 @@ CI `.github/workflows/mobile-prototype.yml` はPRのWeb確認、Android APKコ�
 | AQUOS sense4 basic / Android12 | Google Files経由で導入・起動 | 問題なし | 問題なし | 問題なし |
 | iPhone SE（第3世代）/ iOS27.0.1 | Xcode26.3の手順で導入し、証明書信頼後に起動 | 問題なし | 問題なし | 問題なし |
 
-Androidは2026-10-05 JST、iPhoneは2026-10-06 JSTの報告。試作と基本確認は完了。2026-10-06の後続指示で段階3「開発者登録・配布準備」を再開し、[登録・配布手順](MOBILE_DISTRIBUTION.md)にApple Accountの氏名確認、個人登録、費用、署名と限定配布の具体的手順を保存した。本人確認・登録/支払完了、正式IDと戦績の方針、配布署名ビルド/限定配布は未完了。mainは未統合、PR #11はdraft、親Issue #10はopenを維持する。一般公開の申請・公開は後続指示で進める。
+Androidは2026-10-05 JST、iPhoneは2026-10-06 JSTの報告。試作と基本確認は完了。2026-10-06の後続指示で段階3「開発者登録・配布準備」を再開し、[登録・配布手順](MOBILE_DISTRIBUTION.md)にApple Accountの氏名確認、個人登録、費用、署名と限定配布の具体的手順を保存した。2026-10-09にApple登録完了報告・App Store Connectアクセス・Xcode開発者機能有効を確認し、端末内保存を採用/実装した。Google登録、正式ID/別IDへの記録移行、料金/広告/課金、配布署名ビルド/限定配布は未完了。mainは未統合、PR #11はdraft、親Issue #10はopenを維持する。一般公開の申請・公開は後続指示で進める。
 
 ## 安全性更新後の実機確認（2026-10-07）
 
@@ -121,5 +141,13 @@ mainの安全性修正をこの試作ブランチへ正式に統合。Androidは
 
 1. Macでこのブランチをpullし、`npm ci`、`npm run mobile:sync`を実行する。既存のiPhone署名設定を使ってXcodeから同じ試作アプリへ更新する（アンインストールしない）。
 2. Androidは最新CIのdebug APKを同じアプリへ上書きインストールする。既存データを維持するため削除しない。
-3. 両端末で起動、対面の秘密注文、ソロの終了、画面回転、バックグラウンドからの復帰、再起動後の進行中ゲームと未送信レコードを確認する。外部サイトの読み込み・オンライン保存は従来どおり未接続。
+3. 両端末で起動、対面の秘密注文、ソロの終了、画面回転、バックグラウンドからの復帰、再起動後の進行中ゲームと保存済み履歴/生涯戦績/TRIP、旧未送信レコードの取り込みを確認する。外部サイトの読み込み・オンライン保存は行わない。
 4. 結果と端末／OSをIssue #10へ記録する。署名期限切れのiPhoneは本書の再導入手順を使う。
+
+## 端末内戦績版の自動検証（2026-10-09）
+
+- ユニット157件、Web/モバイルの生成と両OSへの同期、依存監査0を確認。
+- 実際のIndexedDBで保存のコミット/中断、同一試合の競合、旧送信待ちの取り込み、保存領域が使えない時のエラー表示を確認。
+- 履歴・本人/人間/CPUの分離・TRIPの境界/名前/リセット/再試行・大きな整数・20件を超える殿堂ページング、ブラウザプロセス再起動、スマホ3サイズと横向き、外部API/外部資産の通信なしを確認。
+- 通常Webは実際のWorker/D1で保存/再読込/競合/障害後の再試行、本人所有権、入力検証/頻度制限、CSPを確認。Webの認証付き保存を維持する。
+- この版の両OSネイティブCI結果とコミットはIssue #10/PR #11の最新記録に保存する。実機確認と配布署名・限定配布は別の残件。従来の実機成功をこの更新版の成功とは扱わない。

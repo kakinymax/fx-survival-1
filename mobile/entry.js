@@ -1,8 +1,11 @@
 import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import { handleBack } from './navigation.js';
+import { createLocalRepository } from './local-records.js';
+import { createLocalApi } from './local-api.js';
 
-globalThis.FX_SURVIVAL_BUILD = Object.freeze({ kind: 'mobile-prototype' });
+globalThis.FX_SURVIVAL_BUILD = Object.freeze({ kind: 'mobile-local',
+  apiFetch: createLocalApi({ repository: createLocalRepository() }) });
 document.documentElement.classList.add('mobile-prototype');
 
 // Android Back dismisses overlays or returns from statistics. It never walks
