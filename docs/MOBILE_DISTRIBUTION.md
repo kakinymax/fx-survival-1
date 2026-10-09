@@ -61,11 +61,11 @@ Appleの個人開発者登録には、本人確認書類と一致する正式な
 
 ## 正式版を作る前に決める項目
 
-以下は提案・未決事項。正式IDの登録、試作の設定変更、署名鍵作成はまだ行っていない。
+以下は本人が選んだ方針と未決事項。正式IDの登録、試作の設定変更、署名鍵作成はまだ行っていない。
 
 | 項目 | 提案 / 決めること | 現在の結果 |
 | --- | --- | --- |
-| 正式アプリ名 | FXサバイバル。ストア内での名称の利用可否も確認 | 試作表示はFXサバイバル試作。正式レコード未作成 |
+| 正式アプリ名 | Fiction eXchange。2026-10-09に本人が正式名として指定 | App IDのDescriptionにも同名を入力する。ストア内での名称の利用可否は未確認。試作表示はFXサバイバル試作を維持。正式レコード未作成 |
 | 正式アプリ識別子 | 両OSで `com.kakinymax.fxsurvival` を候補とし、本人のアカウントで利用可否を確認して確定 | 現在は `com.kakinymax.fxsurvival.prototype`。候補の使用可能性・正式採用は未確認 |
 | 試作の記録 | 同じ試作ID・署名で更新できた場合に旧送信待ち記録を端末内の保存履歴へ取り込む。別IDの正式版への移行は別途選択する | 同じIDでの取り込みをブラウザで検証。別IDへの自動移行・エクスポートは未実装。試作を削除しない |
 | 戦績 | 2026-10-09に本人が端末内保存を選択。ログインなし、各端末で独立 | IndexedDBに確定レコード/TRIP設定を保存。履歴・生涯/歴代/モード別戦績・殿堂・自己ベスト/CPU前回記録を完成UIで表示。新しい版の実機確認は未実施 |
@@ -77,13 +77,27 @@ AppleのBundle IDは初回ビルドをApp Store Connectにアップロードし�
 
 出典: [AppleのBundle ID](https://developer.apple.com/help/app-store-connect/reference/app-information/app-information)、[Androidの署名管理](https://developer.android.com/studio/publish/app-signing?hl=ja)。
 
+## 正式App ID登録の本人操作
+
+本人のIdentifiers一覧に既存の `com.kakinymax.fxsurvival.prototype` があることを2026-10-09に確認した。試作の設定と一致するため残す。正式候補は末尾 `.prototype` のない別IDであり、登録成功の報告はまだない。
+
+1. [Apple DeveloperのIdentifiers](https://developer.apple.com/account/resources/identifiers/list)で＋ → App IDs → Continue。種類が表示されればAppを選ぶ。
+2. Descriptionに `Fiction eXchange` を入力する。大文字のXを含め、本人が指定した表記を使う。
+3. Bundle IDはExplicitを選び、`com.kakinymax.fxsurvival` を入力する。正式名を変えても、識別子を名前に合わせて変更する必要はない。
+4. Capabilitiesを追加で選ばずContinue。確認画面のIDを確認してRegister。
+5. 登録できたか、エラーの文言だけを報告する。結果を受けてCodexが設定・署名と試作記録の扱いを確認して進める。
+
+DescriptionはApple Developer内の管理名。App Store Connectのアプリ名と端末上の表示名は別途設定する。Descriptionの登録だけでストアの名前を予約したことや掲載済みとは扱わない。
+
+出典: [AppleのApp ID登録](https://developer.apple.com/help/account/identifiers/register-an-app-id/)、[App Store Connectのアプリレコード作成](https://developer.apple.com/help/app-store-connect/create-an-app-record/add-a-new-app/)。
+
 ## 限定配布用のビルドと確認
 
 次の手順は、アカウント有効化と正式IDの確定後に使う。現在のdebug APKやCIの署名なしシミュレータ用アプリを正式配布物としてアップロードしない。
 
 ### iPhone：本人へのTestFlight内部テスト
 
-1. 有効な有料Teamで正式Bundle IDを登録し、[App Store Connect](https://appstoreconnect.apple.com/)のApps → ＋でアプリレコードを作成する。アプリ名・日本語・Bundle ID・内部管理用SKUを揃える。名前やIDが利用できない場合はその時点で対応する。
+1. 有効な有料Teamで正式Bundle IDを登録し、[App Store Connect](https://appstoreconnect.apple.com/)のApps → ＋でアプリレコードを作成する。アプリ名はFiction eXchangeとし、日本語・Bundle ID・内部管理用SKUを揃える。名前やIDが利用できない場合はその時点で対応する。
 2. 正式IDをCapacitor設定とiOS/Androidの設定へ一貫して反映してから、既存の生成/同期手順でXcodeを開く。AppターゲットのAutomatically manage signingと有料Team、Version/Buildを確認する。
 3. 実行先に汎用iOSデバイスを選び、Product → Archive。OrganizerでArchiveと元コミット・版を確認し、Distribute AppからApp Store Connect/TestFlight向けの配布を選ぶ。内部テスト専用を選択できる場合は今回の対象に合わせ、画面の処理に従う。輸出コンプライアンス等は実装を確認して回答する。
 4. App Store Connectの処理完了と検証エラーの有無を確認し、TestFlight → Internal Testingにグループを作成する。最初は本人のみを対象にビルドを手動で追加する。内部テスターはApp Store Connectの権限を持つユーザーに限られる。
