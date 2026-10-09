@@ -2,7 +2,7 @@
 
 更新: 2026-10-09 JST。正本は[Issue #10](https://github.com/kakinymax/fx-survival-1/issues/10) / [draft PR #11](https://github.com/kakinymax/fx-survival-1/pull/11)。担当 `mobile-prototype-20261005-codex-root`、固有ブランチ `mobile/prototype-20261005-codex-root`。6段階の全体像は[ロードマップ](MOBILE_ROADMAP.md)、試作の再導入は[試作手順](MOBILE_APP.md)を参照する。
 
-段階3を継続中。Appleの支払・登録完了を本人報告で確認し、App Store Connectのアプリ一覧へのアクセスと、Xcode開発者チームのCertificates, Identifiers & Profiles有効・実機1台登録を画面で確認した。アプリレコードは0件で、Appターゲットの署名設定・正式ID・Archive・限定配布はまだ未確認。Google登録は未報告。登録名義は個人。個人情報や秘密値は保存しない。一般公開の審査・申請・リリースは後続指示で進める。
+段階3を継続中。Appleの支払・登録完了を本人報告で確認し、App Store Connectのアプリ一覧へのアクセスと、Xcode開発者チームのCertificates, Identifiers & Profiles有効・実機1台登録を画面で確認した。正式App ID `com.kakinymax.fxsurvival` をDescription「Fiction eXchange」で登録済みと確認した。App Store Connectの正式レコード作成、Appターゲットの正式ID/署名設定・Archive・限定配布はまだ未確認。Google登録は未報告。登録名義は個人。個人情報や秘密値は保存しない。一般公開の審査・申請・リリースは後続指示で進める。
 
 ## 登録時の本人情報の確認（実施済み）
 
@@ -61,12 +61,12 @@ Appleの個人開発者登録には、本人確認書類と一致する正式な
 
 ## 正式版を作る前に決める項目
 
-以下は本人が選んだ方針と未決事項。正式IDの登録、試作の設定変更、署名鍵作成はまだ行っていない。
+以下は本人が選んだ方針と未決事項。Appleの正式App IDは登録済み。正式版コードへのID/表示名の反映、署名鍵作成はまだ行っていない。
 
 | 項目 | 提案 / 決めること | 現在の結果 |
 | --- | --- | --- |
-| 正式アプリ名 | Fiction eXchange。2026-10-09に本人が正式名として指定 | App IDのDescriptionにも同名を入力する。ストア内での名称の利用可否は未確認。試作表示はFXサバイバル試作を維持。正式レコード未作成 |
-| 正式アプリ識別子 | 両OSで `com.kakinymax.fxsurvival` を候補とし、本人のアカウントで利用可否を確認して確定 | 現在は `com.kakinymax.fxsurvival.prototype`。候補の使用可能性・正式採用は未確認 |
+| 正式アプリ名 | Fiction eXchange。2026-10-09に本人が正式名として指定 | AppleのApp IDはDescription「Fiction eXchange」で登録済み。ストア内での名称の利用可否は未確認。試作表示はFXサバイバル試作を維持。正式レコード未作成 |
+| 正式アプリ識別子 | iPhone用は `com.kakinymax.fxsurvival` で登録済み。Android用も同じ識別子を使う案 | 2026-10-09にAppleでの登録完了を本人の画面で確認。コードは `com.kakinymax.fxsurvival.prototype` のまま。正式IDのコード反映は未実施 |
 | 試作の記録 | 同じ試作ID・署名で更新できた場合に旧送信待ち記録を端末内の保存履歴へ取り込む。別IDの正式版への移行は別途選択する | 同じIDでの取り込みをブラウザで検証。別IDへの自動移行・エクスポートは未実装。試作を削除しない |
 | 戦績 | 2026-10-09に本人が端末内保存を選択。ログインなし、各端末で独立 | IndexedDBに確定レコード/TRIP設定を保存。履歴・生涯/歴代/モード別戦績・殿堂・自己ベスト/CPU前回記録を完成UIで表示。新しい版の実機確認は未実施 |
 | 料金・広告・課金 | 本人回答は未定 | 今回の限定テスト版に支払・広告・課金処理は追加しない。無料公開の決定とは扱わない |
@@ -77,19 +77,41 @@ AppleのBundle IDは初回ビルドをApp Store Connectにアップロードし�
 
 出典: [AppleのBundle ID](https://developer.apple.com/help/app-store-connect/reference/app-information/app-information)、[Androidの署名管理](https://developer.android.com/studio/publish/app-signing?hl=ja)。
 
-## 正式App ID登録の本人操作
+## 正式App ID登録の本人操作（登録済み）
 
-本人のIdentifiers一覧に既存の `com.kakinymax.fxsurvival.prototype` があることを2026-10-09に確認した。試作の設定と一致するため残す。正式候補は末尾 `.prototype` のない別IDであり、登録成功の報告はまだない。
+2026-10-09に本人のIdentifiers一覧で、Description「Fiction eXchange」／`com.kakinymax.fxsurvival` の登録済み表示を確認した。既存の `com.kakinymax.fxsurvival.prototype` も残っており、試作の設定と一致する。以下は実施した手順の記録。次の本人操作はApp Store Connectでのアプリレコード作成。
 
 1. [Apple DeveloperのIdentifiers](https://developer.apple.com/account/resources/identifiers/list)で＋ → App IDs → Continue。種類が表示されればAppを選ぶ。
 2. Descriptionに `Fiction eXchange` を入力する。大文字のXを含め、本人が指定した表記を使う。
 3. Bundle IDはExplicitを選び、`com.kakinymax.fxsurvival` を入力する。正式名を変えても、識別子を名前に合わせて変更する必要はない。
 4. Capabilitiesを追加で選ばずContinue。確認画面のIDを確認してRegister。
-5. 登録できたか、エラーの文言だけを報告する。結果を受けてCodexが設定・署名と試作記録の扱いを確認して進める。
+5. 登録後の一覧で正式IDと試作IDが別行に表示されることを確認。本人の画面で確認済み。
 
 DescriptionはApple Developer内の管理名。App Store Connectのアプリ名と端末上の表示名は別途設定する。Descriptionの登録だけでストアの名前を予約したことや掲載済みとは扱わない。
 
 出典: [AppleのApp ID登録](https://developer.apple.com/help/account/identifiers/register-an-app-id/)、[App Store Connectのアプリレコード作成](https://developer.apple.com/help/app-store-connect/create-an-app-record/add-a-new-app/)。
+
+## App Store Connectのアプリレコード作成（次の本人操作）
+
+TestFlightの配布先となるアプリレコードを作成する。この操作だけで審査への提出や一般公開にはならない。ストア内で正式名を使えるかは作成時の結果で確認する。
+
+1. MacのSafariで[App Store Connect](https://appstoreconnect.apple.com/)へサインインし、「アプリ」→ ＋ →「新規アプリ」を開く。
+2. 次の値を入力・選択する。
+
+| 項目 | 入力・選択する値 |
+| --- | --- |
+| プラットフォーム | iOS |
+| 名前 | `Fiction eXchange` |
+| プライマリ言語 | 日本語 |
+| Bundle ID | `com.kakinymax.fxsurvival`。DescriptionがFiction eXchangeのものを選び、`.prototype`が付く試作IDを選ばない |
+| SKU | `fiction-exchange-ios-001` |
+| ユーザーアクセス | フルアクセス |
+
+3. 「作成」を押す。アプリの管理画面が開いたら作成できたと報告する。作成できない場合はエラー文言を報告する。
+
+SKUは利用者に表示されない内部管理番号で、作成後に変更できない。上記は今回使う値の案内であり、レコード作成済みとは記録しない。結果を受け、Codexが試作記録の扱いを確認して正式版の表示名/OS別設定・署名の準備へ進む。
+
+出典: [Appleのアプリレコード作成](https://developer.apple.com/help/app-store-connect/create-an-app-record/add-a-new-app/)、[アプリ情報とSKU](https://developer.apple.com/help/app-store-connect/reference/app-information/app-information)。
 
 ## 限定配布用のビルドと確認
 
@@ -97,7 +119,7 @@ DescriptionはApple Developer内の管理名。App Store Connectのアプリ名�
 
 ### iPhone：本人へのTestFlight内部テスト
 
-1. 有効な有料Teamで正式Bundle IDを登録し、[App Store Connect](https://appstoreconnect.apple.com/)のApps → ＋でアプリレコードを作成する。アプリ名はFiction eXchangeとし、日本語・Bundle ID・内部管理用SKUを揃える。名前やIDが利用できない場合はその時点で対応する。
+1. 前節の手順でApp Store Connectのアプリレコードを作成し、登録済みの正式Bundle IDと対応していることを確認する。アプリ名Fiction eXchange・日本語・Bundle ID・内部管理用SKUを照合する。名前やIDが利用できない場合はその時点で対応する。
 2. 正式IDをCapacitor設定とiOS/Androidの設定へ一貫して反映してから、既存の生成/同期手順でXcodeを開く。AppターゲットのAutomatically manage signingと有料Team、Version/Buildを確認する。
 3. 実行先に汎用iOSデバイスを選び、Product → Archive。OrganizerでArchiveと元コミット・版を確認し、Distribute AppからApp Store Connect/TestFlight向けの配布を選ぶ。内部テスト専用を選択できる場合は今回の対象に合わせ、画面の処理に従う。輸出コンプライアンス等は実装を確認して回答する。
 4. App Store Connectの処理完了と検証エラーの有無を確認し、TestFlight → Internal Testingにグループを作成する。最初は本人のみを対象にビルドを手動で追加する。内部テスターはApp Store Connectの権限を持つユーザーに限られる。
@@ -128,7 +150,7 @@ DescriptionはApple Developer内の管理名。App Store Connectのアプリ名�
 | 最新ルール・担当・重複確認 | main・AGENTS・設計・全open一覧/コメントとIssue予約 | 2026-10-09 main eee32bd、着手head6c75351。openは#10/draft #11のみ。他担当との重複なし、編集前に予約済み |
 | 登録料・名義・限定配布条件が具体的な案内になっている | Apple/Googleの一次情報を2026-10-06に照合 | 文書準備済み。Appleの登録後の管理画面を確認 |
 | 本人の登録・本人確認・アカウント有効化 | 本人報告で各状態を区別し、秘密値を残さない | Appleは支払/登録完了報告・App Store Connectアクセス・Xcode開発者機能有効を確認。Googleは未報告 |
-| 正式ID・記録移行・保存方式が決まっている | 仕様を共有し、実装とアカウント内のIDを照合 | 端末内保存は本人が選択し実装/自動検証済み。正式ID登録と別IDへの記録移行、料金は未決 |
+| 正式ID・記録移行・保存方式が決まっている | 仕様を共有し、実装とアカウント内のIDを照合 | 端末内保存は本人が選択し実装/自動検証済み。Appleの正式App ID登録を確認。正式IDのコード反映、別IDへの記録移行、料金は未決 |
 | 配布用署名ビルドを作れる | 元SHA/版/署名/同梱資産とビルド結果 | debug APKとiOSシミュレータは検証済み。配布署名AAB/Archiveは未作成 |
 | 本人への限定配布が両OSで動く | TestFlight/Play参加からの実機導入と基本操作 | 手動導入の基本3項目は両OS問題なし。ストア経由の限定配布は未実施 |
 
