@@ -60,7 +60,7 @@ jobs:
           name: fx-survival-android-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
   ios-simulator:
-    timeout-minutes: 20
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -119,6 +119,28 @@ jobs:
           print("PASS: WebKit storage is excluded from backup")
           SWIFT
           xcrun simctl io "$simulator_id" screenshot ios/build/iphone-simulator.png
+          echo "SIMULATOR_ID=$simulator_id" >> "$GITHUB_ENV"
+      - name: Verify native header double taps with a negative control
+        timeout-minutes: 15
+        run: |
+          cp ios/App/App/public/mobile.js ios/build/fixed-mobile.js
+          node scripts/build-ios-gesture-baseline.mjs
+          xcodebuild -project ios/App/App.xcodeproj -scheme App \
+            -configuration Debug -sdk iphonesimulator -destination "id=$SIMULATOR_ID" \
+            -derivedDataPath ios/build/baseline CODE_SIGNING_ALLOWED=NO \
+            PRODUCT_BUNDLE_IDENTIFIER=com.kakinymax.fxsurvival.gesturebaseline build
+          xcrun simctl install "$SIMULATOR_ID" ios/build/baseline/Build/Products/Debug-iphonesimulator/App.app
+          cp ios/build/fixed-mobile.js ios/App/App/public/mobile.js
+          node scripts/prepare-ios-gesture-tests.mjs
+          xcodebuild -project ios/build/Gestures.xcodeproj -scheme Gestures \
+            -configuration Debug -sdk iphonesimulator -destination "id=$SIMULATOR_ID" \
+            -derivedDataPath ios/build/gesture-derived -resultBundlePath ios/build/gestures.xcresult \
+            -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO test
+      - uses: actions/upload-artifact@v7.0.1
+        if: always()
+        with:
+          name: fx-survival-ios-gestures-${{ matrix.xcode }}
+          path: ios/build/gestures.xcresult
       - uses: actions/upload-artifact@v7.0.1
         with:
           name: fx-survival-ios-simulator-${{ matrix.xcode }}

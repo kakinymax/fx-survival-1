@@ -13,8 +13,20 @@ module.exports = async function checkMobileViewport(browser, base) {
     });
     await page.goto(base);
     await page.evaluate(() => document.fonts.ready);
+    await page.evaluate(() => {
+      window.headerTapResults = [];
+      window.lastTouchEnds = [];
+      document.addEventListener('touchend', event => {
+        window.lastTouchEnds.push({ tag: event.target.tagName, cls: event.target.className,
+          y: event.changedTouches[0]?.clientY, scroll: scrollY });
+        window.lastTouchEnds = window.lastTouchEnds.slice(-4);
+        if (event.target.closest('body > header')) window.headerTapResults.push(event.defaultPrevented);
+      });
+    });
     const doubleTap = async (selector, edge = false) => {
       const target = page.locator(selector);
+      const inHeader = await target.evaluate(element => !!element.closest('body > header'));
+      if (inHeader) await page.evaluate(() => scrollTo(0, 0));
       await target.scrollIntoViewIfNeeded();
       const rect = await target.boundingBox();
       const point = edge ? { x: rect.x + 2, y: rect.y + rect.height - 2 }
@@ -23,13 +35,55 @@ module.exports = async function checkMobileViewport(browser, base) {
       // still smart-zoomed the header when only the root had manipulation.
       const hit = await page.evaluate(({ x, y }) => {
         const element = document.elementFromPoint(x, y);
-        return { tag: element?.tagName, action: element && getComputedStyle(element).touchAction };
+        return { tag: element?.tagName, action: element && getComputedStyle(element).touchAction,
+          header: !!element?.closest('body > header') };
       }, point);
       assert.equal(hit.action, 'manipulation', `Double-tap target ${selector} (${hit.tag}) lacks direct smart-zoom suppression`);
+      if (inHeader) assert(hit.header, `Header test ${selector} hit ${hit.tag} outside the header`);
+      const before = await page.evaluate(() => headerTapResults.length);
       for (let tap = 0; tap < 2; tap++) await page.touchscreen.tap(point.x, point.y);
+      if (hit.header) {
+        assert.deepEqual(await page.evaluate(before => headerTapResults.slice(before), before), [true, true],
+          `Decorative header taps on ${selector} at ${JSON.stringify(point)} must cancel native smart zoom: ${JSON.stringify(await page.evaluate(() => lastTouchEnds))}`);
+      }
       assert.equal(await page.evaluate(() => visualViewport.scale), 1);
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
     };
+    // Exercise gesture boundaries with actual DOM TouchEvents. A cancelled
+    // end suppresses native smart zoom; move/start must not block scrolling.
+    await page.evaluate(() => {
+      const logo = document.querySelector('.brand-mark'), body = document.body;
+      const finger = (id, target = logo, x = 50, y = 80) => new Touch({ identifier: id, target, clientX: x, clientY: y });
+      const send = (target, type, touches, changedTouches, time = 10) => {
+        const event = new TouchEvent(type, { bubbles: true, cancelable: true, touches, changedTouches });
+        Object.defineProperty(event, 'timeStamp', { value: time });
+        target.dispatchEvent(event);
+        return event.defaultPrevented;
+      };
+      const assert = (value, message) => { if (!value) throw new Error(message); };
+      const first = finger(1);
+      assert(!send(logo, 'touchstart', [first], [first]), 'Header start must allow scrolling');
+      const moved = finger(1, logo, 50, 120);
+      assert(!send(logo, 'touchmove', [moved], [moved]), 'Header move must allow scrolling');
+      assert(!send(logo, 'touchend', [], [moved]), 'Swipe end must remain uncancelled');
+      send(logo, 'touchstart', [first], [first]);
+      send(logo, 'touchmove', [moved], [moved]);
+      assert(!send(logo, 'touchend', [], [first]), 'Swipe returning to its origin is still not a tap');
+      send(logo, 'touchstart', [first], [first]);
+      const second = finger(2, body);
+      send(body, 'touchstart', [first, second], [second]);
+      send(body, 'touchend', [first], [second]);
+      assert(!send(logo, 'touchend', [], [first]), 'Second finger outside header must allow multi-touch');
+      send(logo, 'touchstart', [first], [first]);
+      assert(!send(logo, 'touchend', [], [first], 800), 'Long press must remain uncancelled');
+      send(logo, 'touchstart', [first], [first]);
+      send(logo, 'touchcancel', [], [first]);
+      assert(!send(logo, 'touchend', [], [first]), 'Cancelled gesture must not become a tap');
+      const jitter = finger(1, logo, 51, 81);
+      send(logo, 'touchstart', [first], [first]);
+      send(logo, 'touchmove', [jitter], [jitter]);
+      assert(send(logo, 'touchend', [], [jitter]), 'Small finger jitter must still suppress tap zoom');
+    });
     for (const [width, height] of [[320, 568], [375, 667], [390, 600], [390, 844]]) {
       await page.setViewportSize({ width, height });
       await doubleTap('.brand-mark');
@@ -40,6 +94,7 @@ module.exports = async function checkMobileViewport(browser, base) {
       await doubleTap('.prototype-note');
       await doubleTap('footer span');
       await page.locator('#rules-open').tap();
+      assert.equal(await page.evaluate(() => headerTapResults.at(-1)), false, 'Rules tap must keep its default behavior');
       await doubleTap('#rules h2');
       await doubleTap('#rules > p:first-of-type');
       await page.locator('#rules-close').tap();
