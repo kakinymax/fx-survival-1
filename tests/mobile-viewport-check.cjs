@@ -13,6 +13,38 @@ module.exports = async function checkMobileViewport(browser, base) {
     });
     await page.goto(base);
     await page.evaluate(() => document.fonts.ready);
+    const doubleTap = async (selector, edge = false) => {
+      const target = page.locator(selector);
+      await target.scrollIntoViewIfNeeded();
+      const rect = await target.boundingBox();
+      const point = edge ? { x: rect.x + 2, y: rect.y + rect.height - 2 }
+        : { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
+      // Check the element actually hit, not just the document root: WKWebView
+      // still smart-zoomed the header when only the root had manipulation.
+      const hit = await page.evaluate(({ x, y }) => {
+        const element = document.elementFromPoint(x, y);
+        return { tag: element?.tagName, action: element && getComputedStyle(element).touchAction };
+      }, point);
+      assert.equal(hit.action, 'manipulation', `Double-tap target ${selector} (${hit.tag}) lacks direct smart-zoom suppression`);
+      for (let tap = 0; tap < 2; tap++) await page.touchscreen.tap(point.x, point.y);
+      assert.equal(await page.evaluate(() => visualViewport.scale), 1);
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    };
+    for (const [width, height] of [[320, 568], [375, 667], [390, 600], [390, 844]]) {
+      await page.setViewportSize({ width, height });
+      await doubleTap('.brand-mark');
+      await doubleTap('.brand > div');
+      await doubleTap('.brand small');
+      await doubleTap('.beta');
+      await doubleTap('body > header', true);
+      await doubleTap('.prototype-note');
+      await doubleTap('footer span');
+      await page.locator('#rules-open').tap();
+      await doubleTap('#rules h2');
+      await doubleTap('#rules > p:first-of-type');
+      await page.locator('#rules-close').tap();
+    }
+    await page.setViewportSize({ width: 375, height: 667 });
     await page.locator('[data-count="2"]').tap();
     await page.locator('[data-mode="manual"]').tap();
     await page.locator('#setup-form button[type="submit"]').tap();
@@ -28,12 +60,6 @@ module.exports = async function checkMobileViewport(browser, base) {
           return r.left >= rect.left && r.right <= rect.right && r.top >= rect.top && r.bottom <= rect.bottom;
         });
     }, null, { timeout: 2000 });
-    const doubleTap = async selector => {
-      await page.locator(selector).scrollIntoViewIfNeeded();
-      const rect = await page.locator(selector).boundingBox();
-      for (let tap = 0; tap < 2; tap++)
-        await page.touchscreen.tap(rect.x + rect.width / 2, rect.y + rect.height / 2);
-    };
     const zoom = async scale => {
       // Chromium page scaling exercises a real visualViewport. It does not
       // claim to reproduce iOS WKWebView's native smart-zoom gesture.
@@ -43,6 +69,9 @@ module.exports = async function checkMobileViewport(browser, base) {
     for (const [width, height] of [[320, 568], [375, 667], [390, 600], [390, 844]]) {
       await page.setViewportSize({ width, height });
       await visibleDock();
+      await doubleTap('.brand-mark');
+      await doubleTap('.brand > div');
+      await doubleTap('body > header', true);
       await doubleTap('[data-side="buy"]');
       assert.equal(await page.locator('[data-side="buy"]').getAttribute('aria-pressed'), 'true');
       await doubleTap('[data-side="sell"]');
@@ -93,11 +122,12 @@ module.exports = async function checkMobileViewport(browser, base) {
     await page.locator('.ending-actions a[href="#stats"]').tap();
     await page.locator('[data-stat="plays"]').waitFor();
     await page.evaluate(() => scrollTo(0, 0));
+    await doubleTap('.brand > div');
     await doubleTap('.stats-top h1');
     assert.equal(await page.evaluate(() => visualViewport.scale), 1);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
-    // All screens, including inert content and dialogs, share this gesture
-    // policy; pan and pinch remain available while smart double-tap zoom does not.
+    // CSS permits pan/pinch and avoids blanket viewport zoom restrictions.
+    // Native WKWebView gesture behavior still needs iPhone verification.
     assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).touchAction), 'manipulation');
     const viewportMeta = await page.locator('meta[name="viewport"]').getAttribute('content');
     assert.doesNotMatch(viewportMeta, /user-scalable\s*=\s*no|maximum-scale\s*=\s*1(?:\D|$)/);

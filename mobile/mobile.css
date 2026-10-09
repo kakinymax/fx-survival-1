@@ -1,7 +1,11 @@
 /* SystemBars injects Android insets, including on older System WebViews. */
-.mobile-prototype {
-  /* Disable smart double-tap zoom across screens, while allowing pan/pinch. */
+.mobile-prototype,
+.mobile-prototype body,
+.mobile-prototype body * {
+  /* Not inherited: apply to hit targets too, including header text and logos. */
   touch-action: manipulation;
+}
+.mobile-prototype {
   --mobile-safe-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
   --mobile-safe-left: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
   --mobile-safe-right: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));

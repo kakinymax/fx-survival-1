@@ -184,13 +184,13 @@ iPhoneのTestFlight導入/起動と4項目の基本動作・戦績保存は成�
 | 5. 最終ビルドとTestFlight再確認（段階5） | 仕上げを入れた版でBuild番号を増やし、元コード/正式ID/版/同梱資産/署名を照合。既存戦績を保持する更新、操作/保存と掲載内容を再確認し、提出準備をそろえる | Codexが最終差分・検証・手順を保存。本人は既存Mac/XcodeでArchive・アップロード・iPhone更新を実施。ストア提出に使う場合はInternal Onlyではない配布方法を確認する。現ビルドのInternal Only表示は未確認で、提出可能とは断定しない |
 | 6. 審査・公開（段階6、後続指示待ち） | 本人の申請/公開指示後に審査提出。修正要求があれば対応し、承認後に指定の公開方法でリリース。公開URLと実際の導入を確認 | Codexが提出/修正を具体的に案内し、本人がAppleアカウント側を操作。申請・公開の結果を同じIssue/PRへ保存 |
 
-次の作業は順序1。新たなコード・素材の編集前に、最新main・全open一覧・既存予約を確認し、実際の変更範囲と元コードを同じIssueに記録する。表示不具合の修正版1.0（2）は再ビルド・アップロード・TestFlight更新が必要。ここから実装を変更した場合は、新しいBuildと検証結果を別に保存する。
+次の作業は順序1。新たなコード・素材の編集前に、最新main・全open一覧・既存予約を確認し、実際の変更範囲と元コードを同じIssueに記録する。修正版1.0（2）のアップロード・TestFlight更新とボタン/戦績の成功を確認済み。ヘッダーだけに残る拡大を追加修正した1.0（3）は、再ビルド・アップロード・実機再確認が必要。
 
 出典（2026-10-09確認）: [Appleのプライバシー申告とURL](https://developer.apple.com/help/app-store-connect/manage-app-information/manage-app-privacy/)、[App Review Guidelinesのプライバシー・権利・掲載内容](https://developer.apple.com/app-store/review/guidelines/)、[審査提出手順](https://developer.apple.com/help/app-store-connect/manage-submissions-to-app-review/submit-an-app)。
 
 ## iPhone修正版1.0（2）への更新
 
-今回の表示修正の詳細・自動検証・実機の再現手順は[アプリ手順](MOBILE_APP.md#iphoneのタップ後の拡大ボタン切れ2026-10-09)、コミットとネイティブCI結果はIssue #10／PR #11の最新コメントを参照する。1.0（2）のアップロード・実機成功はまだ確認していない。
+以下は1.0（2）を更新した際の手順の記録。元コード `7531b75` と正式ID/Build/同梱JSを照合し、Xcodeの「App 1.0 (2) uploaded」画面を確認済み。暗号化回答保存後「テスト準備完了」、既存「本人テスト」への追加、iPhone更新を確認。本人はボタンの修正反映と戦績/下部ボタンに問題なしと報告し、ヘッダーだけの拡大を残件として報告した。現在の追加修正版は[次節の1.0（3）](#iphone追加修正版103への更新)を使う。
 
 1. Xcodeを閉じ、Macのターミナルで次を実行する。
 
@@ -214,7 +214,20 @@ iPhoneのTestFlight導入/起動と4項目の基本動作・戦績保存は成�
 5. 照合後、Distribute App → TestFlight Internal Onlyで本人向けにアップロードする。App Store Connect → Fiction eXchange → TestFlightで **1.0（2）** の処理完了を待つ。暗号化の質問が出た場合は表示文と対象実装を照合する。今回の変更は表示だけで暗号化実装を追加していない。内部グループ「本人テスト」に1.0（2）を追加する。「審査用に追加」は一般公開用なので、この更新には使わない。
 6. iPhoneのTestFlight → Fiction eXchangeで「アップデート」を押す。アプリを削除しない。版が1.0（2）であることと既存の戦績が残ることを確認し、[実機の再確認項目](MOBILE_APP.md#iphoneのタップ後の拡大ボタン切れ2026-10-09)を試す。結果は成功/失敗と操作の組合せを同じIssue/PRへ保存する。
 
-終了区分：引き継ぎ。次の操作：Codexが修正SHA・CI結果を保存し、本人がMacの変更状態を確認して修正版をArchive/アップロード、TestFlight更新後に再確認する。iPhone固有のタップ動作は本人の実機確認待ち。main統合・Web公開・一般公開の審査/申請は行わない。
+当時の終了区分：引き継ぎ。本人のArchive/アップロード/TestFlight更新とボタン・戦績確認まで完了し、ヘッダーの残件は次節のBuild 3へ引き継ぐ。
+
+## iPhone追加修正版1.0（3）への更新
+
+ヘッダーの文字・ロゴ・余白にも拡大抑止を直接適用した追加修正版。Version 1.0、Build 3、正式IDとiPhone向け設定を維持する。変更内容・検証・元SHA・同梱ファイルの期待ハッシュはIssue #10／PR #11の最新コメントを参照する。
+
+1. Xcodeを閉じ、正式版の作業フォルダで `git status --short --branch` を実行して本人のローカル変更を確認する。変更があれば保存方法を確認してから更新する。古いプロジェクトのstashをそのまま戻すとBuildや対象端末の設定も戻り得るので、自動で適用しない。
+2. ローカル変更を保護した後、`git pull --ff-only origin mobile/prototype-20261005-codex-root`、`npm run mobile:ios` の順で更新・生成する。今回の依存関係に変更はない。ローカル変更の強制破棄やアプリの削除は行わない。
+3. XcodeのAppターゲットで本人の有料Team、正式ID `com.kakinymax.fxsurvival`、Version 1.0、Build 3、iPhone向け設定を確認する。実行先を `Any iOS Device (arm64)` とし、Product → Archive。
+4. Organizerで新しい1.0（3）を選び、Info.plistと同梱 `public/build-info.json`、`public/mobile.js`、**`public/mobile.css`** を照合する。今回の表示修正はCSSなので、JSだけのハッシュ一致では確認が足りない。必要な照合コマンドは現在のArchiveの状態に合わせて案内する。
+5. 本人向けのTestFlightへアップロードし、必要な暗号化回答を実装と照合して保存する。「本人テスト」に1.0（3）を追加し、iPhoneのTestFlightから削除せず更新する。
+6. 開始画面と対戦中のヘッダー（ロゴ・タイトル・余白）のダブルタップ、ルールの開閉、売り/買いと余白のダブルタップ、遷移/スクロール後の緑ボタン、既存戦績の保持を確認する。
+
+終了区分：引き継ぎ。次の操作：本人がMacの変更状態を知らせ、Codexが署名設定を保護した取り込み手順を案内する。その後のBuild 3のArchive/アップロード/更新とヘッダーの実機結果は未確認。一般公開の審査/公開は後続指示で進める。
 
 ## この段階の完成条件・検証結果・未完了
 
