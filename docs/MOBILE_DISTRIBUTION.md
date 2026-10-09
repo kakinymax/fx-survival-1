@@ -2,7 +2,7 @@
 
 更新: 2026-10-09 JST。正本は[Issue #10](https://github.com/kakinymax/fx-survival-1/issues/10) / [draft PR #11](https://github.com/kakinymax/fx-survival-1/pull/11)。担当 `mobile-prototype-20261005-codex-root`、固有ブランチ `mobile/prototype-20261005-codex-root`。6段階の全体像は[ロードマップ](MOBILE_ROADMAP.md)、試作の再導入は[試作手順](MOBILE_APP.md)を参照する。
 
-段階3を継続中。Appleの支払・登録完了を本人報告で確認し、App Store ConnectへのアクセスとXcodeの開発者機能有効・実機1台登録を画面で確認した。正式App ID `com.kakinymax.fxsurvival`（DescriptionはFiction eXchange）と同名のApp Store Connectレコードを作成済み。本人がレコードのBundle ID一致と有料Team選択を報告し、本人のMacでArchive 1.0（1）を作成した。元コード・同梱資産の一致とXcodeの「App 1.0 (1) uploaded」表示を確認済み。TestFlightには「コンプライアンスがありません／管理」「期限切れまで90日」と表示されたとの報告があり、暗号化に関する回答待ち。Internal Onlyの表示、本人用グループと実機導入は未確認。SKU・Google登録は未報告。登録名義は個人。個人情報や秘密値は保存しない。一般公開の審査・申請・リリースは後続指示で進める。
+段階3を継続中。Appleの支払・登録完了を本人報告で確認し、App Store ConnectへのアクセスとXcodeの開発者機能有効・実機1台登録を画面で確認した。正式App ID `com.kakinymax.fxsurvival`（DescriptionはFiction eXchange）と同名のApp Store Connectレコードを作成済み。本人がレコードのBundle ID一致と有料Team選択を報告し、本人のMacでArchive 1.0（1）を作成した。元コード・同梱資産の一致とXcodeの「App 1.0 (1) uploaded」表示を確認済み。TestFlightの暗号化の質問に回答・保存後、本人が「テスト準備完了／期限切れまで90日」と報告。内部グループ「本人テスト」の作成も本人報告で確認した。Internal Onlyの表示、本人/ビルドのグループ追加、実機導入は未確認。SKU・Google登録は未報告。登録名義は個人。個人情報や秘密値は保存しない。一般公開の審査・申請・リリースは後続指示で進める。
 
 ## 登録時の本人情報の確認（実施済み）
 
@@ -140,12 +140,14 @@ SKUは利用者に表示されない内部管理番号で、作成後に変更�
 | 同梱ビルド情報 | `kind: mobile-local`、`sourceCommit: fc8b6e5bb99722ce661d44837fcc6487d01ce010`、`dirty: false`、`records: device-indexeddb`、`onlineRecords: disabled`、正式名/IDが一致 |
 | 同梱mobile.js | SHA256 `eca156cc5124d7064b3476bad6b02f4fcdfbcce0492182bf2c02960a487e5901`。検証済みの同じ元コードの資産と一致 |
 | アップロード | Xcodeの緑のチェックと「App 1.0 (1) uploaded」を画面で確認 |
-| TestFlight | 本人報告「コンプライアンスがありません／管理」「期限切れまで90日」。暗号化に関する回答待ち |
-| 未確認 | Internal Onlyの表示、コンプライアンス回答の保存結果、本人用グループへの追加、TestFlightからの実機導入/新しい戦績版の確認 |
+| TestFlight | 暗号化の質問に回答・保存後、本人報告「テスト準備完了／期限切れまで90日」。内部グループ「本人テスト」の作成も報告済み |
+| 未確認 | Internal Onlyの表示、本人/ビルドのグループ追加、TestFlightからの実機導入/新しい戦績版の確認 |
+
+「本人テスト」は作成済み。次はグループの「テスター」欄の＋または「テスターを招待」で本人のアカウントだけを追加し、「ビルドを追加」で1.0（1）を選ぶ。本人追加/招待とビルド追加の完了はまだ未報告。第三者は対象に加えない。
 
 今回の共有文書更新でアプリコードは変更しない。アップロード済みアプリの元コードは上記 `fc8b6e5` のまま扱い、文書だけの更新を理由に本人へclone・再ビルド・再アップロードを求めない。将来、実装を変更して新たに送る場合はBuild番号を増やし、元コード・同梱資産を再照合する。
 
-「コンプライアンスがありません」は、輸出コンプライアンスの回答や書類がまだ設定されていない状態。ビルド横の「管理」から質問を開く。対象コードのモバイル起動・ローカル保存・同梱JS・iOS設定/依存を確認した範囲では、独自またはOS外の暗号化アルゴリズムの実装は見つからなかった。乱数・ゲームIDに使う `crypto.getRandomValues` / `crypto.randomUUID` はOS/WebKitのAPIで、データの暗号化処理ではない。戦績はIndexedDBに保存し、オンラインAPIは使わない。本人から「アプリには、どんな種類の暗号化アルゴリズムが実装されていますか？」と4択を受領した。対象実装に合う回答として「上記のアルゴリズムのどれでもない」を選び保存するよう案内済み。別の文言の質問にも一律「いいえ」とは案内しない。保存完了とビルド状態の変化はまだ未報告なので、次の本人報告で記録する。Info.plistの申告キーは今回追加せず、回答済み/テスト可能とはまだ扱わない。
+「コンプライアンスがありません」は、輸出コンプライアンスの回答や書類がまだ設定されていない状態。ビルド横の「管理」から質問を開く。対象コードのモバイル起動・ローカル保存・同梱JS・iOS設定/依存を確認した範囲では、独自またはOS外の暗号化アルゴリズムの実装は見つからなかった。乱数・ゲームIDに使う `crypto.getRandomValues` / `crypto.randomUUID` はOS/WebKitのAPIで、データの暗号化処理ではない。戦績はIndexedDBに保存し、オンラインAPIは使わない。本人から「アプリには、どんな種類の暗号化アルゴリズムが実装されていますか？」と4択を受領した。対象実装に合う回答として「上記のアルゴリズムのどれでもない」を選び保存するよう案内済み。別の文言の質問にも一律「いいえ」とは案内しない。本人は選択後の説明を確認し、保存後「テスト準備完了／期限切れまで90日」と報告した。これは本人報告による保存結果であり、一般公開の審査/公開ではない。Info.plistの申告キーは今回追加せず、コード変更・再アップロードを求めていない。
 
 出典（2026-10-09確認）: [ベータビルドの輸出コンプライアンス](https://developer.apple.com/help/app-store-connect/test-a-beta-version/provide-export-compliance-information-for-beta-builds/)、[暗号化の種類と必要書類](https://developer.apple.com/help/app-store-connect/reference/app-information/export-compliance-documentation-for-encryption/)、[内部テストとInternal Onlyの表示](https://developer.apple.com/help/app-store-connect/test-a-beta-version/add-internal-testers/)。
 
@@ -171,8 +173,8 @@ SKUは利用者に表示されない内部管理番号で、作成後に変更�
 | 登録料・名義・限定配布条件が具体的な案内になっている | Apple/Googleの一次情報を2026-10-06に照合 | 文書準備済み。Appleの登録後の管理画面を確認 |
 | 本人の登録・本人確認・アカウント有効化 | 本人報告で各状態を区別し、秘密値を残さない | Appleは支払/登録完了報告・App Store Connectアクセス・Xcode開発者機能有効を確認。Googleは未報告 |
 | 正式ID・記録移行・保存方式が決まっている | 仕様を共有し、実装とアカウント内のIDを照合 | 端末内保存は本人が選択し実装/自動検証済み。Appleの正式App ID登録を確認。正式ID/表示名をコードへ反映。正式版は新しい戦績で始め、旧試作を残すと本人が選択。料金は未決 |
-| 配布用署名ビルドを作れる | 元SHA/版/署名/同梱資産とビルド結果 | iOSは本人の有料Team選択報告、Archive 1.0（1）の元コード/識別子/同梱JSの一致、Xcodeアップロード成功を確認。Appleのコンプライアンス回答は未完了。Androidはdebug APK検証済み、配布署名AABは未作成 |
-| 本人への限定配布が両OSで動く | TestFlight/Play参加からの実機導入と基本操作 | 旧試作の手動導入・基本3項目は両OS問題なし。iOSはTestFlightに表示され暗号化の回答待ち。内部グループ/ストア経由実機導入は未確認。Play内部テストは未実施 |
+| 配布用署名ビルドを作れる | 元SHA/版/署名/同梱資産とビルド結果 | iOSは本人の有料Team選択報告、Archive 1.0（1）の元コード/識別子/同梱JSの一致、Xcodeアップロード成功を確認。Appleのコンプライアンス回答保存後「テスト準備完了」と本人報告。Androidはdebug APK検証済み、配布署名AABは未作成 |
+| 本人への限定配布が両OSで動く | TestFlight/Play参加からの実機導入と基本操作 | 旧試作の手動導入・基本3項目は両OS問題なし。iOSはTestFlightで「テスト準備完了」、内部グループ「本人テスト」作成を本人報告で確認。本人/ビルドの追加とストア経由実機導入は未確認。Play内部テストは未実施 |
 
 提出SDKの照合: Appleは2026-04-28以降Xcode26/iOS26 SDK以上、Googleの新規スマホアプリは2026-08-31以降target API36以上。試作のXcode26.3/iOS26.2 CIとAndroid compile/target36はこれらの版条件に合う。提出直前にも公式条件・署名・警告・プライバシー等を確認し、この版条件の一致だけをストア提出可能という判定にしない。
 
