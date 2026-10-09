@@ -1,3 +1,4 @@
+import {mobilePrototype,mobileLocalRecords,apiFetch} from './platform.js';
 import {createGame,activePlayers,submitOrder,resolveRound,commitDecisions,money,market,prepareAutoDraw,finishAutoDraw,migrateGame,STAGES,getStage} from './engine.js';
 import {CPU_PROFILES,isSolo,humanPlayer,isSpectating,createSoloGame,submitSoloOrder,resolveSoloRound,commitSoloDecision,resumeSolo,fastForwardSolo} from './solo.js';
 import {marketSeries,indexDisplay,candlesSvg} from './chart.js';
@@ -16,6 +17,8 @@ import {cpuPreviousQuote,personalBestsView} from './career-view.js';
 import {impactPreview,previousSoloLeverage,replayGame,fastForwardHighlights} from './play-extras.js';
 
 const root=document.querySelector('#app'),KEY='fx-survival-v1';
+const localStorageNote='<p class="prototype-note">戦績はこの端末に保存されます。ログインや他の端末との同期はありません。アプリの削除・データ消去で記録が失われます。</p>';
+const historyContent=content=>(mobileLocalRecords?localStorageNote:'')+content;
 const marketCharts=createMarketChartRenderer(root);
 const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const labels={active:'続行',fixed:'資産確定',cut:'ロスカット',debt:'負債・退場',empty:'資金枯渇'};
@@ -55,11 +58,11 @@ window.addEventListener('resize',syncActionDock);
 window.addEventListener('scroll',syncResultScrollHint,{passive:true});
 try{const saved=JSON.parse(localStorage.getItem(KEY));if(saved?.version===1&&saved.players?.length>=2&&saved.players.length<=6){saved.players.forEach(p=>{BigInt(p.wealth);BigInt(p.peak);BigInt(p.maxPosition)});game=resumeSolo(migrateGame(saved))}}catch{storageError=true}
 function save(){try{if(game)localStorage.setItem(KEY,JSON.stringify(game));else localStorage.removeItem(KEY)}catch{storageError=true}}
-const recordStore=createRecordStore({storage:{getItem:key=>localStorage.getItem(key),setItem:(key,value)=>localStorage.setItem(key,value),removeItem:key=>localStorage.removeItem(key)},onChange(id,state){if(game?.finalRecord?.id===id&&state==='saved'){game.finalRecordSaved=true;save()}refreshRecordStatus();if(state==='saved'){invalidateCpuCareers();void ensurePersonalBests(true);if(screen==='stats')void loadStatistics();if(screen==='records')void loadRecords();if(screen==='trips')void loadTrips();if(screen==='modes')void loadModes();if(screen==='legends')void loadLegends()}}});
-function prepareRecord(){if(game){ensureGameIdentity(game);if(game.finalRecord)recordStore.enqueue(game.finalRecord,{saved:game.finalRecordSaved===true})}}
+const recordStore=createRecordStore({autoRetry:!mobilePrototype,fetcher:apiFetch,storage:{getItem:key=>localStorage.getItem(key),setItem:(key,value)=>localStorage.setItem(key,value),removeItem:key=>localStorage.removeItem(key)},onChange(id,state){if(game?.finalRecord?.id===id&&state==='saved'){game.finalRecordSaved=true;save()}refreshRecordStatus();if(state==='saved'){invalidateCpuCareers();void ensurePersonalBests(true);if(screen==='stats')void loadStatistics();if(screen==='records')void loadRecords();if(screen==='trips')void loadTrips();if(screen==='modes')void loadModes();if(screen==='legends')void loadLegends()}}});
+function prepareRecord(){if(game){ensureGameIdentity(game);if(game.finalRecord)recordStore.enqueue(game.finalRecord,{saved:!mobileLocalRecords&&game.finalRecordSaved===true})}}
 function update(scroll=true){prepareRecord();save();render();if(scroll)window.scrollTo({top:0,behavior:'instant'})}
-function recordStatus(){const id=game?.finalRecord?.id,state=recordStore.state(id);return `<div class="record-status" role="status" data-record-status>${state==='saved'?'このゲームを戦績に保存しました。':state==='error'?`戦績を保存できませんでした。${action('再試行','retry-record','text-button')}`:'戦績を保存中…'}${state==='error'&&recordStore.draftError()?'<small>ページを閉じる前に再試行してください。</small>':''}</div>`}
-function pendingStatus(){return !game&&recordStore.pendingCount()?`<div class="pending-records" role="status" data-pending-records>未保存の戦績が${recordStore.pendingCount()}件あります。${action('再試行','retry-records','text-button')}</div>`:''}
+function recordStatus(){if(mobilePrototype)return `<div class="record-status" role="status" data-record-status>${recordStore.draftError()?'この端末に送信待ち記録を残せませんでした。アプリを閉じる前に結果を控えてください。':'確定記録はこの端末で送信待ちです。オンライン戦績は試作では未接続です。'}</div>`;const id=game?.finalRecord?.id,state=recordStore.state(id);return `<div class="record-status" role="status" data-record-status>${state==='saved'?(mobileLocalRecords?'この端末にゲームの戦績を保存しました。':'このゲームを戦績に保存しました。'):state==='error'?`戦績を保存できませんでした。${action('再試行','retry-record','text-button')}`:'戦績を保存中…'}${state==='error'&&recordStore.draftError()?'<small>ページを閉じる前に再試行してください。</small>':''}</div>`}
+function pendingStatus(){if(mobilePrototype)return !game&&recordStore.pendingCount()?`<div class="pending-records" role="status" data-pending-records>${recordStore.draftError()?'端末の記録を確認できませんでした。':`この端末に送信待ち記録が${recordStore.pendingCount()}件あります。`}オンライン戦績は試作では未接続です。</div>`:'';return !game&&recordStore.pendingCount()?`<div class="pending-records" role="status" data-pending-records>未保存の戦績が${recordStore.pendingCount()}件あります。${action('再試行','retry-records','text-button')}</div>`:''}
 function refreshRecordStatus(){const notice=root.querySelector('[data-record-status]');if(notice)notice.outerHTML=recordStatus();const pending=root.querySelector('[data-pending-records]');if(pending)pending.outerHTML=pendingStatus();refreshPersonalBestNotice()}
 window.addEventListener('online',()=>{void recordStore.retryAll()});
 function cpuIntroQuote(profile){
@@ -67,6 +70,7 @@ function cpuIntroQuote(profile){
  const career=cpuCareers.data.find(c=>c.id===profile);return career?`<p class="cpu-prior-quote">「${escape(cpuPreviousQuote(career))}」</p>`:'';
 }
 function cpuIntroStatus(){
+ if(mobilePrototype)return '試作ではCPUの前回記録は未接続です。CPU対戦は遊べます。';
  if(cpuCareers.state==='error')return '前回の記録を読み込めませんでした。<button type="button" class="text-button" data-action="retry-cpu-careers">再試行</button>';
  if(cpuCareers.state==='ready')return cpuCareers.data.some(c=>c.latest)?'保存済みの前回結果から':'';
  return '前回の記録を読み込み中…';
@@ -80,16 +84,18 @@ function invalidateCpuCareers(){
  if(screen==='game'&&!game&&setupPlay==='solo')void loadCpuCareers();
 }
 async function loadCpuCareers(){
+ if(mobilePrototype)return;
  if(cpuCareers.state==='loading')return;
  const request=++cpuCareerRequest;cpuCareers={state:'loading',data:null};refreshCpuIntro();
  try{
-  const response=await fetch('/api/cpu-careers',{headers:{Accept:'application/json'},cache:'no-store',signal:AbortSignal.timeout(10000)});
+  const response=await apiFetch('/api/cpu-careers',{headers:{Accept:'application/json'},cache:'no-store',signal:AbortSignal.timeout(10000)});
   if(!response.ok)throw Error('CPUの前回結果を読み込めませんでした。');
   const data=await response.json();if(!Array.isArray(data.cpuCareers))throw Error('CPUの前回結果を読み込めませんでした。');
   if(request!==cpuCareerRequest)return;cpuCareers={state:'ready',data:data.cpuCareers};refreshCpuIntro();
  }catch{if(request!==cpuCareerRequest)return;cpuCareers={state:'error',data:null};refreshCpuIntro()}
 }
 function personalBestNotice(){
+ if(mobilePrototype)return '';
  if(!isSolo(game?.finalRecord))return '';
  if(recordStore.state(game.finalRecord.id)!=='saved')return '<p class="best-read-note">保存後に自己記録を比較します。</p>';
  if(recordStore.pendingCount())return '<p class="best-read-note">未保存の試合を保存すると、自己記録を比較できます。</p>';
@@ -112,7 +118,7 @@ async function ensurePersonalBests(force=false){
  if(!force&&personalBests.id===id&&personalBests.state!=='idle')return;
  const request=++personalBestRequest;personalBests={id,state:'loading',data:null};refreshPersonalBestNotice();
  try{
-  const response=await fetch(`/api/matches/${id}/bests`,{headers:{Accept:'application/json'},cache:'no-store',signal:AbortSignal.timeout(10000)});
+  const response=await apiFetch(`/api/matches/${id}/bests`,{headers:{Accept:'application/json'},cache:'no-store',signal:AbortSignal.timeout(10000)});
   if(!response.ok)throw Error('自己記録を確認できませんでした。');
   const data=await response.json();if(data.id!==id||data.scope!=='self'||!Array.isArray(data.events)||data.events.length>2)throw Error('自己記録を確認できませんでした。');
   if(request!==personalBestRequest||game?.finalRecord?.id!==id)return;personalBests={id,state:'ready',data};refreshPersonalBestNotice();
@@ -120,7 +126,7 @@ async function ensurePersonalBests(force=false){
 }
 async function loadStatistics(){
  const request=++statisticsRequest;statistics={state:'loading',data:null};if(screen==='stats')render();
- try{const response=await fetch('/api/statistics',{headers:{Accept:'application/json'},cache:'no-store',signal:AbortSignal.timeout(15000)});if(!response.ok)throw Error(response.status===401?'ログインを確認して、もう一度読み込んでください。':'戦績を読み込めませんでした。');const data=await response.json();if(!data?.lifetime||!Array.isArray(data.recentGames))throw Error('戦績を読み込めませんでした。');if(request!==statisticsRequest)return;statistics={state:'ready',data}}
+ try{const response=await apiFetch('/api/statistics',{headers:{Accept:'application/json'},cache:'no-store',signal:AbortSignal.timeout(15000)});if(!response.ok)throw Error(response.status===401?'ログインを確認して、もう一度読み込んでください。':'戦績を読み込めませんでした。');const data=await response.json();if(!data?.lifetime||!Array.isArray(data.recentGames))throw Error('戦績を読み込めませんでした。');if(request!==statisticsRequest)return;statistics={state:'ready',data}}
  catch(error){if(request!==statisticsRequest)return;statistics={state:'error',data:null,error:error.name==='TimeoutError'?'読み込みに時間がかかっています。もう一度お試しください。':error.message}}
  if(screen==='stats')render();
 }
@@ -130,7 +136,7 @@ async function loadHistory(kind){
  set({state:'loading',data:null});if(screen===kind)render();
  try{
   if(kind==='match'&&!id)throw Error('試合が見つかりません。');
-  const response=await fetch(kind==='records'?'/api/records':`/api/matches/${id}`,{headers:{Accept:'application/json'},cache:'no-store',signal:AbortSignal.timeout(15000)});
+  const response=await apiFetch(kind==='records'?'/api/records':`/api/matches/${id}`,{headers:{Accept:'application/json'},cache:'no-store',signal:AbortSignal.timeout(15000)});
   if(!response.ok)throw Error(response.status===401?'ログインを確認して、もう一度読み込んでください。':response.status===404?'試合が見つかりません。':`${title}を読み込めませんでした。`);
   const data=await response.json();
   if(kind==='records'?!data?.scopes?.self||!data?.scopes?.human||!data?.scopes?.cpu||!data?.lifetime:data?.record?.id!==id||!Array.isArray(data.record.history))throw Error(`${title}を読み込めませんでした。`);
@@ -154,7 +160,7 @@ async function loadLegends(cursor=null){
  legendsPage=cursor?{...legendsPage,loadingMore:true,moreError:''}:{state:'loading',data:null};if(screen==='legends')render();
  try{
   const params=new URLSearchParams({scope,event});if(cursor)params.set('cursor',cursor);
-  const response=await fetch('/api/legends?'+params,{headers:{Accept:'application/json'},cache:'no-store',signal:AbortSignal.timeout(15000)});
+  const response=await apiFetch('/api/legends?'+params,{headers:{Accept:'application/json'},cache:'no-store',signal:AbortSignal.timeout(15000)});
   if(!response.ok)throw Error(response.status===401?'ログインを確認して、もう一度読み込んでください。':'殿堂入りの記録を読み込めませんでした。');
   const data=await response.json();if(data.scope!==scope||data.event!==event||!data.counts||!Array.isArray(data.entries))throw Error('殿堂入りの記録を読み込めませんでした。');
   if(request!==legendsRequest)return;
@@ -164,13 +170,13 @@ async function loadLegends(cursor=null){
 }
 async function loadModes(){
  const request=++modesRequest;modesPage={state:'loading',data:null};if(screen==='modes')render();
- try{const response=await fetch('/api/modes',{headers:{Accept:'application/json'},cache:'no-store',signal:AbortSignal.timeout(15000)});if(!response.ok)throw Error(response.status===401?'ログインを確認して、もう一度読み込んでください。':'モード別戦績を読み込めませんでした。');const data=await response.json();if(!data?.lifetime||!Array.isArray(data.modes)||data.modes.some(m=>!m.stage?.id||!m.stats))throw Error('モード別戦績を読み込めませんでした。');if(request!==modesRequest)return;modesPage={state:'ready',data}}
+ try{const response=await apiFetch('/api/modes',{headers:{Accept:'application/json'},cache:'no-store',signal:AbortSignal.timeout(15000)});if(!response.ok)throw Error(response.status===401?'ログインを確認して、もう一度読み込んでください。':'モード別戦績を読み込めませんでした。');const data=await response.json();if(!data?.lifetime||!Array.isArray(data.modes)||data.modes.some(m=>!m.stage?.id||!m.stats))throw Error('モード別戦績を読み込めませんでした。');if(request!==modesRequest)return;modesPage={state:'ready',data}}
  catch(error){if(request!==modesRequest)return;modesPage={state:'error',data:null,error:error.name==='TimeoutError'?'読み込みに時間がかかっています。もう一度お試しください。':error.message}}
  if(screen==='modes')render();
 }
 async function loadTrips(){
  const request=++tripsRequest;tripsPage={state:'loading',data:null};if(screen==='trips')render();
- try{const response=await fetch('/api/trips',{headers:{Accept:'application/json'},cache:'no-store',signal:AbortSignal.timeout(15000)});if(!response.ok)throw Error(response.status===401?'ログインを確認して、もう一度読み込んでください。':'TRIPを読み込めませんでした。');const data=await response.json();if(!Array.isArray(data?.trips)||data.trips.length!==2||data.trips.some(t=>!['a','b'].includes(t.id)||!t.stats)||new Set(data.trips.map(t=>t.id)).size!==2)throw Error('TRIPを読み込めませんでした。');if(request!==tripsRequest)return;tripsPage={state:'ready',data}}
+ try{const response=await apiFetch('/api/trips',{headers:{Accept:'application/json'},cache:'no-store',signal:AbortSignal.timeout(15000)});if(!response.ok)throw Error(response.status===401?'ログインを確認して、もう一度読み込んでください。':'TRIPを読み込めませんでした。');const data=await response.json();if(!Array.isArray(data?.trips)||data.trips.length!==2||data.trips.some(t=>!['a','b'].includes(t.id)||!t.stats)||new Set(data.trips.map(t=>t.id)).size!==2)throw Error('TRIPを読み込めませんでした。');if(request!==tripsRequest)return;tripsPage={state:'ready',data}}
  catch(error){if(request!==tripsRequest)return;tripsPage={state:'error',data:null,error:error.name==='TimeoutError'?'読み込みに時間がかかっています。もう一度お試しください。':error.message}}
  if(screen==='trips')render();
 }
@@ -185,7 +191,7 @@ function openTripReset(id){
 async function submitTripChange(operation){
  if(tripMutation.busy)return;tripsRequest++;tripMutation={busy:true,operation,error:'',notice:''};if(screen==='trips')render();
  try{
-  const response=await fetch(`/api/trips/${operation.id}`,{method:'PUT',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify(operation.change),signal:AbortSignal.timeout(15000)});
+  const response=await apiFetch(`/api/trips/${operation.id}`,{method:'PUT',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify(operation.change),signal:AbortSignal.timeout(15000)});
   if(!response.ok){const error=Error(response.status===409?'別の画面でTRIPが更新されました。再読み込みして確認してください。':response.status===401?'ログインを確認して、再読み込みしてください。':response.status===400?'名前は1〜20文字で入力してください。':'TRIPを保存できませんでした。同じ操作を再試行できます。');error.retryable=response.status>=500;throw error}
   const data=await response.json();if(data.trip?.id!==operation.id)throw Error('保存の確認ができませんでした。同じ操作を再試行できます。');
   if(operation.change.action==='rename')delete tripDrafts[operation.id];
@@ -301,18 +307,23 @@ function soloResultView(){
 function history(data=game){return `<details class="history"><summary>ラウンドの記録（${data.history.length}回）</summary>${data.history.map(h=>`<div class="history-item"><strong>R${h.round} · ${h.direction==='up'?'＋':'−'}${h.bps/100}% · ${h.gap?'ギャップ':'通常'} · 出目 ${h.first}${h.second?` / ${h.second}`:''}</strong>${h.results.map(r=>`<p>${escape(data.players.find(p=>p.id===r.id).name)}：${r.side==='buy'?'買い':'売り'} ${r.leverage}倍 · ${money(r.before)} → ${money(r.after)}${h.cpuQuotes?.[r.id]?` · 「${escape(h.cpuQuotes[r.id])}」`:''}</p>`).join('')}</div>`).join('')}</details>`}
 function ending(){const data=game.finalRecord,ws=data.players.filter(p=>data.winnerIds.includes(p.id)),ranked=standings(data.players);return `<section class="surface end-surface"><p class="eyebrow">FINAL RESULTS / ${data.endedRound} ROUNDS</p>${stageBadge(data.stage)}${decisionSummary(data)}<h1>最後に、いくら残せた？</h1><div class="ending"><p>${isSolo(data)?(ws.some(p=>!p.cpu)?(ws.length>1?'あなたの同率勝利':'あなたの勝利'):ws.length?(ws.length>1?'CPUの同率勝利':'今回はCPUの勝利'):'勝者なし'):ws.length>1?'同率勝利':ws.length?'WINNER':'NO WINNER'}${isSolo(data)?`<span class="personal-best-badge" data-personal-best-badge>${personalBestBadge()}</span>`:''}</p><h2>${ws.length?ws.map(p=>escape(p.name)).join('・'):'勝者なし'}</h2><p>${ws.length?`最終資産 ${money(ws[0].wealth)}`:'正の資産を残したプレイヤーはいません。'}</p></div><section class="final-standings" aria-label="最終順位"><h3>最終順位</h3>${ranked.map(entry=>{const p=entry.player;return `<div class="final-standing" data-final-player="${p.id}">${standingBadge(entry)}<div class="final-standing-player"><strong>${playerName(p)}</strong><span class="status ${p.status}">${labels[p.status]}</span></div><strong class="${BigInt(p.wealth)<0n?'negative':''}">${money(p.wealth)}</strong></div>`}).join('')}</section><p class="muted">最高到達資産も、最大取引額も、全員の記録に残ります。</p>${recordStatus()}<div data-personal-bests role="status" aria-live="polite">${personalBestNotice()}</div>${fastForwardDigest(data)}<div class="table-wrap"><table><thead><tr><th>プレイヤー</th><th>初期資産</th><th>最高到達資産</th><th>最大取引額</th><th>最終資産</th></tr></thead><tbody>${ranked.map(({player:p})=>`<tr><td><strong>${escape(p.name)}</strong><small>${labels[p.status]}</small></td><td>${money(p.initial)}</td><td>${money(p.peak)}</td><td>${money(p.maxPosition)}</td><td class="${BigInt(p.wealth)<0n?'negative':ws.some(w=>w.id===p.id)?'positive':''}"><strong>${money(p.wealth)}</strong>${isSolo(data)?`<small>最高から ${money(BigInt(p.peak)-BigInt(p.wealth))} 減少</small>`:''}</td></tr>`).join('')}</tbody></table></div>${data.history.length?`<section class="last-settlement"><h3>第${data.history.at(-1).round}ラウンドの精算</h3>${resultMarket(data.history.at(-1),data)}${resultCards(data.history.at(-1),false,data)}</section>`:''}${history(data)}<div class="ending-actions">${action('同じ設定で再戦','replay','primary full')}${action('設定を変えて遊ぶ','reset','secondary full')}<a href="#stats" class="secondary stats-link">戦績を見る</a></div></section>`}
 function render(){
+ if(mobilePrototype&&screen!=='game'){
+  marketCharts.clear();dockObserver.disconnect();document.body.dataset.phase='statistics';document.body.classList.remove('playing','has-turn-actions');
+  root.innerHTML='<section class="surface"><p class="eyebrow">アプリ試作</p><h1>オンライン戦績は準備中です</h1><p>対面・CPU対戦と試合中の結果表示は使えます。確定した記録は、この端末に送信待ちとして残します。</p><p>生涯戦績・歴代記録・TRIP・自己ベスト・CPUの前回記録は、オンライン保存の接続後に確認できるようにします。</p><p>試作の削除・アプリデータの消去で端末の記録は消えます。Web版の戦績との同期はまだ行いません。</p><a href="#" class="text-button">ゲームに戻る</a></section>';return;
+ }
+
  marketCharts.clear();
- if(screen==='legends'){document.body.dataset.phase='statistics';document.body.classList.remove('playing','has-turn-actions');dockObserver.disconnect();document.querySelector('footer').firstChild.textContent='保存した試合の出来事 ';root.innerHTML=legendsView({...legendsPage,scope:legendScope,event:legendEvent,hasGame:!!game,pendingCount:recordStore.pendingCount()});return}
- if(screen==='modes'){document.body.dataset.phase='statistics';document.body.classList.remove('playing','has-turn-actions');dockObserver.disconnect();document.querySelector('footer').firstChild.textContent='ステージごとの戦績を比較 ';root.innerHTML=modesView({...modesPage,hasGame:!!game,pendingCount:recordStore.pendingCount()});return}
- if(screen==='trips'){document.body.dataset.phase='statistics';document.body.classList.remove('playing','has-turn-actions');dockObserver.disconnect();document.querySelector('footer').firstChild.textContent='期間を決めて戦績を計測 ';root.innerHTML=tripsView({...tripsPage,hasGame:!!game,pendingCount:recordStore.pendingCount(),busy:tripMutation.busy,mutationError:tripMutation.error,retryable:!!tripMutation.operation,notice:tripMutation.notice,drafts:tripDrafts});return}
- if(screen==='stats'){document.body.dataset.phase='statistics';document.body.classList.remove('playing','has-turn-actions');dockObserver.disconnect();document.querySelector('footer').firstChild.textContent='保存したゲームの戦績 ';root.innerHTML=statisticsView({...statistics,pendingCount:recordStore.pendingCount(),hasGame:!!game});return}
- if(screen==='records'||screen==='match'){document.body.dataset.phase='statistics';document.body.classList.remove('playing','has-turn-actions');dockObserver.disconnect();document.querySelector('footer').firstChild.textContent='保存したゲームの記録 ';root.innerHTML=screen==='records'?recordsView({...recordsPage,scope:recordsScope,pendingCount:recordStore.pendingCount(),hasGame:!!game}):matchView({...matchPage,hasGame:!!game,from:matchFrom});return}
+ if(screen==='legends'){document.body.dataset.phase='statistics';document.body.classList.remove('playing','has-turn-actions');dockObserver.disconnect();document.querySelector('footer').firstChild.textContent='保存した試合の出来事 ';root.innerHTML=historyContent(legendsView({...legendsPage,scope:legendScope,event:legendEvent,hasGame:!!game,pendingCount:recordStore.pendingCount()}));return}
+ if(screen==='modes'){document.body.dataset.phase='statistics';document.body.classList.remove('playing','has-turn-actions');dockObserver.disconnect();document.querySelector('footer').firstChild.textContent='ステージごとの戦績を比較 ';root.innerHTML=historyContent(modesView({...modesPage,hasGame:!!game,pendingCount:recordStore.pendingCount()}));return}
+ if(screen==='trips'){document.body.dataset.phase='statistics';document.body.classList.remove('playing','has-turn-actions');dockObserver.disconnect();document.querySelector('footer').firstChild.textContent='期間を決めて戦績を計測 ';root.innerHTML=historyContent(tripsView({...tripsPage,hasGame:!!game,pendingCount:recordStore.pendingCount(),busy:tripMutation.busy,mutationError:tripMutation.error,retryable:!!tripMutation.operation,notice:tripMutation.notice,drafts:tripDrafts}));return}
+ if(screen==='stats'){document.body.dataset.phase='statistics';document.body.classList.remove('playing','has-turn-actions');dockObserver.disconnect();document.querySelector('footer').firstChild.textContent='保存したゲームの戦績 ';root.innerHTML=historyContent(statisticsView({...statistics,pendingCount:recordStore.pendingCount(),hasGame:!!game}));return}
+ if(screen==='records'||screen==='match'){document.body.dataset.phase='statistics';document.body.classList.remove('playing','has-turn-actions');dockObserver.disconnect();document.querySelector('footer').firstChild.textContent='保存したゲームの記録 ';root.innerHTML=historyContent(screen==='records'?recordsView({...recordsPage,scope:recordsScope,pendingCount:recordStore.pendingCount(),hasGame:!!game}):matchView({...matchPage,hasGame:!!game,from:matchFrom}));return}
  document.body.dataset.phase=game?.phase??'setup';
  document.body.classList.toggle('solo-game',isSolo(game));
  document.querySelector('footer').firstChild.textContent=isSolo(game)?'あなた + CPU3人で対戦 ':setupPlay==='solo'&&!game?'1人でCPUと対戦 ':'1台を受け渡してプレイ ';
  document.body.classList.toggle('playing',!!game&&game.phase!=='end');
  document.body.classList.toggle('has-turn-actions',['order','orders-revealed','results'].includes(game?.phase)||game?.mode==='auto'&&['direction-result','movement-result','drawing'].includes(game?.phase));
- if(!game){root.innerHTML=pendingStatus()+setup();if(storageError)root.insertAdjacentHTML('afterbegin','<p class="storage-warning">このブラウザでは途中保存が使えません。プレイ中はページを閉じないでください。</p>');if(setupPlay==='solo'&&cpuCareers.state==='idle')void loadCpuCareers();return}
+ if(!game){root.innerHTML=(mobileLocalRecords?localStorageNote:'')+(mobilePrototype?'<p class="prototype-note">アプリ試作 · 対面／CPU対戦はオフラインで遊べます。オンライン戦績は未接続です。</p>':'')+pendingStatus()+setup();if(storageError)root.insertAdjacentHTML('afterbegin','<p class="storage-warning">このブラウザでは途中保存が使えません。プレイ中はページを閉じないでください。</p>');if(setupPlay==='solo'&&cpuCareers.state==='idle')void loadCpuCareers();return}
  let content='';switch(game.phase){case'order':content=order();break;case'orders-revealed':case'direction-result':case'movement-result':case'dice':case'shock':case'drawing':content=marketView();break;case'results':content=isSolo(game)?soloResultView():resultView();break;case'end':root.innerHTML=`<div class="game-layout">${ending()}</div>`;void ensurePersonalBests();return;default:game=null;update();return}
  root.innerHTML=`${storageError?'<p class="storage-warning">途中保存が使えません。プレイ中はページを閉じないでください。</p>':''}<div class="game-layout"><section class="surface play-surface"><div class="round-top"><strong>R${String(game.round).padStart(2,'0')} <span class="muted">/ 12</span></strong><span class="round-stage" data-stage-active="${activeStage().id}">${activeStage().name}</span></div><div class="round-track" aria-hidden="true">${Array.from({length:12},(_,i)=>`<span class="${i+1<game.round?'done':i+1===game.round?'current':''}"></span>`).join('')}</div>${content}</section>${publicBoard()}</div>`;
  marketCharts.render();observeActionDock();

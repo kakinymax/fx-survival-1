@@ -1,0 +1,16 @@
+{
+  "appId": "com.kakinymax.fxsurvival",
+  "appName": "Fiction eXchange",
+  "webDir": "mobile/www",
+  "backgroundColor": "#10141b",
+  "android": {
+    "minWebViewVersion": 105
+  },
+  "server": { "errorPath": "unsupported.html" },
+  "plugins": {
+    "SystemBars": { "style": "DARK", "hidden": false, "insetsHandling": "css" }
+  },
+  "ios": {
+    "contentInset": "never"
+  }
+}

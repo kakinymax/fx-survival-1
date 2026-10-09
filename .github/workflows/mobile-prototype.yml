@@ -1,0 +1,149 @@
+name: Mobile prototype checks
+on:
+  pull_request:
+    paths:
+      - 'dist/**'
+      - 'mobile/**'
+      - 'android/**'
+      - 'ios/**'
+      - 'scripts/**'
+      - 'tests/**'
+      - 'package*.json'
+      - 'capacitor.config.json'
+      - '.github/workflows/mobile-prototype.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: mobile-prototype-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  web:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm audit --audit-level=low
+      - run: npm test && npm run build && npm run mobile:build
+      - run: npx playwright install --with-deps chromium
+      - run: |
+          node scripts/preview-mobile.mjs > /tmp/mobile-preview.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4174/ > /dev/null; then break; fi
+            sleep 1
+          done
+          npm run mobile:check
+  android:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+      - uses: actions/setup-java@v6.0.1
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: android-actions/setup-android@v4.0.4
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
+      - run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
+      - run: npm ci && npm run mobile:apk
+      - uses: actions/upload-artifact@v7.0.1
+        with:
+          name: fx-survival-android-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+  ios-simulator:
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            xcode: '26.3'
+            ios: '26-2'
+          - runner: xcode-27
+            xcode: '27.0'
+            ios: '27-0'
+    runs-on: ${{ matrix.runner }}
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: xcodebuild -version
+      - run: npm ci && npm run mobile:sync
+      - run: >-
+          xcodebuild -project ios/App/App.xcodeproj -scheme App
+          -configuration Debug -sdk iphonesimulator
+          -destination 'generic/platform=iOS Simulator'
+          -derivedDataPath ios/build CODE_SIGNING_ALLOWED=NO build
+      - name: Launch in iPhone simulator
+        timeout-minutes: 10
+        env:
+          IOS_RUNTIME: ${{ matrix.ios }}
+        run: |
+          xcrun simctl list devices available --json > /tmp/simulators.json
+          simulator_id=$(python3 - <<'PY'
+          import json, os
+          devices = json.load(open('/tmp/simulators.json'))['devices']
+          for runtime, candidates in devices.items():
+              if runtime.endswith('iOS-' + os.environ['IOS_RUNTIME']):
+                  for device in candidates:
+                      if device['name'].startswith('iPhone') and device['isAvailable']:
+                          print(device['udid'])
+                          raise SystemExit(0)
+          raise SystemExit('Requested iPhone simulator is unavailable')
+          PY
+          )
+          xcrun simctl boot "$simulator_id"
+          xcrun simctl bootstatus "$simulator_id" -b
+          xcrun simctl install "$simulator_id" ios/build/Build/Products/Debug-iphonesimulator/App.app
+          xcrun simctl launch "$simulator_id" com.kakinymax.fxsurvival
+          sleep 8
+          app_data=$(xcrun simctl get_app_container "$simulator_id" com.kakinymax.fxsurvival data)
+          swift - "$app_data/Library/WebKit" <<'SWIFT'
+          import Foundation
+          let directory = URL(fileURLWithPath: CommandLine.arguments[1], isDirectory: true)
+          let values = try directory.resourceValues(forKeys: [.isExcludedFromBackupKey])
+          precondition(values.isExcludedFromBackup == true, "WebKit backup exclusion is missing")
+          print("PASS: WebKit storage is excluded from backup")
+          SWIFT
+          xcrun simctl io "$simulator_id" screenshot ios/build/iphone-simulator.png
+          echo "SIMULATOR_ID=$simulator_id" >> "$GITHUB_ENV"
+      - name: Verify native header double taps with a negative control
+        timeout-minutes: 15
+        run: |
+          cp ios/App/App/public/mobile.js ios/build/fixed-mobile.js
+          node scripts/build-ios-gesture-baseline.mjs
+          xcodebuild -project ios/App/App.xcodeproj -scheme App \
+            -configuration Debug -sdk iphonesimulator -destination "id=$SIMULATOR_ID" \
+            -derivedDataPath ios/build/baseline CODE_SIGNING_ALLOWED=NO \
+            PRODUCT_BUNDLE_IDENTIFIER=com.kakinymax.fxsurvival.gesturebaseline build
+          xcrun simctl install "$SIMULATOR_ID" ios/build/baseline/Build/Products/Debug-iphonesimulator/App.app
+          cp ios/build/fixed-mobile.js ios/App/App/public/mobile.js
+          node scripts/prepare-ios-gesture-tests.mjs
+          xcodebuild -project ios/build/Gestures.xcodeproj -scheme Gestures \
+            -configuration Debug -sdk iphonesimulator -destination "id=$SIMULATOR_ID" \
+            -derivedDataPath ios/build/gesture-derived -resultBundlePath ios/build/gestures.xcresult \
+            -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO test
+      - uses: actions/upload-artifact@v7.0.1
+        if: always()
+        with:
+          name: fx-survival-ios-gestures-${{ matrix.xcode }}
+          path: ios/build/gestures.xcresult
+      - uses: actions/upload-artifact@v7.0.1
+        with:
+          name: fx-survival-ios-simulator-${{ matrix.xcode }}
+          path: |
+            ios/build/Build/Products/Debug-iphonesimulator/App.app
+            ios/build/iphone-simulator.png

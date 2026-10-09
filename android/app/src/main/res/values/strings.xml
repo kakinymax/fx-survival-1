@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Fiction eXchange</string>
+    <string name="title_activity_main">Fiction eXchange</string>
+    <string name="package_name">com.kakinymax.fxsurvival</string>
+    <string name="custom_url_scheme">com.kakinymax.fxsurvival</string>
+</resources>

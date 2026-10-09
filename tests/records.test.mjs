@@ -98,6 +98,24 @@ test('failed writes remain as drafts across reload/reset; retry verifies the sam
   assert.equal(next.state(r.id),'saved');assert.equal(next.pendingCount(),0);assert.equal(storage.getItem('fx-survival-pending-records-v1'),null);
   next.enqueue(r,{saved:true});assert.equal(next.pendingCount(),0);
 });
+test('paused mobile outbox retains exact records across restart and can later use the real sync path',async()=>{
+  const g=identified(createGame(['A','B']));round(g);const r=finish(g),storage=memory();let calls=0;
+  const fetcher=async()=>{calls++;return Response.json({record:r})};
+  const first=createRecordStore({storage,fetcher,autoRetry:false});first.enqueue(r);
+  await first.retry(r.id);await first.retryAll();
+  assert.equal(calls,0);assert.equal(first.state(r.id),'pending');assert.equal(first.pendingCount(),1);
+  assert.deepEqual(JSON.parse(storage.getItem('fx-survival-pending-records-v1')).records,[r]);
+  const restart=createRecordStore({storage,fetcher,autoRetry:false});restart.enqueue(r);await restart.retryAll();
+  assert.equal(restart.state(r.id),'pending');assert.equal(restart.pendingCount(),1);assert.equal(calls,0);
+  const connected=createRecordStore({storage,fetcher});await connected.retryAll();
+  assert.equal(calls,1);assert.equal(connected.state(r.id),'saved');assert.equal(connected.pendingCount(),0);
+  assert.equal(storage.getItem('fx-survival-pending-records-v1'),null);
+});
+test('paused outbox reports unavailable draft storage without claiming a successful save',()=>{
+  const g=identified(createGame(['A','B']));round(g);const r=finish(g);
+  const store=createRecordStore({autoRetry:false,storage:{getItem(){return null},setItem(){throw Error('full')},removeItem(){}}});
+  store.enqueue(r);assert.equal(store.state(r.id),'pending');assert.equal(store.draftError(),true);
+});
 test('mismatched server responses and unavailable draft storage never claim a successful save',async()=>{
   const g=identified(createGame(['A','B']));round(g);const r=finish(g);
   const store=createRecordStore({storage:{getItem(){throw Error('blocked')},setItem(){throw Error('blocked')},removeItem(){}},fetcher:async()=>Response.json({record:{...r,endedRound:9}})});

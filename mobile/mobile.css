@@ -1,0 +1,61 @@
+/* SystemBars injects Android insets, including on older System WebViews. */
+.mobile-prototype,
+.mobile-prototype body,
+.mobile-prototype body * {
+  /* Not inherited: apply to hit targets too, including header text and logos. */
+  touch-action: manipulation;
+}
+.mobile-prototype {
+  --mobile-safe-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+  --mobile-safe-left: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
+  --mobile-safe-right: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
+  --mobile-safe-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+}
+.mobile-prototype body > header {
+  padding-top: calc(25px + var(--mobile-safe-top));
+  padding-left: calc(32px + var(--mobile-safe-left));
+  padding-right: calc(32px + var(--mobile-safe-right));
+}
+.mobile-prototype body > header > .text-button { flex-shrink: 0; white-space: nowrap; }
+.mobile-prototype .brand { min-width: 0; }
+.mobile-prototype .brand > div { min-width: 0; overflow-wrap: anywhere; }
+.mobile-prototype main {
+  padding-left: calc(24px + var(--mobile-safe-left));
+  padding-right: calc(24px + var(--mobile-safe-right));
+}
+.mobile-prototype footer { padding-bottom: calc(28px + var(--mobile-safe-bottom)); }
+.mobile-prototype dialog {
+  max-height: 85vh;
+  max-height: 85dvh;
+}
+.mobile-prototype .turn-actions {
+  padding-left: calc(16px + var(--mobile-safe-left));
+  padding-right: calc(16px + var(--mobile-safe-right));
+  padding-bottom: calc(10px + var(--mobile-safe-bottom));
+}
+.mobile-prototype .prototype-note { margin: 0 0 12px; font-size: 12px; color: var(--muted); }
+.mobile-prototype .mobile-about-open { display: block; margin-top: 12px; padding-left: 0; text-align: left; }
+.mobile-prototype .playing footer { padding-bottom: calc(120px + var(--mobile-safe-bottom)); }
+.mobile-prototype .mobile-about .dialog-top { align-items: flex-start; gap: 12px; }
+.mobile-prototype .mobile-about h2 { min-width: 0; font-size: 18px; overflow-wrap: anywhere; }
+.mobile-prototype #mobile-about-close { flex-shrink: 0; }
+.mobile-prototype .mobile-about details { margin-top: 12px; border-top: 1px solid var(--line); }
+.mobile-prototype .mobile-about summary { padding: 12px 0; min-height: 48px; cursor: pointer; overflow-wrap: anywhere; }
+.mobile-prototype .mobile-about pre { white-space: pre-wrap; overflow-wrap: anywhere; font: 14px/1.65 ui-monospace, monospace; }
+@media (max-width: 760px) {
+  .mobile-prototype body > header {
+    padding-left: calc(16px + var(--mobile-safe-left));
+    padding-right: calc(16px + var(--mobile-safe-right));
+  }
+  .mobile-prototype .turn-actions {
+    left: var(--mobile-viewport-left, 0px);
+    right: auto;
+    width: var(--mobile-viewport-width, 100%);
+    bottom: var(--mobile-viewport-bottom, 0px);
+  }
+  .mobile-prototype .playing > header { padding-top: calc(4px + var(--mobile-safe-top)); }
+  .mobile-prototype .playing main {
+    padding-left: calc(12px + var(--mobile-safe-left));
+    padding-right: calc(12px + var(--mobile-safe-right));
+  }
+}
