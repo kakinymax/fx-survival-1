@@ -86,10 +86,10 @@ module.exports = async function checkMobileViewport(browser, base) {
     });
     for (const [width, height] of [[320, 568], [375, 667], [390, 600], [390, 844]]) {
       await page.setViewportSize({ width, height });
+      assert.equal(await page.locator('#rules-open').evaluate(element => element.scrollWidth > element.clientWidth), false);
       await doubleTap('.brand-mark');
       await doubleTap('.brand > div');
       await doubleTap('.brand small');
-      await doubleTap('.beta');
       await doubleTap('body > header', true);
       await doubleTap('.prototype-note');
       await doubleTap('footer span');

@@ -5,12 +5,14 @@ import { createLocalRepository } from './local-records.js';
 import { createLocalApi } from './local-api.js';
 import { installMobileViewport } from './viewport.js';
 import { installHeaderGestures } from './header-gestures.js';
+import { installMobileAbout } from './about.js';
 
 globalThis.FX_SURVIVAL_BUILD = Object.freeze({ kind: 'mobile-local',
   apiFetch: createLocalApi({ repository: createLocalRepository() }) });
 document.documentElement.classList.add('mobile-prototype');
 installMobileViewport(window, document.documentElement);
 installHeaderGestures(document.querySelector('body > header'));
+installMobileAbout(document);
 
 // Android Back dismisses overlays or returns from statistics. It never walks
 // through previous secret-order screens or changes game state.

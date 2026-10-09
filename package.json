@@ -8,6 +8,7 @@
     "db:generate": "drizzle-kit generate",
     "start": "WRANGLER_LOG_PATH=.wrangler/logs/wrangler.log WRANGLER_SEND_METRICS=false CLOUDFLARE_CF_FETCH_ENABLED=false node node_modules/wrangler/bin/wrangler.js dev --config dist/server/wrangler.json --ip 127.0.0.1 --persist-to .wrangler/state",
     "mobile:build": "node scripts/build-mobile.mjs",
+    "mobile:brand": "node scripts/build-ios-brand.mjs",
     "mobile:sync": "npm run mobile:build && cap sync",
     "mobile:android": "npm run mobile:sync && cap open android",
     "mobile:ios": "npm run mobile:sync && cap open ios",

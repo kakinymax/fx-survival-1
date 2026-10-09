@@ -1,0 +1,19 @@
+{
+  "source": "dist/market-raster.js: F and X glyphs",
+  "generator": "scripts/build-ios-brand.mjs",
+  "colors": {
+    "dark": "#10141b",
+    "lime": "#ceef64"
+  },
+  "externalImagesOrFonts": false,
+  "icon": {
+    "size": 1024,
+    "format": "RGB PNG",
+    "sha256": "0cfba6985d6e7fe1b1cf23a9b206461e0931dd4c5976122a05d88787664a74ae"
+  },
+  "launch": {
+    "size": 2732,
+    "format": "RGB PNG",
+    "sha256": "4b94c1068ac41a467a32c5c7877be3f0ddfd85b72846d7bde2cb516e82039dce"
+  }
+}
