@@ -10,6 +10,12 @@ const objects = project.hash.project.objects;
 objects.PBXGroup['504EC3061FED79650016851F'].path = JSON.stringify(path.resolve('ios/App/App'));
 objects.PBXFileReference['958DCC722DB07C7200EA8C5F'].path = JSON.stringify(path.resolve('ios/debug.xcconfig'));
 objects.XCLocalSwiftPackageReference['D4C12C0A2AAA248700AAC8A2'].relativePath = '"../App/CapApp-SPM"';
+// Build settings resolve from SOURCE_ROOT, independently of the file groups.
+for (const configuration of Object.values(objects.XCBuildConfiguration)) {
+  if (configuration.buildSettings?.INFOPLIST_FILE === 'App/Info.plist') {
+    configuration.buildSettings.INFOPLIST_FILE = JSON.stringify(path.resolve('ios/App/App/Info.plist'));
+  }
+}
 const app = project.getFirstTarget();
 const dependencies = [...app.firstTarget.dependencies];
 const target = project.addTarget('GestureTests', 'unit_test_bundle', 'GestureTests', 'com.kakinymax.fxsurvival.gesturetests');
